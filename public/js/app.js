@@ -16,10 +16,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const socketClient = new SocketClient();
     const gameController = new GameController(socketClient);
 
+    // Load stats
+    function loadStats() {
+        const stats = JSON.parse(localStorage.getItem('oanquan_stats')) || { played: 0, won: 0, streak: 0 };
+        const winrate = stats.played > 0 ? ((stats.won / stats.played) * 100).toFixed(1) : 0;
+        const ePlayed = document.getElementById('stat-played');
+        if(ePlayed) {
+            ePlayed.innerText = stats.played;
+            document.getElementById('stat-won').innerText = stats.won;
+            document.getElementById('stat-winrate').innerText = winrate + '%';
+            document.getElementById('stat-streak').innerText = stats.streak;
+        }
+    }
+    loadStats();
+
     // Menu logic
+    const onlineSetupModal = document.getElementById('online-setup-modal');
     btnPvP.addEventListener('click', () => {
+        onlineSetupModal.classList.remove('hidden');
+    });
+
+    document.getElementById('btn-close-online-setup').addEventListener('click', () => {
+        onlineSetupModal.classList.add('hidden');
+    });
+
+    document.getElementById('btn-start-online-final').addEventListener('click', () => {
+        const input = document.getElementById('online-name');
+        const myName = (input.value || '').trim() || 'Vô Danh';
+        
+        onlineSetupModal.classList.add('hidden');
         matchOverlay.classList.remove('hidden');
-        socketClient.joinQueue(document.getElementById('game-mode-selector').value);
+        socketClient.joinQueue(document.getElementById('game-mode-selector').value, myName);
     });
 
     const localSetupModal = document.getElementById('local-setup-modal');
@@ -112,15 +139,59 @@ document.addEventListener('DOMContentLoaded', () => {
     // Listen to socket events
     socketClient.on('game-start', (data) => {
         matchOverlay.classList.add('hidden');
-        mainMenu.classList.remove('active');
-        gameView.classList.remove('hidden');
-        gameView.classList.add('active');
         
-        // Pass captured names as a fallback
-        const name1 = document.getElementById('local-name-1').value.trim();
-        const name2 = document.getElementById('local-name-2').value.trim();
-        
-        gameController.initGame(data.state, data.roomId, [name1, name2]);
+        const isBot = data.state.players[1].isBot;
+        const isLocal = data.state.isLocalMatch;
+
+        if (!isBot && !isLocal) {
+            // Online PvP
+            const p1Name = data.state.players[0].name;
+            const p2Name = data.state.players[1].name;
+            const goesFirst = data.state.turn;
+            
+            const overlay = document.getElementById('coin-flip-overlay');
+            const coin = document.getElementById('coin');
+            const status = document.getElementById('coin-status');
+            const resultDiv = document.getElementById('coin-result');
+            
+            overlay.classList.remove('hidden');
+            coin.className = 'coin';
+            resultDiv.classList.add('hidden');
+            status.innerText = 'Xác định lượt đi...';
+
+            setTimeout(() => {
+                const winnerName = goesFirst === 0 ? p1Name : p2Name;
+                coin.classList.add(goesFirst === 0 ? 'flip-heads' : 'flip-tails');
+                
+                setTimeout(() => {
+                    status.innerText = 'KẾT QUẢ';
+                    resultDiv.innerText = `${winnerName} đi trước!`;
+                    resultDiv.classList.remove('hidden');
+                    
+                    if (typeof confetti === 'function') {
+                        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                    }
+
+                    setTimeout(() => {
+                        overlay.classList.add('hidden');
+                        mainMenu.classList.remove('active');
+                        gameView.classList.remove('hidden');
+                        gameView.classList.add('active');
+                        gameController.initGame(data.state, data.roomId, [p1Name, p2Name]);
+                    }, 2000);
+                }, 3000);
+            }, 500);
+        } else {
+            mainMenu.classList.remove('active');
+            gameView.classList.remove('hidden');
+            gameView.classList.add('active');
+            
+            // Pass captured names as a fallback
+            const name1 = document.getElementById('local-name-1').value.trim();
+            const name2 = document.getElementById('local-name-2').value.trim();
+            
+            gameController.initGame(data.state, data.roomId, [name1, name2]);
+        }
     });
     
     socketClient.on('opponent-disconnected', () => {

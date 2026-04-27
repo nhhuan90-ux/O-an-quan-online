@@ -18,8 +18,8 @@ export default class SocketClient {
         this.handlers[event].push(callback);
     }
 
-    joinQueue(mode) {
-        this.socket.emit('join-queue', { mode });
+    joinQueue(mode, name) {
+        this.socket.emit('join-queue', { mode, name });
     }
 
     leaveQueue() {

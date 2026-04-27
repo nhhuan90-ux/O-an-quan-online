@@ -203,6 +203,7 @@ export default class GameController {
         this.gameState = gameState;
         this.roomId = roomId;
         this.lastTurn = undefined;
+        this.statsSaved = false;
 
         // Fallback for names in local match if server sent defaults
         if (gameState.isLocalMatch && localNames) {
@@ -474,6 +475,22 @@ export default class GameController {
              } else {
                  winnerText = winnerIndex === this.myPlayerIndex ? "Chiến Thắng! 🎉" : "Thất Bại 💀";
              }
+        }
+        
+        if (!this.statsSaved) {
+            this.statsSaved = true;
+            // Only record stats for actual PvP matches
+            if (!gameState.isLocalMatch && !gameState.players[1].isBot) {
+                 const stats = JSON.parse(localStorage.getItem('oanquan_stats')) || { played: 0, won: 0, streak: 0 };
+                 stats.played += 1;
+                 if (gameState.status !== 'draw' && gameState.winner === this.myPlayerIndex) {
+                     stats.won += 1;
+                     stats.streak += 1;
+                 } else if (gameState.status !== 'draw' && gameState.winner !== this.myPlayerIndex) {
+                     stats.streak = 0;
+                 }
+                 localStorage.setItem('oanquan_stats', JSON.stringify(stats));
+            }
         }
         
         title.innerText = winnerText;

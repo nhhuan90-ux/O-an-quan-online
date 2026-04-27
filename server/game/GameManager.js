@@ -10,10 +10,16 @@ export default class GameManager {
         this.playerRooms = new Map(); // socketId -> roomId
     }
 
-    createMatch(playerA_socket, playerB_socket, mode = 'tactical') {
+    createMatch(playerA_socket, playerB_socket, mode = 'tactical', names = null, startingTurn = 0) {
         const roomId = `room_${Date.now()}`;
-        const gs = new GameState(playerA_socket.id, playerB_socket.id, false, false, mode);
+        const gs = new GameState(playerA_socket.id, playerB_socket.id, false, false, mode, names, startingTurn);
         
+        gs.turn = startingTurn;
+        if (names && names.length >= 2) {
+            gs.players[0].name = names[0];
+            gs.players[1].name = names[1];
+        }
+
         this.games.set(roomId, gs);
         this.playerRooms.set(playerA_socket.id, roomId);
         this.playerRooms.set(playerB_socket.id, roomId);

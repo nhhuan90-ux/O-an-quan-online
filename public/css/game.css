@@ -507,3 +507,24 @@
 }
 .card-slot.face-down:hover .card-tooltip { display: none; }
 .card-slot.face-down:hover .kese-card { transform: none; }
+
+/* Responsive Media Queries */
+@media (max-width: 1200px) {
+    .board { transform: scale(0.85); margin: -30px auto; }
+    .game-layout { max-width: 100%; }
+}
+@media (max-width: 992px) {
+    .board { transform: scale(0.7); margin: -60px auto; }
+    .player-panel { height: auto; flex-wrap: wrap; justify-content: center; padding: 10px; }
+}
+@media (max-width: 768px) {
+    .board { transform: scale(0.5); margin: -100px auto; }
+    .player-panel { flex-direction: column; gap: 10px; }
+    .cards-container { flex-wrap: wrap; justify-content: center; }
+    .action-buttons { flex-direction: row !important; }
+}
+@media (max-width: 576px) {
+    .board { transform: scale(0.32); margin: -140px auto; }
+    .player-info { flex-direction: column; text-align: center; }
+    .ap-container { justify-content: center; }
+}

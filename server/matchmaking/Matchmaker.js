@@ -5,12 +5,12 @@ export default class Matchmaker {
         this.queue = [];
     }
 
-    addPlayer(socket, mode) {
+    addPlayer(socket, mode, name) {
         // Prevent duplicate queueing
         if (this.queue.find(p => p.socket.id === socket.id)) return;
         
-        console.log(`Player joined queue: ${socket.id} (Mode: ${mode})`);
-        this.queue.push({ socket, mode });
+        console.log(`Player joined queue: ${socket.id} (Mode: ${mode}, Name: ${name})`);
+        this.queue.push({ socket, mode, name });
         this.checkQueue();
     }
 
@@ -30,8 +30,9 @@ export default class Matchmaker {
                        this.queue.splice(j, 1);
                        this.queue.splice(i, 1);
                        
-                       console.log(`Match found: ${pA.socket.id} vs ${pB.socket.id} (${pA.mode})`);
-                       this.gameManager.createMatch(pA.socket, pB.socket, pA.mode);
+                       const goesFirst = Math.random() < 0.5 ? 0 : 1;
+                       console.log(`Match found: ${pA.name} vs ${pB.name} (${pA.mode})`);
+                       this.gameManager.createMatch(pA.socket, pB.socket, pA.mode, [pA.name, pB.name], goesFirst);
                        return; // Need to recursively check but usually only 1 match added
                   }
              }

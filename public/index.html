@@ -71,28 +71,28 @@
                     <div class="stat-item">
                         <div class="stat-label">
                             <span>Trận đã chơi</span>
-                            <strong>128</strong>
+                            <strong id="stat-played">0</strong>
                         </div>
                         <i class="fas fa-gamepad stat-icon"></i>
                     </div>
                     <div class="stat-item">
                         <div class="stat-label">
                             <span>Trận thắng</span>
-                            <strong>86</strong>
+                            <strong id="stat-won">0</strong>
                         </div>
                         <i class="fas fa-trophy stat-icon" style="color: #FFD700;"></i>
                     </div>
                     <div class="stat-item">
                         <div class="stat-label">
                             <span>Tỷ lệ thắng</span>
-                            <strong>67.2%</strong>
+                            <strong id="stat-winrate">0%</strong>
                         </div>
                         <i class="fas fa-chart-line stat-icon" style="color: #4caf50;"></i>
                     </div>
                     <div class="stat-item">
                         <div class="stat-label">
                             <span>Chuỗi thắng</span>
-                            <strong>12</strong>
+                            <strong id="stat-streak">0</strong>
                         </div>
                         <i class="fas fa-fire stat-icon" style="color: #ff5722;"></i>
                     </div>
@@ -149,6 +149,22 @@
                 <div style="display: flex; gap: 15px; justify-content: center; margin-top: 5px;">
                     <button id="btn-start-local-final" class="btn-game btn-local" style="padding: 12px 30px; font-size: 18px; width: 160px; height: 50px;">Bắt đầu</button>
                     <button id="btn-close-local-setup" class="guide-btn" style="padding: 12px 30px; font-size: 18px; width: 160px; height: 50px; margin-top: 0; border-radius: 18px;">Hủy</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- NEW: Online Match Setup Modal -->
+        <div id="online-setup-modal" class="overlay hidden">
+            <div class="glass-panel" style="width: 400px;">
+                <h2 style="color: var(--gold); margin-bottom: 20px;">Tên của bạn</h2>
+                <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+                    <div>
+                        <input type="text" id="online-name" placeholder="Nhập tên..." class="game-mode-selector" style="width: 100%; border-radius: 8px;">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 15px; justify-content: center; margin-top: 5px;">
+                    <button id="btn-start-online-final" class="btn-game btn-online" style="padding: 12px 30px; font-size: 18px; width: 160px; height: 50px;">Tìm trận</button>
+                    <button id="btn-close-online-setup" class="guide-btn" style="padding: 12px 30px; font-size: 18px; width: 160px; height: 50px; margin-top: 0; border-radius: 18px;">Hủy</button>
                 </div>
             </div>
         </div>

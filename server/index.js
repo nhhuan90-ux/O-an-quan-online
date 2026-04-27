@@ -32,7 +32,7 @@ io.on('connection', (socket) => {
 
   // Matchmaking
   socket.on('join-queue', (options) => {
-    matchmaker.addPlayer(socket, options?.mode || 'tactical');
+    matchmaker.addPlayer(socket, options?.mode || 'tactical', options?.name || 'Vô danh');
   });
 
   socket.on('leave-queue', () => {
