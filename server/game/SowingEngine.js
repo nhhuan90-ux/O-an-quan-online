@@ -123,7 +123,7 @@ export class SowingEngine {
         gameState.lastAction = { type: 'move', startPit, direction };
         
         if (gameState.mode === 'classic') {
-             steps.push({ type: 'auto-end-turn' });
+             steps.push({ type: 'auto-end-turn', actingPlayer: gameState.turn });
         }
         
         return steps;

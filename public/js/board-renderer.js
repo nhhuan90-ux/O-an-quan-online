@@ -222,7 +222,10 @@ export default class BoardRenderer {
              }
              else if (step.type === 'auto-end-turn') {
                  if (window.currentGameController) {
-                     window.currentGameController.socket.sendAction({ type: 'end-turn' });
+                     const gc = window.currentGameController;
+                     if (gc.gameState.isLocalMatch || gc.myPlayerIndex === step.actingPlayer) {
+                         gc.socket.sendAction({ type: 'end-turn' });
+                     }
                  }
                  await this.sleep(500);
              }

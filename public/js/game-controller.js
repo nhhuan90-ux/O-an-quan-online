@@ -83,7 +83,8 @@ export default class GameController {
         // Direction choosing
         document.getElementById('btn-dir-ccw').addEventListener('click', () => {
              const isPlayerB = this.selectedPit >= 7 && this.selectedPit <= 11;
-             const dir = isPlayerB ? 1 : -1;
+             const invert = this.gameState.isLocalMatch && isPlayerB;
+             const dir = invert ? 1 : -1;
              this.sendMove(this.selectedPit, dir);
              this.dirChooser.classList.add('hidden');
              this.renderer.clearHighlights();
@@ -92,7 +93,8 @@ export default class GameController {
 
         document.getElementById('btn-dir-cw').addEventListener('click', () => {
              const isPlayerB = this.selectedPit >= 7 && this.selectedPit <= 11;
-             const dir = isPlayerB ? -1 : 1;
+             const invert = this.gameState.isLocalMatch && isPlayerB;
+             const dir = invert ? -1 : 1;
              this.sendMove(this.selectedPit, dir);
              this.dirChooser.classList.add('hidden');
              this.renderer.clearHighlights();
@@ -101,13 +103,13 @@ export default class GameController {
 
         // Other actions
         this.btnEndTurnA.addEventListener('click', () => {
-            if (this.isMyTurn() && (!this.gameState.isLocalMatch || this.gameState.turn === 0)) {
+            if (this.isMyTurn()) {
                 this.socket.sendAction({ type: 'end-turn' });
             }
         });
 
         this.btnEndTurnB.addEventListener('click', () => {
-            if (this.isMyTurn() && (!this.gameState.isLocalMatch || this.gameState.turn === 1)) {
+            if (this.gameState.isLocalMatch && this.gameState.turn === 1 && this.isMyTurn()) {
                 this.socket.sendAction({ type: 'end-turn' });
             }
         });
@@ -121,11 +123,11 @@ export default class GameController {
         };
 
         this.btnFreezeA.addEventListener('click', () => {
-            if (!this.gameState.isLocalMatch || this.gameState.turn === 0) triggerFreeze();
+            if (this.isMyTurn()) triggerFreeze();
         });
 
         this.btnFreezeB.addEventListener('click', () => {
-            if (!this.gameState.isLocalMatch || this.gameState.turn === 1) triggerFreeze();
+            if (this.gameState.isLocalMatch && this.gameState.turn === 1 && this.isMyTurn()) triggerFreeze();
         });
 
         this.centralDeck.addEventListener('click', () => {
@@ -283,13 +285,13 @@ export default class GameController {
         this.renderAP(this.apB, oppData.ap);
         
         // Turn indicator
-        const targetA = gameState.isLocalMatch ? 0 : this.myPlayerIndex;
-        const targetB = gameState.isLocalMatch ? 1 : (this.myPlayerIndex === 0 ? 1 : 0);
+        const myTurnIndex = gameState.isLocalMatch ? 0 : this.myPlayerIndex;
+        const oppTurnIndex = gameState.isLocalMatch ? 1 : (this.myPlayerIndex === 0 ? 1 : 0);
         
-        document.getElementById('player-a-panel').classList.toggle('my-turn', gameState.turn === 0);
-        document.getElementById('player-b-panel').classList.toggle('my-turn', gameState.turn === 1);
+        document.getElementById('player-a-panel').classList.toggle('my-turn', gameState.turn === myTurnIndex);
+        document.getElementById('player-b-panel').classList.toggle('my-turn', gameState.turn === oppTurnIndex);
         
-        if (gameState.turn === 0) {
+        if (gameState.turn === myTurnIndex) {
             this.btnEndTurnA.classList.remove('hidden');
             this.btnFreezeA.classList.remove('hidden');
             this.btnEndTurnB.classList.add('hidden');
@@ -299,6 +301,14 @@ export default class GameController {
             this.btnFreezeA.classList.add('hidden');
             this.btnEndTurnB.classList.remove('hidden');
             this.btnFreezeB.classList.remove('hidden');
+        }
+
+        // Apply Board Rotation if Player 2 Online
+        const boardEl = document.getElementById('board');
+        if (!gameState.isLocalMatch && this.myPlayerIndex === 1) {
+            boardEl.classList.add('rotated');
+        } else {
+            boardEl.classList.remove('rotated');
         }
 
         // Buff effects
