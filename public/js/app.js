@@ -49,6 +49,29 @@ document.addEventListener('DOMContentLoaded', () => {
         socketClient.joinQueue(document.getElementById('game-mode-selector').value, myName);
     });
 
+    // Fullscreen logic
+    const btnFullscreen = document.getElementById('btn-fullscreen');
+    btnFullscreen.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.log(`Lỗi khi vào toàn màn hình: ${err.message}`);
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+        const icon = btnFullscreen.querySelector('i');
+        if (document.fullscreenElement) {
+            icon.classList.replace('fa-expand', 'fa-compress');
+        } else {
+            icon.classList.replace('fa-compress', 'fa-expand');
+        }
+    });
+
     const localSetupModal = document.getElementById('local-setup-modal');
     document.getElementById('btn-local').addEventListener('click', () => {
         localSetupModal.classList.remove('hidden');
