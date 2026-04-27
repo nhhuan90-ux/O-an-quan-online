@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ô Quan Chiến Thuật</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Serif:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/game.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+    <!-- MAIN MENU -->
+    <div id="main-menu" class="view active">
+        <div class="homepage">
+            <div class="main-frame">
+                <!-- LEFT PANEL -->
+                <div class="left-panel">
+                    <h2 class="panel-title">CHẾ ĐỘ CHƠI</h2>
+                    <select id="game-mode-selector" class="game-mode-selector">
+                        <option value="tactical">⚔️ Chiến Thuật (Dùng AP & Thẻ)</option>
+                        <option value="classic">🛡️ Cổ Điển (Luật Chơi Gốc)</option>
+                    </select>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <i class="fas fa-bolt"></i>
+                            <span>Sử dụng AP để thực hiện nước đi</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-cards"></i>
+                            <span>Kết hợp thẻ kỹ năng đặc biệt</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-brain"></i>
+                            <span>Tính toán chiến thuật để giành chiến thắng</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CENTER PANEL -->
+                <div class="center-panel">
+                    <div class="logo">
+                        <!-- Text removed as it is in background image -->
+                    </div>
+
+                    <div class="action-buttons-container">
+                        <button id="btn-pve" class="btn-game btn-ai">
+                            <i class="fas fa-robot"></i>
+                            <span>Chơi với Máy (AI)</span>
+                        </button>
+                        <button id="btn-local" class="btn-game btn-local">
+                            <i class="fas fa-users"></i>
+                            <span>Chơi 2 Người (Máy Chung)</span>
+                        </button>
+                        <button id="btn-pvp" class="btn-game btn-online">
+                            <i class="fas fa-globe"></i>
+                            <span>Ghép Cặp Trực Tuyến</span>
+                        </button>
+                    </div>
+
+                    <button id="btn-rules" class="guide-btn">
+                        <i class="fas fa-book-open"></i> Cẩm Nang Luật Chơi
+                    </button>
+                </div>
+
+                <!-- RIGHT PANEL -->
+                <div class="right-panel">
+                    <h2 class="panel-title">THÀNH TÍCH</h2>
+                    <div class="stat-item">
+                        <div class="stat-label">
+                            <span>Trận đã chơi</span>
+                            <strong>128</strong>
+                        </div>
+                        <i class="fas fa-gamepad stat-icon"></i>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">
+                            <span>Trận thắng</span>
+                            <strong>86</strong>
+                        </div>
+                        <i class="fas fa-trophy stat-icon" style="color: #FFD700;"></i>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">
+                            <span>Tỷ lệ thắng</span>
+                            <strong>67.2%</strong>
+                        </div>
+                        <i class="fas fa-chart-line stat-icon" style="color: #4caf50;"></i>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">
+                            <span>Chuỗi thắng</span>
+                            <strong>12</strong>
+                        </div>
+                        <i class="fas fa-fire stat-icon" style="color: #ff5722;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rules Modal (Internal to Main Menu for z-index ease) -->
+        <div id="rules-modal" class="overlay hidden">
+            <!-- Modal content remains the same structure but styled via glass-panel -->
+            <div class="glass-panel" style="max-width: 700px; text-align: left; max-height: 85vh; overflow-y: auto;">
+                <h2 style="text-align: center; color: var(--gold); margin-bottom: 20px;">📜 Hướng Dẫn Ô Quan Chiến Thuật</h2>
+                
+                <h4>1. Cách Chơi Cơ Bản</h4>
+                <p>- Mỗi người bắt đầu có 5 ô Dân (mối ô 5 dân) và 1 ô Quan. Trò chơi kết thúc khi 2 ô Quan bị ăn hết.</p>
+                <p>- Chọn một ô và rẽ trái/phải để rải quân từng ô một. Nếu ô kết thúc rải có quân, bạn bốc tiếp và đi tiếp.</p>
+                
+                <h4 style="margin-top:15px;">2. Ăn Điểm & Mất Lượt</h4>
+                <p>- <strong>Ăn Điểm:</strong> Nếu ô kế tiếp trống, và ô liền sau nó có quân, bạn sẽ "Ăn" ô đó và KẾT THÚC lượt.</p>
+                <p>- <strong>Mất Lượt:</strong> Nếu rơi vào ô Quan hoặc vấp vào 2 ô trống liên tiếp, bạn mất lượt.</p>
+                
+                <h4 style="margin-top:15px;">3. Cơ Chế Chiến Thuật (AP & Thẻ)</h4>
+                <p>- Bạn có <strong>3 AP</strong> mỗi lượt. Mỗi lần nhấc quân đi tốn 1 AP.</p>
+                <p>- <strong>Kế Sách:</strong> Có thể mua thẻ bằng 5 điểm. Thẻ giúp xoay chuyển tình thế (Đóng băng, X2 điểm, Cướp lượt...).</p>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button id="btn-close-rules" class="btn-game btn-local" style="font-size: 16px; padding: 10px 30px;">Đã Hiểu</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="matchmaking-overlay" class="overlay hidden">
+            <div class="glass-panel text-center">
+                <h2 style="color: var(--gold-light);">Đang tìm đối thủ...</h2>
+                <div class="spinner"></div>
+                <button id="btn-cancel-match" class="guide-btn" style="border-color: #c63c2f; color: #c63c2f;">Hủy Tìm Trận</button>
+            </div>
+        </div>
+
+        <!-- NEW: Local Match Setup Modal -->
+        <div id="local-setup-modal" class="overlay hidden">
+            <div class="glass-panel" style="width: 400px;">
+                <h2 style="color: var(--gold); margin-bottom: 20px;">Tên Người Chơi</h2>
+                <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Người chơi 1 (Dưới)</label>
+                        <input type="text" id="local-name-1" value="Người chơi 1" class="game-mode-selector" style="width: 100%; border-radius: 8px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-size: 0.9rem;">Người chơi 2 (Trên)</label>
+                        <input type="text" id="local-name-2" value="Người chơi 2" class="game-mode-selector" style="width: 100%; border-radius: 8px;">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 15px; justify-content: center; margin-top: 5px;">
+                    <button id="btn-start-local-final" class="btn-game btn-local" style="padding: 12px 30px; font-size: 18px; width: 160px; height: 50px;">Bắt đầu</button>
+                    <button id="btn-close-local-setup" class="guide-btn" style="padding: 12px 30px; font-size: 18px; width: 160px; height: 50px; margin-top: 0; border-radius: 18px;">Hủy</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- NEW: Coin Flip Overlay -->
+        <div id="coin-flip-overlay" class="overlay hidden">
+            <div class="glass-panel text-center" style="width: 350px; padding: 40px;">
+                <h2 id="coin-status" style="color: var(--gold); margin-bottom: 30px; font-family: var(--font-heading);">Xác định lượt đi...</h2>
+                <div id="coin" class="coin">
+                    <div class="side heads">1</div>
+                    <div class="side tails">2</div>
+                </div>
+                <div id="coin-result" class="hidden" style="margin-top: 30px; font-size: 1.4rem; font-weight: bold; color: var(--gold-light);"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME BOARD -->
+    <div id="game-view" class="view hidden">
+        <!-- History Panel -->
+        <div class="history-panel">
+            <div class="history-title">📜 LỊCH SỬ ĂN QUÂN</div>
+            <div id="history-list" class="history-list">
+                <!-- History items injected here -->
+                <div class="history-item">
+                    <div class="time">--:--</div>
+                    <div class="msg">Chào mừng bạn đến với game!</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-layout">
+            
+            <!-- OPPONENT PANEL (Player B) -->
+            <div id="player-b-panel" class="player-panel glass-panel enemy">
+                <div class="player-info">
+                    <div class="avatar">B</div>
+                    <div class="stats">
+                        <div class="name" id="name-b">Đối thủ</div>
+                        <div class="score">Điểm: <span id="score-b">0</span></div>
+                        <div class="ap-container" id="ap-b">
+                            <span class="ap-dot"></span><span class="ap-dot"></span><span class="ap-dot"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="cards-container" id="opp-cards">
+                    <!-- Opponent cards injected here -->
+                </div>
+                
+                <div class="action-buttons" style="flex-direction:row; justify-content:center;">
+                    <button id="btn-freeze-b" class="btn btn-outline action-btn hidden">❄️ Khoá Ô (-3 AP)</button>
+                    <button id="btn-end-turn-b" class="btn action-btn hidden">Kết Thúc Lượt</button>
+                </div>
+            </div>
+
+            <!-- BOARD -->
+            <div class="board-container">
+                <div id="board" class="board wood-bg">
+                    <!-- Left Quan -->
+                    <div class="quan-pit-container left-quan">
+                         <div class="pit quan-pit" id="pit-0" data-index="0"></div>
+                    </div>
+
+                    <div class="pits-center">
+                        <!-- Top row (Player B: 11 down to 7) -->
+                        <div class="board-row top-row">
+                            <div class="dan-pits-container">
+                                <div class="pit dan-pit" id="pit-11" data-index="11"></div>
+                                <div class="pit dan-pit" id="pit-10" data-index="10"></div>
+                                <div class="pit dan-pit" id="pit-9" data-index="9"></div>
+                                <div class="pit dan-pit" id="pit-8" data-index="8"></div>
+                                <div class="pit dan-pit" id="pit-7" data-index="7"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Bottom row (Player A: 1 to 5) -->
+                        <div class="board-row bottom-row">
+                            <div class="dan-pits-container">
+                                <div class="pit dan-pit" id="pit-1" data-index="1"></div>
+                                <div class="pit dan-pit" id="pit-2" data-index="2"></div>
+                                <div class="pit dan-pit" id="pit-3" data-index="3"></div>
+                                <div class="pit dan-pit" id="pit-4" data-index="4"></div>
+                                <div class="pit dan-pit" id="pit-5" data-index="5"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Quan -->
+                    <div class="quan-pit-container right-quan">
+                         <div class="pit quan-pit" id="pit-6" data-index="6"></div>
+                    </div>
+                </div>
+                
+                <!-- Direction chooser popup (hidden by default) -->
+                <div id="direction-chooser" class="direction-chooser hidden">
+                    <button id="btn-dir-ccw" class="dir-btn">⬅</button>
+                    <button id="btn-dir-cw" class="dir-btn">➡</button>
+                </div>
+
+                <!-- Central Deck -->
+                <div id="central-deck" class="central-deck">
+                     <div class="deck-card" title="Rút Kế Sách (5 Điểm)">
+                         <div class="deck-pattern">KẾ<br>SÁCH</div>
+                     </div>
+                     <div class="deck-label">Mua Thẻ (-5)</div>
+                </div>
+                
+                <!-- Animated Hand -->
+                <div id="animated-hand" class="animated-hand hidden">
+                     ✋
+                     <div id="hand-count" class="hand-count-tag hidden">0</div>
+                </div>
+            </div>
+
+            <!-- PLAYER PANEL (Player A) -->
+            <div id="player-a-panel" class="player-panel glass-panel friendly">
+                <div class="player-info">
+                    <div class="avatar">A</div>
+                    <div class="stats">
+                        <div class="name" id="name-a">Bạn</div>
+                        <div class="score">Điểm: <span id="score-a">0</span> <span id="bank-ui" class="bank-pill">Kho: 100</span></div>
+                        <div class="ap-container" id="ap-a">
+                            <span class="ap-dot"></span><span class="ap-dot"></span><span class="ap-dot"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-buttons" style="flex-direction:row; justify-content:center;">
+                    <button id="btn-freeze-a" class="btn btn-outline action-btn">❄️ Khoá Ô (-3 AP)</button>
+                    <button id="btn-end-turn-a" class="btn action-btn">Kết Thúc Lượt</button>
+                </div>
+
+                <div class="cards-container" id="my-cards">
+                    <!-- Cards injected here -->
+                </div>
+            </div>
+            
+        </div>
+        
+        <!-- Game Over Modal -->
+        <div id="game-over-modal" class="overlay hidden">
+            <div class="glass-panel text-center">
+                <h2 id="go-title">Kết Thúc</h2>
+                <p id="go-desc">Điểm tổng kết</p>
+                <button id="btn-home" class="btn btn-primary mt-4">Về Trang Chủ</button>
+            </div>
+        </div>
+        
+        <!-- Target Selection Hint -->
+        <div id="target-hint" class="target-hint hidden">
+            Hãy chọn một ô mục tiêu
+        </div>
+        
+        <!-- Notifications -->
+        <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
