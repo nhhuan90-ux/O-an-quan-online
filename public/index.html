@@ -334,7 +334,26 @@
 
     <!-- FULLSCREEN TOGGLE -->
     <button id="btn-fullscreen" class="fullscreen-btn" title="Toàn màn hình">
-        <i class="fas fa-expand"></i>
+        <svg class="icon-expand" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="grad-fs" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#f1c40f;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#e74c3c;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            <circle cx="12" cy="12" r="3" stroke="url(#grad-fs)" stroke-width="2"/>
+            <path d="M3 8V3H8" stroke="url(#grad-fs)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16 3H21V8" stroke="url(#grad-fs)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M21 16V21H16" stroke="url(#grad-fs)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M8 21H3V16" stroke="url(#grad-fs)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg class="icon-compress hidden" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="3" stroke="url(#grad-fs)" stroke-width="2"/>
+            <path d="M8 3V8H3" stroke="url(#grad-fs)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16 3V8H21" stroke="url(#grad-fs)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M21 16H16V21" stroke="url(#grad-fs)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 16H8V21" stroke="url(#grad-fs)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
     </button>
 
     <script type="module" src="js/app.js"></script>

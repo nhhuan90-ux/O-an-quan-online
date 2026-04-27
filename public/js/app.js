@@ -64,11 +64,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.addEventListener('fullscreenchange', () => {
-        const icon = btnFullscreen.querySelector('i');
+        const iconExpand = btnFullscreen.querySelector('.icon-expand');
+        const iconCompress = btnFullscreen.querySelector('.icon-compress');
         if (document.fullscreenElement) {
-            icon.classList.replace('fa-expand', 'fa-compress');
+            iconExpand.classList.add('hidden');
+            iconCompress.classList.remove('hidden');
         } else {
-            icon.classList.replace('fa-compress', 'fa-expand');
+            iconExpand.classList.remove('hidden');
+            iconCompress.classList.add('hidden');
         }
     });
 
