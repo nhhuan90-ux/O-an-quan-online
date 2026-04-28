@@ -258,21 +258,23 @@
 .stone {
     width: 16px; height: 16px;
     border-radius: 50%;
-    background: #ecf0f1;
-    box-shadow: inset -3px -3px 6px rgba(0,0,0,0.3), 2px 2px 5px rgba(0,0,0,0.6);
-    position: absolute; /* Using absolute positioning inside relative pit for random spread */
-    transition: all 0.3s ease;
+    background: #f8f9fa;
+    box-shadow: inset -2px -2px 4px rgba(0,0,0,0.4), 1px 1px 3px rgba(0,0,0,0.5);
+    position: absolute;
+    display: block !important;
+    z-index: 2;
 }
 
 .stone.red {
-    background: var(--primary);
-    box-shadow: inset -3px -3px 6px rgba(0,0,0,0.3), 0 0 8px var(--primary);
+    background: #e74c3c;
+    box-shadow: inset -2px -2px 4px rgba(0,0,0,0.4), 0 0 8px rgba(231, 76, 60, 0.6);
 }
 
 .stone.quan {
     width: 28px; height: 28px;
-    background: radial-gradient(circle, #ffeaa7, #fdcb6e);
-    box-shadow: inset -5px -5px 10px rgba(0,0,0,0.3), 0 0 15px var(--gold);
+    background: radial-gradient(circle, #f1c40f, #f39c12);
+    box-shadow: inset -4px -4px 8px rgba(0,0,0,0.4), 0 0 12px rgba(241, 196, 15, 0.5);
+    z-index: 3;
 }
 
 
