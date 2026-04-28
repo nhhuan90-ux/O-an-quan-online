@@ -124,9 +124,7 @@ export class SowingEngine {
 
         gameState.lastAction = { type: 'move', startPit, direction };
         
-        if (gameState.mode === 'classic') {
-             steps.push({ type: 'auto-end-turn', actingPlayer: gameState.turn });
-        }
+        // Classic mode no longer needs auto-end-turn step since GameManager handles turn switching automatically.
         
         return steps;
     }

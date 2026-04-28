@@ -169,7 +169,7 @@ export default class GameManager {
                 if (gs.players[playerIndex].activeBuffs.lienHoanActive) {
                     gs.players[playerIndex].activeBuffs.lienHoanActive = false; // consume it
                     this.startTurnTimer(roomId); // Restart timer for bonus turn
-                } else if (gs.players[playerIndex].ap <= 0) {
+                } else if (gs.players[playerIndex].ap <= 0 || gs.mode === 'classic') {
                     gs.nextTurn();
                     this.startTurnTimer(roomId);
                 } else {

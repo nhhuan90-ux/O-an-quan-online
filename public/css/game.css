@@ -258,21 +258,28 @@
 .stone {
     width: 16px; height: 16px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #ffffff, #e9ecef);
+    background-color: #ffffff;
+    background-image: linear-gradient(135deg, #ffffff, #e9ecef);
     box-shadow: inset -2px -2px 4px rgba(0,0,0,0.4), 1px 1px 3px rgba(0,0,0,0.5);
     position: absolute;
     display: block !important;
     z-index: 2;
+    color-scheme: light;
+    forced-color-adjust: none;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
 }
 
 .stone.red {
-    background: #e74c3c;
+    background-color: #e74c3c;
+    background-image: none;
     box-shadow: inset -2px -2px 4px rgba(0,0,0,0.4), 0 0 8px rgba(231, 76, 60, 0.6);
 }
 
 .stone.quan {
     width: 28px; height: 28px;
-    background: radial-gradient(circle, #f1c40f, #f39c12);
+    background-color: #f1c40f;
+    background-image: radial-gradient(circle, #f1c40f, #f39c12);
     box-shadow: inset -4px -4px 8px rgba(0,0,0,0.4), 0 0 12px rgba(241, 196, 15, 0.5);
     z-index: 3;
 }
@@ -709,13 +716,13 @@
 }
 
 @media (max-width: 768px) {
-    .board { --board-scale: 0.6; margin: -80px auto; }
+    .board { --board-scale: 0.65; margin: -70px auto; }
     .player-panel { padding: 5px 10px; }
     .cards-container { display: none; } /* Hide cards on very small screens to save space */
 }
 
 @media (max-width: 576px) {
-    .board { --board-scale: 0.55; margin: -90px auto; }
+    .board { --board-scale: 0.62; margin: -80px auto; }
     .player-panel { height: 60px; }
     .stats .name { font-size: 0.9rem; }
     .stats .score { font-size: 0.8rem; }
