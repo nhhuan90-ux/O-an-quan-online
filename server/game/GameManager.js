@@ -248,24 +248,25 @@ export default class GameManager {
     playBotTurn(roomId) {
         const gs = this.games.get(roomId);
         if (!gs || gs.status !== 'playing' || !gs.players[gs.turn].isBot) return;
+
+        // 1. First check if side is empty and needs refill or results in bankruptcy
+        if (gs.isPlayersSideEmpty(gs.turn)) {
+            if (!gs.refillSide(gs.turn)) {
+                // Bankruptcy!
+                gs.checkGameStatus();
+                this.io.to(roomId).emit('state-update', { state: gs, actionData: { type: 'bankruptcy' } });
+                return;
+            } else {
+                // Refilled successfully
+                this.io.to(roomId).emit('state-update', { state: gs, actionData: { type: 'refill' } });
+            }
+        }
         
-        if (gs.players[gs.turn].ap > 0) {
+        // 2. Perform AI move
+        if (gs.players[gs.turn].ap > 0 || gs.mode === 'classic') {
             const action = AIPlayer.getBestMove(gs);
             if (action) {
-                if (action.type === 'move') {
-                     // Might need to refill first if empty
-                     if (gs.isPlayersSideEmpty(gs.turn)) {
-                         if (gs.refillSide(gs.turn)) {
-                             this.io.to(roomId).emit('state-update', { state: gs, actionData: { type: 'refill' } });
-                         } else {
-                             // Bankruptcy
-                             gs.checkGameStatus();
-                             this.io.to(roomId).emit('state-update', { state: gs });
-                             return;
-                         }
-                     }
-                     this.handleAction(gs.players[gs.turn].id, action);
-                }
+                this.handleAction(gs.players[gs.turn].id, action);
             } else {
                 this.handleAction(gs.players[gs.turn].id, { type: 'end-turn' });
             }

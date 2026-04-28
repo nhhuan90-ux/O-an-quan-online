@@ -134,12 +134,13 @@ export default class GameState {
     }
 
     // Condition 2: Bankruptcy (Side empty and score < 5)
-    // Checked at the start of a player's turn typically
-    const player = this.players[this.turn];
-    if (this.isPlayersSideEmpty(this.turn) && player.score < 5) {
-       this.status = this.turn === PLAYER_A ? 'win_b' : 'win_a';
-       this.winner = this.turn === PLAYER_A ? PLAYER_B : PLAYER_A;
-       return;
+    // Checked at the start of a player's turn
+    const currentPlayer = this.players[this.turn];
+    if (this.isPlayersSideEmpty(this.turn) && currentPlayer.score < 5) {
+        console.log(`Bankruptcy detected for player ${this.turn} (${currentPlayer.name})`);
+        this.status = this.turn === PLAYER_A ? 'win_b' : 'win_a';
+        this.winner = this.turn === PLAYER_A ? PLAYER_B : PLAYER_A;
+        return;
     }
 
     // Condition 3: Both Quan eaten

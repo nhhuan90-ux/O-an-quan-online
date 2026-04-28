@@ -264,8 +264,9 @@
     position: absolute;
     display: block !important;
     z-index: 2;
-    color-scheme: light;
-    forced-color-adjust: none;
+    color-scheme: only light !important;
+    forced-color-adjust: none !important;
+    filter: brightness(1) !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
 }
@@ -690,8 +691,8 @@
         padding: 0 !important; 
     }
     .board { 
-        --board-scale: 0.46 !important; 
-        margin: -120px auto !important; /* Compansate for scale to prevent pushing bottom panel out */
+        --board-scale: 0.58 !important; 
+        margin: -90px auto !important; /* Compansate for scale to prevent pushing bottom panel out */
     }
     
     .history-panel {
@@ -716,13 +717,13 @@
 }
 
 @media (max-width: 768px) {
-    .board { --board-scale: 0.65; margin: -70px auto; }
+    .board { --board-scale: 0.72; margin: -55px auto; }
     .player-panel { padding: 5px 10px; }
     .cards-container { display: none; } /* Hide cards on very small screens to save space */
 }
 
 @media (max-width: 576px) {
-    .board { --board-scale: 0.62; margin: -80px auto; }
+    .board { --board-scale: 0.68; margin: -65px auto; }
     .player-panel { height: 60px; }
     .stats .name { font-size: 0.9rem; }
     .stats .score { font-size: 0.8rem; }
