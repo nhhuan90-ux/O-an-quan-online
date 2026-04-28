@@ -50,6 +50,17 @@ export default class GameController {
         
         this.gameOverModal = document.getElementById('game-over-modal');
         this.toastContainer = document.getElementById('toast-container');
+        
+        // Timer UI
+        this.timerContainer = document.getElementById('turn-timer-container');
+        this.timerText = document.getElementById('turn-timer-text');
+        this.timerWarningModal = document.getElementById('timer-warning-modal');
+        this.warningCountdownText = document.getElementById('warning-countdown');
+        this.btnTimerExtend = document.getElementById('btn-timer-extend');
+        this.btnTimerSkip = document.getElementById('btn-timer-skip');
+        
+        this.localTimerInterval = null;
+        this.localWarningInterval = null;
 
         this.setupEventListeners();
         this.setupSocketListeners();
@@ -162,6 +173,30 @@ export default class GameController {
                 icon.className = 'fas fa-chevron-down';
             }
         });
+
+        if (this.btnTimerExtend) {
+            this.btnTimerExtend.addEventListener('click', () => {
+                this.socket.sendAction({ type: 'timer-extend' });
+                this.hideTimerWarning();
+            });
+        }
+
+        if (this.btnTimerSkip) {
+            this.btnTimerSkip.addEventListener('click', () => {
+                this.socket.sendAction({ type: 'timer-skip' });
+                this.hideTimerWarning();
+            });
+        }
+    }
+
+    hideTimerWarning() {
+        if (this.timerWarningModal) {
+            this.timerWarningModal.classList.add('hidden');
+        }
+        if (this.localWarningInterval) {
+            clearInterval(this.localWarningInterval);
+            this.localWarningInterval = null;
+        }
     }
 
     setupSocketListeners() {
@@ -208,6 +243,57 @@ export default class GameController {
             const statusEl = document.getElementById('rematch-status');
             statusEl.classList.remove('hidden');
             statusEl.innerText = "Đối thủ muốn chơi lại! Nhấn 'Ván Mới' để đồng ý.";
+        });
+        
+        this.socket.on('timer-start', (data) => {
+            if (!this.timerContainer) return;
+            this.hideTimerWarning();
+            
+            // Only show timer if it's my turn
+            const myTurnIndex = this.gameState && this.gameState.isLocalMatch ? 0 : this.myPlayerIndex;
+            if (data.turn === myTurnIndex) {
+                this.timerContainer.classList.remove('hidden');
+                this.timerContainer.classList.remove('warning');
+                
+                let timeLeft = data.duration;
+                this.timerText.innerText = timeLeft;
+                
+                if (this.localTimerInterval) clearInterval(this.localTimerInterval);
+                this.localTimerInterval = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft >= 0) {
+                        this.timerText.innerText = timeLeft;
+                        if (timeLeft <= 5) {
+                            this.timerContainer.classList.add('warning');
+                        }
+                    } else {
+                        clearInterval(this.localTimerInterval);
+                    }
+                }, 1000);
+            } else {
+                this.timerContainer.classList.add('hidden');
+                if (this.localTimerInterval) clearInterval(this.localTimerInterval);
+            }
+        });
+        
+        this.socket.on('timer-warning', (data) => {
+            const myTurnIndex = this.gameState && this.gameState.isLocalMatch ? 0 : this.myPlayerIndex;
+            if (data.turn === myTurnIndex && this.timerWarningModal) {
+                this.timerWarningModal.classList.remove('hidden');
+                let warningTime = 5;
+                this.warningCountdownText.innerText = warningTime;
+                
+                if (this.localWarningInterval) clearInterval(this.localWarningInterval);
+                this.localWarningInterval = setInterval(() => {
+                    warningTime--;
+                    if (warningTime >= 0) {
+                        this.warningCountdownText.innerText = warningTime;
+                    } else {
+                        clearInterval(this.localWarningInterval);
+                        this.hideTimerWarning();
+                    }
+                }, 1000);
+            }
         });
     }
 

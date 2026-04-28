@@ -17,7 +17,7 @@ export default class GameState {
       {
         id: playerAId,
         score: 0,
-        ap: 3,
+        ap: 2,
         inventory: [],
         activeBuffs: { x2Harvest: false },
         isBot: false,
@@ -26,7 +26,7 @@ export default class GameState {
       {
         id: playerBId,
         score: 0,
-        ap: 3,
+        ap: 2,
         inventory: [],
         activeBuffs: { x2Harvest: false },
         isBot: isBotMatch,
@@ -193,7 +193,7 @@ export default class GameState {
   }
 
   nextTurn() {
-     this.players[this.turn].ap = 3; // Reset AP for current player before switching
+     this.players[this.turn].ap = 2; // Reset AP for current player before switching
      this.turn = this.turn === PLAYER_A ? PLAYER_B : PLAYER_A;
      // Reset locks
      for(let i=0; i<12; i++) {

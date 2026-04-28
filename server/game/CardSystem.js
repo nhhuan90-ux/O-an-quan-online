@@ -46,7 +46,7 @@ export class CardSystem {
 
         // AP Cost Check
         let apCost = 1;
-        if (cardId === 'la_chan') apCost = 3;
+        if (cardId === 'la_chan') apCost = 1;
 
         if (player.ap < apCost) return { success: false, reason: "Not enough AP." };
 

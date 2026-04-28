@@ -230,7 +230,7 @@
                         <div class="name" id="name-b">Đối thủ</div>
                         <div class="score">Điểm: <span id="score-b">0</span></div>
                         <div class="ap-container" id="ap-b">
-                            <span class="ap-dot"></span><span class="ap-dot"></span><span class="ap-dot"></span>
+                            <span class="ap-dot"></span><span class="ap-dot"></span>
                         </div>
                     </div>
                 </div>
@@ -240,7 +240,7 @@
                 </div>
                 
                 <div class="action-buttons" style="flex-direction:row; justify-content:center;">
-                    <button id="btn-freeze-b" class="btn btn-outline action-btn hidden">❄️ Khoá Ô (-3 AP)</button>
+                    <button id="btn-freeze-b" class="btn btn-outline action-btn hidden">❄️ Khoá Ô (-2 AP)</button>
                     <button id="btn-end-turn-b" class="btn action-btn hidden">Kết Thúc Lượt</button>
                 </div>
             </div>
@@ -316,13 +316,13 @@
                         <div class="name" id="name-a">Bạn</div>
                         <div class="score">Điểm: <span id="score-a">0</span> <span id="bank-ui" class="bank-pill">Kho: 100</span></div>
                         <div class="ap-container" id="ap-a">
-                            <span class="ap-dot"></span><span class="ap-dot"></span><span class="ap-dot"></span>
+                            <span class="ap-dot"></span><span class="ap-dot"></span>
                         </div>
                     </div>
                 </div>
                 
                 <div class="action-buttons" style="flex-direction:row; justify-content:center;">
-                    <button id="btn-freeze-a" class="btn btn-outline action-btn">❄️ Khoá Ô (-3 AP)</button>
+                    <button id="btn-freeze-a" class="btn btn-outline action-btn">❄️ Khoá Ô (-2 AP)</button>
                     <button id="btn-end-turn-a" class="btn action-btn">Kết Thúc Lượt</button>
                 </div>
 
@@ -349,6 +349,24 @@
         <!-- Target Selection Hint -->
         <div id="target-hint" class="target-hint hidden">
             Hãy chọn một ô mục tiêu
+        </div>
+        
+        <!-- Turn Timer -->
+        <div id="turn-timer-container" class="turn-timer hidden">
+            <i class="fas fa-hourglass-half"></i> <span id="turn-timer-text">30</span>s
+        </div>
+
+        <!-- Timer Warning Modal -->
+        <div id="timer-warning-modal" class="overlay hidden" style="z-index: 10000;">
+            <div class="glass-panel text-center" style="max-width: 400px; padding: 30px;">
+                <h3 style="color: var(--gold-light); margin-bottom: 15px;">Sắp hết thời gian!</h3>
+                <p>Bạn có muốn tiếp tục lượt của mình không?</p>
+                <div style="font-size: 2.5rem; font-weight: bold; color: var(--accent); margin: 15px 0;" id="warning-countdown">5</div>
+                <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+                    <button id="btn-timer-extend" class="btn btn-primary" style="flex: 1;">Có</button>
+                    <button id="btn-timer-skip" class="btn btn-outline" style="flex: 1;">Không</button>
+                </div>
+            </div>
         </div>
         
         <!-- Notifications -->

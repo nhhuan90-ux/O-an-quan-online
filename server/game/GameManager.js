@@ -8,6 +8,7 @@ export default class GameManager {
         this.io = io;
         this.games = new Map(); // roomId -> GameState
         this.playerRooms = new Map(); // socketId -> roomId
+        this.timers = new Map(); // roomId -> { type: 'main'|'warning', id: timeoutId }
     }
 
     createMatch(playerA_socket, playerB_socket, mode = 'tactical', names = null, startingTurn = 0, matchOptions = {}) {
@@ -29,6 +30,7 @@ export default class GameManager {
         playerB_socket.join(roomId);
 
         this.io.to(roomId).emit('game-start', { roomId, state: gs });
+        this.startTurnTimer(roomId);
     }
     
     createBotMatch(playerSocket, mode = 'tactical') {
@@ -64,6 +66,47 @@ export default class GameManager {
         playerSocket.join(roomId);
         
         this.io.to(roomId).emit('game-start', { roomId, state: gs });
+        // No timer for local match
+    }
+
+    clearTimer(roomId) {
+        if (this.timers.has(roomId)) {
+            clearTimeout(this.timers.get(roomId).id);
+            this.timers.delete(roomId);
+        }
+    }
+
+    startTurnTimer(roomId) {
+        this.clearTimer(roomId);
+        const gs = this.games.get(roomId);
+        if (!gs || gs.isLocalMatch || gs.players[1].isBot || gs.status !== 'playing') return;
+
+        const timeoutId = setTimeout(() => {
+            this.io.to(roomId).emit('timer-warning', { turn: gs.turn });
+            
+            // 5s warning timer
+            this.timers.set(roomId, {
+                type: 'warning',
+                id: setTimeout(() => {
+                    this.forceNextTurn(roomId);
+                }, 5000)
+            });
+        }, 30000);
+
+        this.timers.set(roomId, { type: 'main', id: timeoutId });
+        this.io.to(roomId).emit('timer-start', { duration: 30, turn: gs.turn });
+    }
+
+    forceNextTurn(roomId) {
+        const gs = this.games.get(roomId);
+        if (!gs || gs.status !== 'playing') return;
+        
+        gs.nextTurn();
+        this.io.to(roomId).emit('state-update', { state: gs, reason: 'timeout' });
+        gs.checkGameStatus();
+        if (gs.status === 'playing') {
+            this.startTurnTimer(roomId);
+        }
     }
 
     handleAction(socketId, actionData) {
@@ -77,8 +120,24 @@ export default class GameManager {
         let playerIndex = gs.players[0].id === socketId ? PLAYER_A : PLAYER_B;
         if (gs.isLocalMatch) {
              playerIndex = gs.turn; // Trust local client to act on behalf of both
-        } else if (gs.turn !== playerIndex) {
+        } else if (gs.turn !== playerIndex && actionData.type !== 'timer-extend') {
              return;
+        }
+
+        // Handle timer events
+        if (actionData.type === 'timer-extend') {
+            const timer = this.timers.get(roomId);
+            if (timer && timer.type === 'warning') {
+                this.startTurnTimer(roomId);
+            }
+            return;
+        }
+        if (actionData.type === 'timer-skip') {
+            const timer = this.timers.get(roomId);
+            if (timer && timer.type === 'warning') {
+                this.forceNextTurn(roomId);
+            }
+            return;
         }
 
         let steps = null;
@@ -109,8 +168,12 @@ export default class GameManager {
                 // OR player must press "Kết thúc lượt"
                 if (gs.players[playerIndex].activeBuffs.lienHoanActive) {
                     gs.players[playerIndex].activeBuffs.lienHoanActive = false; // consume it
+                    this.startTurnTimer(roomId); // Restart timer for bonus turn
                 } else if (gs.players[playerIndex].ap <= 0) {
                     gs.nextTurn();
+                    this.startTurnTimer(roomId);
+                } else {
+                    this.startTurnTimer(roomId); // Reset timer after an action
                 }
             } else if (actionData.type === 'buy-card') {
                 const res = CardSystem.buyCard(gs, playerIndex);
@@ -133,8 +196,8 @@ export default class GameManager {
                 gs.checkGameStatus();
             } else if (actionData.type === 'freeze-pit') {
                 const player = gs.players[playerIndex];
-                if (player.ap < 3) {
-                    this.io.to(socketId).emit('action-error', "Không đủ 3 AP để đóng băng (Freeze requires 3 AP)!");
+                if (player.ap < 2) {
+                    this.io.to(socketId).emit('action-error', "Không đủ 2 AP để đóng băng (Freeze requires 2 AP)!");
                     return;
                 }
                 if (actionData.targetPit === null || actionData.targetPit === 0 || actionData.targetPit === 6) {
@@ -146,12 +209,13 @@ export default class GameManager {
                     return;
                 }
                 
-                player.ap -= 3;
+                player.ap -= 2;
                 gs.board[actionData.targetPit].isLocked = true;
                 
                 this.io.to(roomId).emit('state-update', { state: gs });
             } else if (actionData.type === 'end-turn') {
                 gs.nextTurn();
+                this.startTurnTimer(roomId);
             } else if (actionData.type === 'refill') {
                 // Front end requests a refill
                 if (!gs.refillSide(playerIndex)) {
@@ -160,6 +224,9 @@ export default class GameManager {
             }
 
             gs.checkGameStatus();
+            if (gs.status !== 'playing') {
+                this.clearTimer(roomId);
+            }
             
             // Broadcast state update
             this.io.to(roomId).emit('state-update', { state: gs, steps, actionData });
@@ -251,6 +318,7 @@ export default class GameManager {
             newGs.isPrivate = gs.isPrivate;
             this.games.set(roomId, newGs);
             this.io.to(roomId).emit('game-start', { roomId, state: newGs });
+            this.startTurnTimer(roomId);
         } else {
             // Notify the other player
             this.io.to(roomId).emit('rematch-requested', { by: socketId });
