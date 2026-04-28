@@ -465,6 +465,14 @@ export default class GameController {
         if (gameState.status !== 'playing') {
              this.showGameOver(gameState, prevState);
         } else {
+             // Turn Timer Signal: If it's my turn in an online match, signal server that I'm ready
+             if (!gameState.isLocalMatch && !gameState.players[1].isBot && isMyTurnNow) {
+                  // Small delay to ensure "Your Turn" toast is visible first
+                  setTimeout(() => {
+                      this.socket.sendAction({ type: 'timer-ready' });
+                  }, 500);
+             }
+
              // Refill check if it's my turn
              if (this.isMyTurn()) {
                   const turnPlayerIndex = this.gameState.isLocalMatch ? this.gameState.turn : this.myPlayerIndex;

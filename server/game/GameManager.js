@@ -8,7 +8,7 @@ export default class GameManager {
         this.io = io;
         this.games = new Map(); // roomId -> GameState
         this.playerRooms = new Map(); // socketId -> roomId
-        this.timers = new Map(); // roomId -> { type: 'main'|'warning', id: timeoutId }
+        this.timers = new Map(); // roomId -> { type: 'main'|'warning'|'fallback', id: timeoutId }
     }
 
     createMatch(playerA_socket, playerB_socket, mode = 'tactical', names = null, startingTurn = 0, matchOptions = {}) {
@@ -30,7 +30,7 @@ export default class GameManager {
         playerB_socket.join(roomId);
 
         this.io.to(roomId).emit('game-start', { roomId, state: gs });
-        this.startTurnTimer(roomId);
+        this.prepareTurnTimer(roomId);
     }
     
     createBotMatch(playerSocket, mode = 'tactical') {
@@ -97,6 +97,20 @@ export default class GameManager {
         this.io.to(roomId).emit('timer-start', { duration: 30, turn: gs.turn });
     }
 
+    prepareTurnTimer(roomId) {
+        this.clearTimer(roomId);
+        const gs = this.games.get(roomId);
+        if (!gs || gs.isLocalMatch || gs.players[1].isBot || gs.status !== 'playing') return;
+
+        // Fallback timer (60s) in case client doesn't send 'timer-ready'
+        const fallbackId = setTimeout(() => {
+            console.log(`Timer fallback triggered for room ${roomId}`);
+            this.startTurnTimer(roomId);
+        }, 60000);
+
+        this.timers.set(roomId, { type: 'fallback', id: fallbackId });
+    }
+
     forceNextTurn(roomId) {
         const gs = this.games.get(roomId);
         if (!gs || gs.status !== 'playing') return;
@@ -139,6 +153,16 @@ export default class GameManager {
             }
             return;
         }
+        if (actionData.type === 'timer-ready') {
+            const timer = this.timers.get(roomId);
+            if (timer && (timer.type === 'fallback' || !timer)) {
+                // Verify it's actually the active player's signal
+                if (gs.turn === playerIndex) {
+                    this.startTurnTimer(roomId);
+                }
+            }
+            return;
+        }
 
         let steps = null;
 
@@ -168,12 +192,12 @@ export default class GameManager {
                 // OR player must press "Kết thúc lượt"
                 if (gs.players[playerIndex].activeBuffs.lienHoanActive) {
                     gs.players[playerIndex].activeBuffs.lienHoanActive = false; // consume it
-                    this.startTurnTimer(roomId); // Restart timer for bonus turn
+                    this.prepareTurnTimer(roomId); // Wait for bonus turn animation
                 } else if (gs.players[playerIndex].ap <= 0 || gs.mode === 'classic') {
                     gs.nextTurn();
-                    this.startTurnTimer(roomId);
+                    this.prepareTurnTimer(roomId);
                 } else {
-                    this.startTurnTimer(roomId); // Reset timer after an action
+                    this.prepareTurnTimer(roomId); // Reset timer after an action
                 }
             } else if (actionData.type === 'buy-card') {
                 const res = CardSystem.buyCard(gs, playerIndex);
@@ -194,6 +218,7 @@ export default class GameManager {
                 });
                 
                 gs.checkGameStatus();
+                this.prepareTurnTimer(roomId);
             } else if (actionData.type === 'freeze-pit') {
                 const player = gs.players[playerIndex];
                 if (player.ap < 2) {
@@ -319,7 +344,7 @@ export default class GameManager {
             newGs.isPrivate = gs.isPrivate;
             this.games.set(roomId, newGs);
             this.io.to(roomId).emit('game-start', { roomId, state: newGs });
-            this.startTurnTimer(roomId);
+            this.prepareTurnTimer(roomId);
         } else {
             // Notify the other player
             this.io.to(roomId).emit('rematch-requested', { by: socketId });
