@@ -266,6 +266,11 @@ export default class GameController {
         document.getElementById('rematch-status').classList.add('hidden');
 
         this.updateState(gameState);
+        
+        // Force a re-render after view becomes active to ensure visibility
+        setTimeout(() => {
+            this.renderer.render(this.gameState);
+        }, 300);
     }
     
     isMyTurn() {

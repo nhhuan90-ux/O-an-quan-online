@@ -89,6 +89,7 @@
     border-radius: 5px;
     background: #444;
     transition: background 0.3s;
+    display: inline-block;
 }
 .ap-dot.active { background: #4caf50; box-shadow: 0 0 8px #4caf50; }
 
@@ -282,9 +283,9 @@
     display: flex; gap: 20px;
     background: rgba(0,0,0,0.8);
     padding: 20px; border-radius: 16px;
-    z-index: 50;
+    z-index: 1000;
     backdrop-filter: blur(5px);
-    border: 1px solid var(--gold);
+    border: 2px solid var(--gold);
 }
 
 .dir-btn {
