@@ -258,7 +258,7 @@
 .stone {
     width: 16px; height: 16px;
     border-radius: 50%;
-    background: #f8f9fa;
+    background: linear-gradient(135deg, #ffffff, #e9ecef);
     box-shadow: inset -2px -2px 4px rgba(0,0,0,0.4), 1px 1px 3px rgba(0,0,0,0.5);
     position: absolute;
     display: block !important;
