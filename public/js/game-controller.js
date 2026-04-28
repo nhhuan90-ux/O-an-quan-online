@@ -267,10 +267,20 @@ export default class GameController {
 
         this.updateState(gameState);
         
-        // Force a re-render after view becomes active to ensure visibility
-        setTimeout(() => {
-            this.renderer.render(this.gameState);
-        }, 300);
+        // Force multiple re-renders to ensure visibility across different browsers/latencies
+        [100, 500, 1000].forEach(delay => {
+            setTimeout(() => {
+                if (this.gameState) {
+                    this.renderer.render(this.gameState);
+                    
+                    const p1 = this.gameState.isLocalMatch ? this.gameState.players[0] : this.gameState.players[this.myPlayerIndex];
+                    const p2 = this.gameState.isLocalMatch ? this.gameState.players[1] : this.gameState.players[this.myPlayerIndex === 0 ? 1 : 0];
+                    
+                    this.renderAP(this.apA, p1.ap);
+                    this.renderAP(this.apB, p2.ap);
+                }
+            }, delay);
+        });
     }
     
     isMyTurn() {
