@@ -217,7 +217,8 @@ export default class GameController {
 
         const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const isMe = playerIndex === this.myPlayerIndex;
-        const uiColorClass = (this.gameState.isLocalMatch ? playerIndex === 0 : isMe) ? 'friendly-history' : 'enemy-history';
+        const uiColorClass = (this.gameState && this.gameState.isLocalMatch ? playerIndex === 0 : isMe) ? 'friendly-history' : 'enemy-history';
+        const div = document.createElement('div');
         div.className = `history-item ${uiColorClass}`;
         
         const playerName = this.gameState ? this.gameState.players[playerIndex].name : `Người chơi ${playerIndex + 1}`;
