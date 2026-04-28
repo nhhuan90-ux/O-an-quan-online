@@ -311,19 +311,7 @@ body {
 
 .setup-panel {
     width: 95%;
-    max-width: 500px; /* Increase from 400px */
-}
-
-@media (min-width: 768px) {
-    .setup-panel {
-        max-width: 600px;
-    }
-}
-
-@media (min-width: 1200px) {
-    .setup-panel {
-        max-width: 700px;
-    }
+    max-width: 400px; /* Reverted to 400px */
 }
 
 .spinner {
