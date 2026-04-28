@@ -3,6 +3,7 @@ export default class Matchmaker {
         this.io = io;
         this.gameManager = gameManager;
         this.queue = [];
+        this.privateRooms = new Map(); // code -> { socket, mode, name }
     }
 
     addPlayer(socket, mode, name) {
@@ -16,6 +17,42 @@ export default class Matchmaker {
 
     removePlayer(socketId) {
         this.queue = this.queue.filter(p => p.socket.id !== socketId);
+        
+        // Remove from private rooms if waiting
+        for (const [code, roomInfo] of this.privateRooms.entries()) {
+             if (roomInfo.socket.id === socketId) {
+                  this.privateRooms.delete(code);
+                  console.log(`Private room ${code} deleted because host disconnected.`);
+             }
+        }
+    }
+
+    createPrivateRoom(socket, mode, name) {
+        let code;
+        do {
+            code = Math.floor(10000 + Math.random() * 90000).toString();
+        } while (this.privateRooms.has(code));
+
+        this.privateRooms.set(code, { socket, mode, name });
+        console.log(`Private room created: ${code} by ${name} (${mode})`);
+        
+        socket.emit('private-room-created', { code });
+        return code;
+    }
+
+    joinPrivateRoom(socket, code, name) {
+        if (!this.privateRooms.has(code)) {
+             socket.emit('action-error', 'Mã phòng không hợp lệ hoặc phòng đã bị hủy.');
+             return false;
+        }
+
+        const host = this.privateRooms.get(code);
+        this.privateRooms.delete(code);
+
+        console.log(`Private room match: ${host.name} vs ${name} (${code})`);
+        const goesFirst = Math.random() < 0.5 ? 0 : 1;
+        this.gameManager.createMatch(host.socket, socket, host.mode, [host.name, name], goesFirst, { isPrivate: true, roomCode: code });
+        return true;
     }
 
     checkQueue() {

@@ -303,9 +303,27 @@ body {
     background: rgba(30, 20, 10, 0.95);
     border: 1px solid var(--gold);
     border-radius: 24px;
-    padding: 30px;
+    padding: clamp(20px, 5vw, 30px);
     box-shadow: 0 10px 50px rgba(0,0,0,0.5);
-    max-width: 90%;
+    max-width: min(600px, 95%);
+    width: auto;
+}
+
+.setup-panel {
+    width: 95%;
+    max-width: 500px; /* Increase from 400px */
+}
+
+@media (min-width: 768px) {
+    .setup-panel {
+        max-width: 600px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .setup-panel {
+        max-width: 700px;
+    }
 }
 
 .spinner {
@@ -448,5 +466,17 @@ body {
 
   .logo h1 {
     font-size: clamp(24px, 8vw, 40px);
+  }
+}
+
+@media (max-width: 600px) {
+  .btn-game {
+    padding: 12px 18px;
+    font-size: 16px;
+    gap: 10px;
+  }
+  
+  .action-buttons-container {
+    gap: 10px;
   }
 }

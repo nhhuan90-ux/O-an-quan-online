@@ -34,6 +34,18 @@ export default class SocketClient {
         this.socket.emit('start-local-match', { mode, names, startingTurn });
     }
 
+    createPrivateRoom(mode, name) {
+        this.socket.emit('create-private-room', { mode, name });
+    }
+
+    joinPrivateRoom(code, name) {
+        this.socket.emit('join-private-room', { code, name });
+    }
+
+    requestRematch() {
+        this.socket.emit('rematch-request');
+    }
+
     sendAction(actionData) {
         this.socket.emit('game-action', actionData);
     }

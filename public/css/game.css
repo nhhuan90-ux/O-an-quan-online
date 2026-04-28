@@ -272,11 +272,14 @@
 .dir-btn {
     width: 60px; height: 60px;
     border-radius: 50%;
-    font-size: 2rem;
+    font-size: 1.5rem;
     background: var(--panel-bg); color: var(--gold);
     border: 2px solid var(--gold);
     cursor: pointer;
     transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .dir-btn:hover { background: var(--gold); color: #000; transform: scale(1.1); }
 
@@ -464,16 +467,36 @@
     display: flex;
     flex-direction: column;
     z-index: 100;
+    transition: max-height 0.3s ease, padding 0.3s ease, width 0.3s ease;
+    overflow: hidden;
+}
+
+.history-panel.collapsed {
+    max-height: 45px;
+    padding: 10px 15px;
+    width: auto;
+    cursor: pointer;
 }
 
 .history-title {
     font-family: var(--font-heading);
     color: var(--gold);
     font-size: 1rem;
-    margin-bottom: 10px;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 5px;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
     text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+}
+
+.history-panel:not(.collapsed) .history-title {
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--border);
 }
 
 .history-list {
@@ -482,6 +505,10 @@
     flex-direction: column;
     gap: 8px;
     padding-right: 5px;
+}
+
+.history-list.hidden {
+    display: none;
 }
 
 .history-item {
@@ -493,8 +520,8 @@
     animation: slideIn 0.3s ease-out;
 }
 
-.history-item.player-0 { border-left-color: var(--gold); }
-.history-item.player-1 { border-left-color: var(--red); }
+.history-item.friendly-history { border-left-color: var(--gold); }
+.history-item.enemy-history { border-left-color: var(--primary); }
 
 @keyframes slideIn {
     from { opacity: 0; transform: translateX(-10px); }
@@ -541,12 +568,18 @@
         opacity: 0.8;
     }
     .history-panel:hover { opacity: 1; }
+    .history-panel.collapsed {
+        max-height: 35px;
+        width: auto;
+    }
     .history-title { font-size: 0.7rem; padding: 2px; }
     .history-list { max-height: 50px; }
     
     .board { --board-scale: 0.75; margin: -40px auto; }
     .player-panel { height: 80px; padding: 5px 15px; }
     .avatar { width: 40px; height: 40px; font-size: 1rem; }
+    .direction-chooser { padding: 10px; gap: 10px; }
+    .dir-btn { width: 40px; height: 40px; font-size: 1.2rem; }
 }
 
 @media (max-height: 500px) {
@@ -618,12 +651,18 @@
         right: 10px !important;
         transform: none !important; /* Reset translateY */
         width: 140px !important;
-        max-height: 60px !important;
+        max-height: 120px !important;
+    }
+    .history-panel.collapsed {
+        max-height: 35px !important;
+        width: auto !important;
     }
     .central-deck {
         transform: scale(0.5) translateY(-50%);
         right: 5px;
     }
+    .direction-chooser { padding: 10px !important; gap: 10px !important; }
+    .dir-btn { width: 35px !important; height: 35px !important; font-size: 1rem !important; }
 }
 
 @media (max-width: 768px) {

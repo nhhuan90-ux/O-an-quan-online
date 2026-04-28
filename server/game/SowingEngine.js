@@ -57,56 +57,58 @@ export class SowingEngine {
             // Check stopping conditions at the pit AFTER the last sown pit
             const nextPit = this.getNextPit(currentPit, direction);
             
-            // Condition 1: Next is Quan pit (DỪNG lượt)
-            if (board[nextPit].type === 'quan') {
-                steps.push({ type: 'stop', reason: 'hit_quan', pitIndex: nextPit });
-                isContinuing = false;
-                break; // End Turn
-            }
-
-            // Condition 2: Next has stones, and is not Quan (Bốc lên rải tiếp)
-            if (!gameState.isPitEmpty(nextPit) && board[nextPit].type !== 'quan') {
-                 // Càn Quét active: just eat if it has stones?
-                if (useCanQuet) {
-                     // The rule says "Bỏ qua kiểm tra ô trống, cứ gặp ô có quân là ăn"
-                     // This means if we land and next pit has stones, eat it instead of pickup.
-                     const eaten = this.eatPit(gameState, nextPit, player);
-                     steps.push({ type: 'eat', pitIndex: nextPit, ...eaten });
-                     isContinuing = false;
-                     break;
-                }
-
-                currentPit = nextPit;
-                stonesInHand = board[currentPit].regularStones;
-                redStonesInHand = board[currentPit].redStones;
-                board[currentPit].regularStones = 0;
-                board[currentPit].redStones = 0;
-                steps.push({ type: 'pickup', pitIndex: currentPit, stonesInHand, redStonesInHand });
-                continue; // continue sowing loop
-            }
-
-            // Condition 3 & 4 & 5: Next is empty
             if (gameState.isPitEmpty(nextPit)) {
                  const pitAfterNext = this.getNextPit(nextPit, direction);
                  
-                 // Condition 3: Next empty, pit after next has stones
                  if (!gameState.isPitEmpty(pitAfterNext)) {
-                     // Condition 5: The pit after next is Quan pit? 
-                     // The rule says: Ô tiếp trống + ô kế là ô Quan -> DỪNG lượt (nếu Quan trống)
-                     // But if Quan has stones, can we eat it? Yes, we can eat Quan.
-                     // The rule table: "Ô tiếp theo trống + ô kế tiếp nữa có quân -> Ăn quân -> Dừng lượt"
-                     // Wait, there's a clarification: "Ô tiếp theo trống + ô kế tiếp nữa là ô Quan: DỪNG lượt" (Wait, only if Quan is empty? If Quan has stones, you eat the Quan). 
-                     // Let's implement standard rule: if empty + next has stones = eat. Then stop.
-                     
+                     // Eat
                      const eaten = this.eatPit(gameState, pitAfterNext, player);
                      steps.push({ type: 'eat', pitIndex: pitAfterNext, ...eaten });
-                     isContinuing = false; // "Sau khi ăn quân -> DỪNG lượt ngay"
                      
+                     // Chain Eating
+                     let currentEatPit = pitAfterNext;
+                     while (true) {
+                         let checkEmptyPit = this.getNextPit(currentEatPit, direction);
+                         let checkEatPit = this.getNextPit(checkEmptyPit, direction);
+                         
+                         if (gameState.isPitEmpty(checkEmptyPit) && !gameState.isPitEmpty(checkEatPit)) {
+                              const chainEaten = this.eatPit(gameState, checkEatPit, player);
+                              steps.push({ type: 'eat', pitIndex: checkEatPit, ...chainEaten });
+                              currentEatPit = checkEatPit;
+                         } else {
+                              break;
+                         }
+                     }
+                     isContinuing = false;
                  } else {
-                     // Condition 4: 2 empty pits (Next is empty, pit after next is also empty) -> Stop
+                     // 2 empty pits
                      steps.push({ type: 'stop', reason: 'two_empty', pitIndex: nextPit });
                      isContinuing = false;
                  }
+            } else {
+                // Next pit has stones
+                if (board[nextPit].type === 'quan') {
+                    // Condition 1: Next is Quan pit (DỪNG lượt)
+                    steps.push({ type: 'stop', reason: 'hit_quan', pitIndex: nextPit });
+                    isContinuing = false;
+                    break; // End Turn
+                } else {
+                    // Condition 2: Next has stones, and is not Quan (Bốc lên rải tiếp)
+                    if (useCanQuet) {
+                         const eaten = this.eatPit(gameState, nextPit, player);
+                         steps.push({ type: 'eat', pitIndex: nextPit, ...eaten });
+                         isContinuing = false;
+                         break;
+                    }
+    
+                    currentPit = nextPit;
+                    stonesInHand = board[currentPit].regularStones;
+                    redStonesInHand = board[currentPit].redStones;
+                    board[currentPit].regularStones = 0;
+                    board[currentPit].redStones = 0;
+                    steps.push({ type: 'pickup', pitIndex: currentPit, stonesInHand, redStonesInHand });
+                    continue; // continue sowing loop
+                }
             }
         } // end while(isContinuing)
 

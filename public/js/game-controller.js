@@ -139,6 +139,29 @@ export default class GameController {
         document.getElementById('btn-home').addEventListener('click', () => {
             location.reload();
         });
+
+        document.getElementById('btn-rematch').addEventListener('click', () => {
+            this.socket.requestRematch();
+            document.getElementById('btn-rematch').disabled = true;
+            document.getElementById('rematch-status').classList.remove('hidden');
+            document.getElementById('rematch-status').innerText = "Đang chờ đối thủ xác nhận...";
+        });
+
+        document.getElementById('history-title').addEventListener('click', () => {
+            const list = document.getElementById('history-list');
+            const panel = document.getElementById('history-panel');
+            const icon = document.getElementById('history-toggle-icon');
+            
+            if (panel.classList.contains('collapsed')) {
+                panel.classList.remove('collapsed');
+                list.classList.remove('hidden');
+                icon.className = 'fas fa-chevron-up';
+            } else {
+                panel.classList.add('collapsed');
+                list.classList.add('hidden');
+                icon.className = 'fas fa-chevron-down';
+            }
+        });
     }
 
     setupSocketListeners() {
@@ -180,6 +203,12 @@ export default class GameController {
              this.pendingAction = null;
              this.targetHint.classList.add('hidden');
         });
+
+        this.socket.on('rematch-requested', (data) => {
+            const statusEl = document.getElementById('rematch-status');
+            statusEl.classList.remove('hidden');
+            statusEl.innerText = "Đối thủ muốn chơi lại! Nhấn 'Ván Mới' để đồng ý.";
+        });
     }
 
     addHistory(playerIndex, msg, points = null) {
@@ -187,8 +216,9 @@ export default class GameController {
         if (!historyList) return;
 
         const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const div = document.createElement('div');
-        div.className = `history-item player-${playerIndex}`;
+        const isMe = playerIndex === this.myPlayerIndex;
+        const uiColorClass = (this.gameState.isLocalMatch ? playerIndex === 0 : isMe) ? 'friendly-history' : 'enemy-history';
+        div.className = `history-item ${uiColorClass}`;
         
         const playerName = this.gameState ? this.gameState.players[playerIndex].name : `Người chơi ${playerIndex + 1}`;
         let pointHtml = points ? `<span class="points">+${points} pts</span>` : '';
@@ -229,6 +259,11 @@ export default class GameController {
         const hl = document.getElementById('history-list');
         if (hl) hl.innerHTML = '';
         this.addHistory(0, "Trận đấu bắt đầu!");
+
+        // Hide game over modal and reset rematch state if it was open
+        this.gameOverModal.classList.add('hidden');
+        document.getElementById('btn-rematch').disabled = false;
+        document.getElementById('rematch-status').classList.add('hidden');
 
         this.updateState(gameState);
     }
@@ -501,6 +536,12 @@ export default class GameController {
                  }
                  localStorage.setItem('oanquan_stats', JSON.stringify(stats));
             }
+        }
+        
+        if (gameState.isPrivate || gameState.isLocalMatch) {
+            document.getElementById('btn-rematch').classList.remove('hidden');
+        } else {
+            document.getElementById('btn-rematch').classList.add('hidden');
         }
         
         title.innerText = winnerText;

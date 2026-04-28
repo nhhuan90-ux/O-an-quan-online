@@ -34,19 +34,66 @@ document.addEventListener('DOMContentLoaded', () => {
     const onlineSetupModal = document.getElementById('online-setup-modal');
     btnPvP.addEventListener('click', () => {
         onlineSetupModal.classList.remove('hidden');
+        // Reset UI
+        document.getElementById('online-mode-buttons').style.display = 'flex';
+        document.getElementById('private-room-section').style.display = 'none';
+        document.getElementById('join-room-buttons').style.display = 'none';
+        document.getElementById('room-code-input').value = '';
     });
 
     document.getElementById('btn-close-online-setup').addEventListener('click', () => {
         onlineSetupModal.classList.add('hidden');
     });
 
-    document.getElementById('btn-start-online-final').addEventListener('click', () => {
+    document.getElementById('btn-random-match').addEventListener('click', () => {
         const input = document.getElementById('online-name');
         const myName = (input.value || '').trim() || 'Vô Danh';
         
         onlineSetupModal.classList.add('hidden');
         matchOverlay.classList.remove('hidden');
+        document.getElementById('matchmaking-status').innerText = 'Đang tìm đối thủ...';
+        document.getElementById('room-code-display').classList.add('hidden');
         socketClient.joinQueue(document.getElementById('game-mode-selector').value, myName);
+    });
+
+    document.getElementById('btn-create-room').addEventListener('click', () => {
+        const input = document.getElementById('online-name');
+        const myName = (input.value || '').trim() || 'Vô Danh';
+        
+        onlineSetupModal.classList.add('hidden');
+        matchOverlay.classList.remove('hidden');
+        document.getElementById('matchmaking-status').innerText = 'Đang tạo phòng...';
+        document.getElementById('room-code-display').classList.add('hidden');
+        socketClient.createPrivateRoom(document.getElementById('game-mode-selector').value, myName);
+    });
+
+    document.getElementById('btn-show-join').addEventListener('click', () => {
+        document.getElementById('online-mode-buttons').style.display = 'none';
+        document.getElementById('private-room-section').style.display = 'block';
+        document.getElementById('join-room-buttons').style.display = 'flex';
+    });
+
+    document.getElementById('btn-cancel-join').addEventListener('click', () => {
+        document.getElementById('online-mode-buttons').style.display = 'flex';
+        document.getElementById('private-room-section').style.display = 'none';
+        document.getElementById('join-room-buttons').style.display = 'none';
+    });
+
+    document.getElementById('btn-join-room-final').addEventListener('click', () => {
+        const input = document.getElementById('online-name');
+        const myName = (input.value || '').trim() || 'Vô Danh';
+        const codeInput = document.getElementById('room-code-input').value.trim().toUpperCase();
+
+        if (!codeInput || codeInput.length !== 5) {
+            alert('Vui lòng nhập đúng 5 số mã phòng.');
+            return;
+        }
+        
+        onlineSetupModal.classList.add('hidden');
+        matchOverlay.classList.remove('hidden');
+        document.getElementById('matchmaking-status').innerText = 'Đang vào phòng...';
+        document.getElementById('room-code-display').classList.add('hidden');
+        socketClient.joinPrivateRoom(codeInput, myName);
     });
 
     // Fullscreen logic
@@ -139,6 +186,10 @@ document.addEventListener('DOMContentLoaded', () => {
     btnCancelMatch.addEventListener('click', () => {
         matchOverlay.classList.add('hidden');
         socketClient.leaveQueue();
+        
+        // Reset overlay state
+        document.getElementById('matchmaking-status').innerText = 'Đang tìm đối thủ...';
+        document.getElementById('room-code-display').classList.add('hidden');
     });
     
     btnPvE.addEventListener('click', () => {
@@ -223,5 +274,19 @@ document.addEventListener('DOMContentLoaded', () => {
     socketClient.on('opponent-disconnected', () => {
         alert("Đối thủ đã thoát. Kết thúc game.");
         location.reload();
+    });
+
+    socketClient.on('private-room-created', (data) => {
+        document.getElementById('matchmaking-status').innerText = 'Chờ bạn bè tham gia...';
+        document.getElementById('room-code-display').classList.remove('hidden');
+        document.getElementById('the-room-code').innerText = data.code;
+        
+        document.getElementById('btn-copy-code').onclick = () => {
+            navigator.clipboard.writeText(data.code).then(() => {
+                alert("Đã copy mã phòng: " + data.code);
+            }).catch(err => {
+                console.error("Lỗi copy: ", err);
+            });
+        };
     });
 });

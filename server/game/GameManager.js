@@ -10,9 +10,10 @@ export default class GameManager {
         this.playerRooms = new Map(); // socketId -> roomId
     }
 
-    createMatch(playerA_socket, playerB_socket, mode = 'tactical', names = null, startingTurn = 0) {
+    createMatch(playerA_socket, playerB_socket, mode = 'tactical', names = null, startingTurn = 0, matchOptions = {}) {
         const roomId = `room_${Date.now()}`;
         const gs = new GameState(playerA_socket.id, playerB_socket.id, false, false, mode, names, startingTurn);
+        gs.isPrivate = matchOptions.isPrivate || false;
         
         gs.turn = startingTurn;
         if (names && names.length >= 2) {
@@ -203,6 +204,56 @@ export default class GameManager {
             }
         } else {
             this.handleAction(gs.players[gs.turn].id, { type: 'end-turn' });
+        }
+    }
+
+    handleRematch(socketId) {
+        const roomId = this.playerRooms.get(socketId);
+        if (!roomId) return;
+
+        const gs = this.games.get(roomId);
+        if (!gs) return;
+
+        if (gs.isLocalMatch) {
+            // Local match: Just restart immediately
+            const p1 = gs.players[0].name;
+            const p2 = gs.players[1].name;
+            const mode = gs.mode;
+            const goesFirst = Math.random() < 0.5 ? 0 : 1;
+            
+            const newGs = new GameState(gs.players[0].id, gs.players[1].id, false, true, mode, [p1, p2], goesFirst);
+            this.games.set(roomId, newGs);
+            this.io.to(roomId).emit('game-start', { roomId, state: newGs });
+            return;
+        }
+
+        if (gs.players[1].isBot) {
+            // Bot match
+            const mode = gs.mode;
+            const newGs = new GameState(gs.players[0].id, gs.players[1].id, true, false, mode);
+            this.games.set(roomId, newGs);
+            this.io.to(roomId).emit('game-start', { roomId, state: newGs });
+            return;
+        }
+
+        if (!gs.rematchRequests) {
+            gs.rematchRequests = new Set();
+        }
+        
+        gs.rematchRequests.add(socketId);
+
+        if (gs.rematchRequests.size === 2) {
+            // Both requested, restart!
+            const pA = gs.players[0];
+            const pB = gs.players[1];
+            const goesFirst = Math.random() < 0.5 ? 0 : 1;
+            const newGs = new GameState(pA.id, pB.id, false, false, gs.mode, [pA.name, pB.name], goesFirst);
+            newGs.isPrivate = gs.isPrivate;
+            this.games.set(roomId, newGs);
+            this.io.to(roomId).emit('game-start', { roomId, state: newGs });
+        } else {
+            // Notify the other player
+            this.io.to(roomId).emit('rematch-requested', { by: socketId });
         }
     }
 

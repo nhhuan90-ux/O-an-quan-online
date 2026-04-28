@@ -47,6 +47,18 @@ io.on('connection', (socket) => {
     gameManager.createLocalMatch(socket, options?.mode || 'tactical', options?.names, options?.startingTurn || 0);
   });
 
+  socket.on('create-private-room', (options) => {
+    matchmaker.createPrivateRoom(socket, options?.mode || 'tactical', options?.name || 'Vô danh');
+  });
+
+  socket.on('join-private-room', (options) => {
+    matchmaker.joinPrivateRoom(socket, options?.code, options?.name || 'Vô danh');
+  });
+
+  socket.on('rematch-request', () => {
+    gameManager.handleRematch(socket.id);
+  });
+
   // Game actions
   socket.on('game-action', (data) => {
     gameManager.handleAction(socket.id, data);
