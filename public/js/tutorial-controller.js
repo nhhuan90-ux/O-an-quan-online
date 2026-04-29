@@ -60,7 +60,8 @@ export default class TutorialController {
             {
                 title: "Ô Dân (Pits)",
                 text: "Mỗi ô Dân ban đầu có 5 quân nhỏ. Mỗi quân tương ứng với 1 điểm.",
-                highlight: ".dan-pit"
+                highlight: ".dan-pit",
+                position: "bottom"
             },
             {
                 title: "Ô Quan (Mandarin Squares)",
@@ -76,6 +77,7 @@ export default class TutorialController {
                 title: "Cách di chuyển (Rải quân)",
                 text: "Chọn một ô có quân, bốc hết quân trong đó và rải lần lượt vào các ô kế tiếp theo chiều trái hoặc phải.",
                 highlight: "#pit-3",
+                position: "top",
                 action: async () => {
                     const steps = [
                         { type: 'pickup', pitIndex: 3, stonesInHand: 5, redStonesInHand: 0 },
@@ -94,6 +96,7 @@ export default class TutorialController {
                 title: "Tiếp tục lượt đi",
                 text: "Nếu ô cuối cùng bạn rải vào không phải là ô trống, và không phải ô Quan, bạn bốc tiếp toàn bộ quân trong ô đó để rải tiếp (gọi là 'đấm').",
                 highlight: "#pit-8",
+                position: "top",
                 action: async () => {
                     const steps = [
                         { type: 'pickup', pitIndex: 8, stonesInHand: 6, redStonesInHand: 0 },
@@ -113,6 +116,7 @@ export default class TutorialController {
                 title: "Cách Ăn Quân (Ghi điểm)",
                 text: "Nếu sau ô cuối cùng bạn rải là một Ô TRỐNG, và sau ô trống đó là một ô CÓ QUÂN, bạn sẽ được 'ăn' toàn bộ quân trong ô đó.",
                 highlight: "#pit-4, #pit-5",
+                position: "top",
                 action: async () => {
                     const state = this.getMockStateForEating();
                     this.renderer.render(state);
@@ -130,6 +134,7 @@ export default class TutorialController {
                 title: "Ăn nối (Chain Capture)",
                 text: "Sau khi ăn, nếu ô tiếp theo lại là ô trống và ô sau đó nữa có quân, bạn tiếp tục được ăn. Cứ thế có thể ăn nhiều ô cùng lúc!",
                 highlight: "#pit-6, #pit-7, #pit-8",
+                position: "top",
                 action: async () => {
                     const state = this.getMockStateForChainEating();
                     this.renderer.render(state);
@@ -147,7 +152,8 @@ export default class TutorialController {
             {
                 title: "Mất lượt (Dừng chơi)",
                 text: "Bạn mất lượt nếu: \n1. Rải quân kết thúc ngay trước ô Quan. \n2. Gặp 2 ô trống liên tiếp. \n3. Vừa ăn quân xong mà ô tiếp theo không thể ăn tiếp.",
-                highlight: "#pit-0, #pit-6"
+                highlight: "#pit-0, #pit-6",
+                position: "top"
             },
             {
                 title: "Kết thúc trò chơi",
@@ -216,7 +222,7 @@ export default class TutorialController {
             step.action();
         }
         
-        this.updateCalloutPosition(step.highlight);
+        this.updateCalloutPosition(step.highlight, step.position);
     }
 
     nextStep() {
@@ -257,8 +263,11 @@ export default class TutorialController {
         this.highlightBox.classList.remove('hidden');
     }
 
-    updateCalloutPosition(highlightSelector) {
+    updateCalloutPosition(highlightSelector, preferredPosition) {
         const rect = this.highlightBox.classList.contains('hidden') ? null : this.highlightBox.getBoundingClientRect();
+        
+        // Reset transform and ensure it's not off-screen initially
+        this.callout.style.transform = 'none';
         
         if (!rect) {
             // Center callout
@@ -268,26 +277,47 @@ export default class TutorialController {
             return;
         }
 
-        // Try to place callout near the highlight
-        const spaceBelow = window.innerHeight - rect.bottom;
-        const spaceAbove = rect.top;
-        
-        this.callout.style.transform = 'none';
-        this.callout.style.left = Math.max(20, Math.min(window.innerWidth - 340, rect.left + rect.width / 2 - 160)) + 'px';
+        const calloutWidth = this.callout.offsetWidth || 320;
+        const calloutHeight = this.callout.offsetHeight || 200; // Estimate if not fully rendered
+        const padding = 20;
 
-        if (spaceBelow > 250) {
-            this.callout.style.top = (rect.bottom + 20) + 'px';
-        } else if (spaceAbove > 250) {
-            this.callout.style.top = (rect.top - this.callout.offsetHeight - 20) + 'px';
+        // Default horizontal centering relative to the highlight, clamped to screen
+        let leftPos = rect.left + (rect.width / 2) - (calloutWidth / 2);
+        leftPos = Math.max(padding, Math.min(window.innerWidth - calloutWidth - padding, leftPos));
+        this.callout.style.left = leftPos + 'px';
+
+        const spaceAbove = rect.top;
+        const spaceBelow = window.innerHeight - rect.bottom;
+
+        // Determine vertical position
+        let placeTop = false;
+
+        if (preferredPosition === 'top') {
+            placeTop = true;
+        } else if (preferredPosition === 'bottom') {
+            placeTop = false;
         } else {
-            // Side placement if top/bottom tight
-            this.callout.style.top = '50%';
-            this.callout.style.transform = 'translateY(-50%)';
-            if (rect.left > 350) {
-                this.callout.style.left = (rect.left - 340) + 'px';
-            } else {
-                this.callout.style.left = (rect.right + 20) + 'px';
+            // Auto placement based on available space
+            placeTop = spaceAbove > spaceBelow && spaceAbove > calloutHeight + padding;
+            // If neither has enough space, force it to the side with most space
+            if (spaceAbove <= calloutHeight + padding && spaceBelow <= calloutHeight + padding) {
+                placeTop = spaceAbove > spaceBelow;
             }
+        }
+
+        if (placeTop) {
+            let topPos = rect.top - calloutHeight - padding;
+            // If it goes off-screen at the top, clamp it to the top of the window
+            topPos = Math.max(padding, topPos);
+            this.callout.style.top = topPos + 'px';
+        } else {
+            let topPos = rect.bottom + padding;
+            // If it goes off-screen at the bottom, try to clamp it, or force top
+            if (topPos + calloutHeight > window.innerHeight - padding) {
+                 topPos = window.innerHeight - calloutHeight - padding;
+                 // If clamping makes it overlap with the highlight box significantly, we might have to compromise
+            }
+            this.callout.style.top = topPos + 'px';
         }
     }
 

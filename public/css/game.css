@@ -744,6 +744,7 @@
     position: fixed;
     z-index: 10003;
     width: 320px;
+    max-width: 90vw;
     background: rgba(20, 15, 10, 0.95);
     border: 2px solid var(--gold);
     border-radius: 16px;
