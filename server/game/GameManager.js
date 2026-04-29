@@ -33,10 +33,10 @@ export default class GameManager {
         this.prepareTurnTimer(roomId);
     }
     
-    createBotMatch(playerSocket, mode = 'tactical') {
+    createBotMatch(playerSocket, mode = 'tactical', difficulty = 'easy') {
         const roomId = `room_bot_${Date.now()}`;
         const botId = `bot_${Date.now()}`;
-        const gs = new GameState(playerSocket.id, botId, true, false, mode);
+        const gs = new GameState(playerSocket.id, botId, true, false, mode, null, 0, difficulty);
         
         this.games.set(roomId, gs);
         this.playerRooms.set(playerSocket.id, roomId);

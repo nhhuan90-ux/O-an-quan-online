@@ -2,10 +2,11 @@ export const PLAYER_A = 0; // Indexes 1-5 (Bottom)
 export const PLAYER_B = 1; // Indexes 7-11 (Top)
 
 export default class GameState {
-  constructor(playerAId, playerBId, isBotMatch = false, isLocalMatch = false, mode = 'tactical', names = null, startingTurn = 0) {
+  constructor(playerAId, playerBId, isBotMatch = false, isLocalMatch = false, mode = 'tactical', names = null, startingTurn = 0, difficulty = 'easy') {
     this.isLocalMatch = isLocalMatch;
     this.mode = mode;
     this.turn = startingTurn;
+    this.botDifficulty = difficulty;
     
     let n1 = isLocalMatch ? 'Người chơi 1' : 'Bạn';
     let n2 = isLocalMatch ? 'Người chơi 2' : (isBotMatch ? 'Máy (AI)' : 'Đối thủ');
@@ -206,7 +207,7 @@ export default class GameState {
 
   clone() {
       // Basic deep copy for AI purposes
-      const clone = new GameState(this.players[0].id, this.players[1].id, this.players[1].isBot, this.isLocalMatch, this.mode);
+      const clone = new GameState(this.players[0].id, this.players[1].id, this.players[1].isBot, this.isLocalMatch, this.mode, null, this.turn, this.botDifficulty);
       clone.players = JSON.parse(JSON.stringify(this.players));
       clone.turn = this.turn;
       clone.board = JSON.parse(JSON.stringify(this.board));

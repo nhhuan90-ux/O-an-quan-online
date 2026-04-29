@@ -26,8 +26,8 @@ export default class SocketClient {
         this.socket.emit('leave-queue');
     }
     
-    startBotMatch(mode) {
-        this.socket.emit('start-bot-match', { mode });
+    startBotMatch(mode, difficulty = 'easy') {
+        this.socket.emit('start-bot-match', { mode, difficulty });
     }
 
     startLocalMatch(mode, names = null, startingTurn = 0) {

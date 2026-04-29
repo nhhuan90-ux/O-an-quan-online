@@ -40,7 +40,7 @@ io.on('connection', (socket) => {
   });
   
   socket.on('start-bot-match', (options) => {
-     gameManager.createBotMatch(socket, options?.mode || 'tactical');
+     gameManager.createBotMatch(socket, options?.mode || 'tactical', options?.difficulty || 'easy');
   });
 
   socket.on('start-local-match', (options) => {

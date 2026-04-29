@@ -236,10 +236,24 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('room-code-display').classList.add('hidden');
     });
     
+    // AI Setup Logic
+    const aiSetupModal = document.getElementById('ai-setup-modal');
     btnPvE.addEventListener('click', () => {
-        // Start bot match immediately
-        socketClient.startBotMatch(document.getElementById('game-mode-selector').value);
+        aiSetupModal.classList.remove('hidden');
     });
+
+    document.getElementById('btn-close-ai-setup').addEventListener('click', () => {
+        aiSetupModal.classList.add('hidden');
+    });
+
+    function startAIWithDifficulty(difficulty) {
+        aiSetupModal.classList.add('hidden');
+        socketClient.startBotMatch(document.getElementById('game-mode-selector').value, difficulty);
+    }
+
+    document.getElementById('btn-ai-easy').addEventListener('click', () => startAIWithDifficulty('easy'));
+    document.getElementById('btn-ai-medium').addEventListener('click', () => startAIWithDifficulty('medium'));
+    document.getElementById('btn-ai-hard').addEventListener('click', () => startAIWithDifficulty('hard'));
 
     const rulesModal = document.getElementById('rules-modal');
     document.getElementById('btn-rules').addEventListener('click', () => {
