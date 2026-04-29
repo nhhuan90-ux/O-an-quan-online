@@ -1,5 +1,6 @@
 import SocketClient from './socket-client.js';
 import GameController from './game-controller.js';
+import TutorialController from './tutorial-controller.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // UI Elements
@@ -15,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sub-systems
     const socketClient = new SocketClient();
     const gameController = new GameController(socketClient);
+    const tutorialController = new TutorialController();
 
     // Load stats
     function loadStats() {
@@ -203,6 +205,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('btn-close-rules').addEventListener('click', () => {
         rulesModal.classList.add('hidden');
+    });
+
+    document.getElementById('btn-tutorial').addEventListener('click', () => {
+        tutorialController.startTutorial();
     });
 
     // Prevent accidental page leave

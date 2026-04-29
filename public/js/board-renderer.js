@@ -208,7 +208,8 @@ export default class BoardRenderer {
                  this.renderPit(step.pitIndex, tempState.board[step.pitIndex]);
 
                  // Visual flying stones
-                 this.flyStones(step.pitIndex, window.currentGameController.gameState.turn, totalEaten);
+                 const turn = (window.currentGameController && window.currentGameController.gameState) ? window.currentGameController.gameState.turn : 0;
+                 this.flyStones(step.pitIndex, turn, totalEaten);
                  
                  await this.sleep(1200);
                  this.pits[step.pitIndex].classList.remove('eat-highlight');
