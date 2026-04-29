@@ -20,6 +20,9 @@ export default class TutorialController {
 
         this.setupSteps();
         this.bindEvents();
+        
+        // Add resize listener to handle orientation changes and responsive layout shifts
+        this.resizeHandler = this.handleResize.bind(this);
     }
 
     showToast(msg) {
@@ -184,6 +187,8 @@ export default class TutorialController {
         this.gameState = this.getInitialState();
         window.currentGameController = this; // Hook for BoardRenderer
         
+        window.addEventListener('resize', this.resizeHandler);
+        
         this.overlay.classList.remove('hidden');
         document.getElementById('main-menu').classList.add('hidden');
         document.getElementById('game-view').classList.remove('hidden');
@@ -197,8 +202,25 @@ export default class TutorialController {
     }
 
     endTutorial() {
+        window.removeEventListener('resize', this.resizeHandler);
         this.overlay.classList.add('hidden');
         location.reload(); // Simplest way to reset everything
+    }
+
+    handleResize() {
+        if (this.overlay.classList.contains('hidden')) return;
+        
+        // Debounce resize events
+        clearTimeout(this.resizeTimeout);
+        this.resizeTimeout = setTimeout(() => {
+            const step = this.steps[this.currentStep];
+            if (step && step.highlight) {
+                this.highlightElement(step.highlight);
+                this.updateCalloutPosition(step.highlight, step.position);
+            } else {
+                 this.updateCalloutPosition(null, step ? step.position : null);
+            }
+        }, 150);
     }
 
     showStep(index) {
@@ -222,7 +244,10 @@ export default class TutorialController {
             step.action();
         }
         
-        this.updateCalloutPosition(step.highlight, step.position);
+        // Small delay to let the browser paint before calculating bounds, especially useful on first step or after resize
+        setTimeout(() => {
+            this.updateCalloutPosition(step.highlight, step.position);
+        }, 50);
     }
 
     nextStep() {
