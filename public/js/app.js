@@ -32,6 +32,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     loadStats();
 
+    // Dynamic Feature List for Game Modes
+    const gameModeSelector = document.getElementById('game-mode-selector');
+    const featureListContainer = document.getElementById('feature-list-container');
+    
+    const features = {
+        classic: `
+            <div class="feature-item">
+                <i class="fas fa-landmark"></i>
+                <span>Luật chơi truyền thống gốc của Việt Nam</span>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-brain"></i>
+                <span>Tính toán nước đi để ăn nhiều quân nhất</span>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-ban"></i>
+                <span>Không sử dụng AP hay Thẻ kỹ năng</span>
+            </div>
+        `,
+        tactical: `
+            <div class="feature-item">
+                <i class="fas fa-bolt"></i>
+                <span>Sử dụng AP để thực hiện nước đi</span>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-cards"></i>
+                <span>Kết hợp thẻ kỹ năng đặc biệt</span>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-brain"></i>
+                <span>Tính toán chiến thuật để giành chiến thắng</span>
+            </div>
+        `
+    };
+
+    gameModeSelector.addEventListener('change', (e) => {
+        const mode = e.target.value;
+        if (features[mode]) {
+            featureListContainer.innerHTML = features[mode];
+        }
+    });
+
     // Menu logic
     const onlineSetupModal = document.getElementById('online-setup-modal');
     btnPvP.addEventListener('click', () => {
