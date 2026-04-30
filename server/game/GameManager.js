@@ -14,7 +14,7 @@ export default class GameManager {
 
     createMatch(playerA_socket, playerB_socket, mode = 'tactical', names = null, startingTurn = 0, matchOptions = {}) {
         const roomId = `room_${Date.now()}`;
-        const gs = new GameState(playerA_socket.id, playerB_socket.id, false, false, mode, names, startingTurn);
+        const gs = new GameState(playerA_socket.playerId, playerB_socket.playerId, false, false, mode, names, startingTurn);
         gs.isPrivate = matchOptions.isPrivate || false;
         
         gs.turn = startingTurn;
@@ -24,8 +24,8 @@ export default class GameManager {
         }
 
         this.games.set(roomId, gs);
-        this.playerRooms.set(playerA_socket.id, roomId);
-        this.playerRooms.set(playerB_socket.id, roomId);
+        this.playerRooms.set(playerA_socket.playerId, roomId);
+        this.playerRooms.set(playerB_socket.playerId, roomId);
 
         playerA_socket.join(roomId);
         playerB_socket.join(roomId);
@@ -37,10 +37,10 @@ export default class GameManager {
     createBotMatch(playerSocket, mode = 'tactical', difficulty = 'easy') {
         const roomId = `room_bot_${Date.now()}`;
         const botId = `bot_${Date.now()}`;
-        const gs = new GameState(playerSocket.id, botId, true, false, mode, null, 0, difficulty);
+        const gs = new GameState(playerSocket.playerId, botId, true, false, mode, null, 0, difficulty);
         
         this.games.set(roomId, gs);
-        this.playerRooms.set(playerSocket.id, roomId);
+        this.playerRooms.set(playerSocket.playerId, roomId);
         this.playerRooms.set(botId, roomId); // Fix missing bot assignment
         playerSocket.join(roomId);
         
@@ -51,7 +51,7 @@ export default class GameManager {
         console.log(`CREATE LOCAL MATCH: mode=${mode}, startingTurn=${startingTurn}`);
         const roomId = `room_local_${Date.now()}`;
         const localOpponentId = `local_opp_${Date.now()}`;
-        const gs = new GameState(playerSocket.id, localOpponentId, false, true, mode, names, startingTurn);
+        const gs = new GameState(playerSocket.playerId, localOpponentId, false, true, mode, names, startingTurn);
         
         // Final override to be absolutely sure
         gs.turn = startingTurn;
@@ -62,7 +62,7 @@ export default class GameManager {
         }
 
         this.games.set(roomId, gs);
-        this.playerRooms.set(playerSocket.id, roomId);
+        this.playerRooms.set(playerSocket.playerId, roomId);
         this.playerRooms.set(localOpponentId, roomId);
         playerSocket.join(roomId);
         
