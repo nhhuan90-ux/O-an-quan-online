@@ -28,7 +28,14 @@ const gameManager = new GameManager(io);
 const matchmaker = new Matchmaker(io, gameManager);
 
 io.on('connection', (socket) => {
-  console.log(`User connected: ${socket.id}`);
+  const playerId = socket.handshake.auth.playerId || socket.id;
+  socket.playerId = playerId;
+  socket.join(playerId);
+  
+  console.log(`User connected: ${socket.id} (PlayerID: ${playerId})`);
+  
+  // Try to reconnect if they were in a game
+  gameManager.handleReconnect(playerId, socket);
 
   // Matchmaking
   socket.on('join-queue', (options) => {
@@ -36,7 +43,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('leave-queue', () => {
-    matchmaker.removePlayer(socket.id);
+    matchmaker.removePlayer(socket.playerId);
   });
   
   socket.on('start-bot-match', (options) => {
@@ -56,18 +63,22 @@ io.on('connection', (socket) => {
   });
 
   socket.on('rematch-request', () => {
-    gameManager.handleRematch(socket.id);
+    gameManager.handleRematch(socket.playerId);
   });
 
   // Game actions
   socket.on('game-action', (data) => {
-    gameManager.handleAction(socket.id, data);
+    if (data.type === 'leave-game') {
+        gameManager.handlePlayerLeave(socket.playerId);
+    } else {
+        gameManager.handleAction(socket.playerId, data);
+    }
   });
   
   socket.on('disconnect', () => {
-    console.log(`User disconnected: ${socket.id}`);
-    matchmaker.removePlayer(socket.id);
-    gameManager.handleDisconnect(socket.id);
+    console.log(`User disconnected: ${socket.id} (PlayerID: ${socket.playerId})`);
+    matchmaker.removePlayer(socket.playerId);
+    gameManager.handleDisconnect(socket.playerId);
   });
 });
 

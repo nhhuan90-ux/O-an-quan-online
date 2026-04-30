@@ -387,6 +387,19 @@
             </div>
         </div>
         
+        <!-- Disconnect Modal -->
+        <div id="disconnect-modal" class="overlay hidden" style="z-index: 10000;">
+            <div class="glass-panel text-center" style="max-width: 400px; padding: 30px;">
+                <h3 style="color: var(--gold-light); margin-bottom: 15px;"><i class="fas fa-wifi"></i> Đối thủ mất kết nối!</h3>
+                <p>Đối thủ đang bị mất mạng. Bạn có muốn chờ họ kết nối lại không?</p>
+                <div style="font-size: 2.5rem; font-weight: bold; color: var(--accent); margin: 15px 0;" id="disconnect-countdown">60</div>
+                <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+                    <button id="btn-disconnect-wait" class="btn btn-primary" style="flex: 1;">Chờ đối thủ</button>
+                    <button id="btn-disconnect-leave" class="btn btn-outline" style="flex: 1; border-color: #c63c2f; color: #c63c2f;">Thoát ngay</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Notifications -->
         <div id="toast-container" class="toast-container"></div>
     </div>

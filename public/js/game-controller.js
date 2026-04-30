@@ -62,6 +62,12 @@ export default class GameController {
         this.localTimerInterval = null;
         this.localWarningInterval = null;
 
+        this.disconnectModal = document.getElementById('disconnect-modal');
+        this.disconnectCountdown = document.getElementById('disconnect-countdown');
+        this.btnDisconnectWait = document.getElementById('btn-disconnect-wait');
+        this.btnDisconnectLeave = document.getElementById('btn-disconnect-leave');
+        this.disconnectInterval = null;
+
         this.setupEventListeners();
         this.setupSocketListeners();
     }
@@ -187,6 +193,20 @@ export default class GameController {
                 this.hideTimerWarning();
             });
         }
+
+        if (this.btnDisconnectWait) {
+            this.btnDisconnectWait.addEventListener('click', () => {
+                // User explicitly chose to wait, we can just let it continue
+                this.showToast("Đang chờ đối thủ...");
+            });
+        }
+
+        if (this.btnDisconnectLeave) {
+            this.btnDisconnectLeave.addEventListener('click', () => {
+                this.socket.sendAction({ type: 'leave-game' });
+                location.reload();
+            });
+        }
     }
 
     hideTimerWarning() {
@@ -294,6 +314,36 @@ export default class GameController {
                     }
                 }, 1000);
             }
+        });
+
+        this.socket.on('opponent-disconnected', (data) => {
+            if (data && data.reconnecting) {
+                if (this.disconnectModal) {
+                    this.disconnectModal.classList.remove('hidden');
+                    let time = 60;
+                    this.disconnectCountdown.innerText = time;
+                    if (this.disconnectInterval) clearInterval(this.disconnectInterval);
+                    this.disconnectInterval = setInterval(() => {
+                        time--;
+                        if (time >= 0) {
+                            this.disconnectCountdown.innerText = time;
+                        } else {
+                            clearInterval(this.disconnectInterval);
+                        }
+                    }, 1000);
+                }
+            } else {
+                alert("Đối thủ đã thoát vĩnh viễn hoặc mất kết nối quá lâu. Kết thúc game.");
+                location.reload();
+            }
+        });
+
+        this.socket.on('opponent-reconnected', () => {
+            if (this.disconnectModal) {
+                this.disconnectModal.classList.add('hidden');
+                if (this.disconnectInterval) clearInterval(this.disconnectInterval);
+            }
+            this.showToast("Đối thủ đã kết nối lại!");
         });
     }
 

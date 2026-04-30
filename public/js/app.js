@@ -333,11 +333,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    socketClient.on('opponent-disconnected', () => {
-        alert("Đối thủ đã thoát. Kết thúc game.");
-        location.reload();
-    });
-
     socketClient.on('private-room-created', (data) => {
         document.getElementById('matchmaking-status').innerText = 'Chờ bạn bè tham gia...';
         document.getElementById('room-code-display').classList.remove('hidden');

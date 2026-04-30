@@ -7,8 +7,9 @@ export default class GameManager {
     constructor(io) {
         this.io = io;
         this.games = new Map(); // roomId -> GameState
-        this.playerRooms = new Map(); // socketId -> roomId
+        this.playerRooms = new Map(); // playerId -> roomId
         this.timers = new Map(); // roomId -> { type: 'main'|'warning'|'fallback', id: timeoutId }
+        this.disconnectTimers = new Map(); // playerId -> timeoutId
     }
 
     createMatch(playerA_socket, playerB_socket, mode = 'tactical', names = null, startingTurn = 0, matchOptions = {}) {
@@ -123,18 +124,25 @@ export default class GameManager {
         }
     }
 
-    handleAction(socketId, actionData) {
-        const roomId = this.playerRooms.get(socketId);
-        if (!roomId) return;
+    handleAction(playerId, actionData) {
+        const roomId = this.playerRooms.get(playerId);
+        if (!roomId) {
+            this.io.to(playerId).emit('action-error', 'Lỗi: Mất kết nối hoặc phiên chơi đã kết thúc. Vui lòng tải lại trang (F5).');
+            return;
+        }
 
         const gs = this.games.get(roomId);
-        if (!gs || gs.status !== 'playing') return;
+        if (!gs || gs.status !== 'playing') {
+            this.io.to(playerId).emit('action-error', 'Lỗi: Trò chơi không tồn tại hoặc đã kết thúc.');
+            return;
+        }
 
         // Verify turn
-        let playerIndex = gs.players[0].id === socketId ? PLAYER_A : PLAYER_B;
+        let playerIndex = gs.players[0].id === playerId ? PLAYER_A : PLAYER_B;
         if (gs.isLocalMatch) {
              playerIndex = gs.turn; // Trust local client to act on behalf of both
         } else if (gs.turn !== playerIndex && actionData.type !== 'timer-extend') {
+             this.io.to(playerId).emit('action-error', 'Chưa đến lượt của bạn hoặc lượt đã qua do hết thời gian!');
              return;
         }
 
@@ -179,7 +187,7 @@ export default class GameManager {
 
                 steps = SowingEngine.sow(gs, actualStartPit, direction, useCanQuet, bypassOwnerCheck);
                 if (steps.error) {
-                    this.io.to(socketId).emit('action-error', steps.error);
+                    this.io.to(playerId).emit('action-error', steps.error);
                     return;
                 }
 
@@ -202,13 +210,13 @@ export default class GameManager {
             } else if (actionData.type === 'buy-card') {
                 const res = CardSystem.buyCard(gs, playerIndex);
                 if (!res.success) {
-                    this.io.to(socketId).emit('action-error', res.reason);
+                    this.io.to(playerId).emit('action-error', res.reason);
                     return;
                 }
             } else if (actionData.type === 'play-card') {
                 const res = CardSystem.useCard(gs, playerIndex, actionData.cardId, actionData.targetPit);
                 if (!res.success) {
-                    this.io.to(socketId).emit('action-error', res.reason);
+                    this.io.to(playerId).emit('action-error', res.reason);
                     return;
                 }
                 
@@ -222,15 +230,15 @@ export default class GameManager {
             } else if (actionData.type === 'freeze-pit') {
                 const player = gs.players[playerIndex];
                 if (player.ap < 2) {
-                    this.io.to(socketId).emit('action-error', "Không đủ 2 AP để đóng băng (Freeze requires 2 AP)!");
+                    this.io.to(playerId).emit('action-error', "Không đủ 2 AP để đóng băng (Freeze requires 2 AP)!");
                     return;
                 }
                 if (actionData.targetPit === null || actionData.targetPit === 0 || actionData.targetPit === 6) {
-                    this.io.to(socketId).emit('action-error', "Chỉ có thể đóng băng ô Dân.");
+                    this.io.to(playerId).emit('action-error', "Chỉ có thể đóng băng ô Dân.");
                     return;
                 }
                 if (gs.board[actionData.targetPit].isLocked) {
-                    this.io.to(socketId).emit('action-error', "Ô này đã bị đóng băng rồi.");
+                    this.io.to(playerId).emit('action-error', "Ô này đã bị đóng băng rồi.");
                     return;
                 }
                 
@@ -244,7 +252,7 @@ export default class GameManager {
             } else if (actionData.type === 'refill') {
                 // Front end requests a refill
                 if (!gs.refillSide(playerIndex)) {
-                     this.io.to(socketId).emit('action-error', 'Cannot refill (score < 5)');
+                     this.io.to(playerId).emit('action-error', 'Cannot refill (score < 5)');
                 }
             }
 
@@ -267,6 +275,7 @@ export default class GameManager {
 
         } catch (e) {
             console.error("Game error:", e);
+            this.io.to(playerId).emit('action-error', 'Đã xảy ra lỗi xử lý logic game. Vui lòng thử lại hoặc tải lại trang.');
         }
     }
     
@@ -300,8 +309,8 @@ export default class GameManager {
         }
     }
 
-    handleRematch(socketId) {
-        const roomId = this.playerRooms.get(socketId);
+    handleRematch(playerId) {
+        const roomId = this.playerRooms.get(playerId);
         if (!roomId) return;
 
         const gs = this.games.get(roomId);
@@ -333,7 +342,7 @@ export default class GameManager {
             gs.rematchRequests = new Set();
         }
         
-        gs.rematchRequests.add(socketId);
+        gs.rematchRequests.add(playerId);
 
         if (gs.rematchRequests.size === 2) {
             // Both requested, restart!
@@ -347,16 +356,59 @@ export default class GameManager {
             this.prepareTurnTimer(roomId);
         } else {
             // Notify the other player
-            this.io.to(roomId).emit('rematch-requested', { by: socketId });
+            this.io.to(roomId).emit('rematch-requested', { by: playerId });
         }
     }
 
-    handleDisconnect(socketId) {
-        const roomId = this.playerRooms.get(socketId);
+    handlePlayerLeave(playerId) {
+        const roomId = this.playerRooms.get(playerId);
         if (roomId) {
-            this.io.to(roomId).emit('opponent-disconnected');
+            this.io.to(roomId).emit('opponent-disconnected', { reconnecting: false });
+            this.clearTimer(roomId);
             this.games.delete(roomId);
-            this.playerRooms.delete(socketId);
+            for (let [pId, rId] of this.playerRooms.entries()) {
+                if (rId === roomId) this.playerRooms.delete(pId);
+            }
+        }
+    }
+
+    handleReconnect(playerId, socket) {
+        if (this.disconnectTimers.has(playerId)) {
+            clearTimeout(this.disconnectTimers.get(playerId));
+            this.disconnectTimers.delete(playerId);
+        }
+        
+        const roomId = this.playerRooms.get(playerId);
+        if (roomId) {
+            socket.join(roomId);
+            const gs = this.games.get(roomId);
+            if (gs) {
+                // Ensure socket is joined to the room
+                this.io.to(roomId).emit('opponent-reconnected');
+                socket.emit('game-start', { roomId, state: gs });
+            }
+        }
+    }
+
+    handleDisconnect(playerId) {
+        const roomId = this.playerRooms.get(playerId);
+        if (roomId) {
+            const gs = this.games.get(roomId);
+            
+            // If local or bot match, just end immediately
+            if (!gs || gs.isLocalMatch || gs.players[1].isBot) {
+                this.handlePlayerLeave(playerId);
+                return;
+            }
+
+            this.io.to(roomId).emit('opponent-disconnected', { reconnecting: true });
+            
+            const timeoutId = setTimeout(() => {
+                this.handlePlayerLeave(playerId);
+                this.disconnectTimers.delete(playerId);
+            }, 60000); // 60 seconds to reconnect
+            
+            this.disconnectTimers.set(playerId, timeoutId);
         }
     }
 }

@@ -8,19 +8,19 @@ export default class Matchmaker {
 
     addPlayer(socket, mode, name) {
         // Prevent duplicate queueing
-        if (this.queue.find(p => p.socket.id === socket.id)) return;
+        if (this.queue.find(p => p.socket.playerId === socket.playerId)) return;
         
-        console.log(`Player joined queue: ${socket.id} (Mode: ${mode}, Name: ${name})`);
+        console.log(`Player joined queue: ${socket.playerId} (Mode: ${mode}, Name: ${name})`);
         this.queue.push({ socket, mode, name });
         this.checkQueue();
     }
 
-    removePlayer(socketId) {
-        this.queue = this.queue.filter(p => p.socket.id !== socketId);
+    removePlayer(playerId) {
+        this.queue = this.queue.filter(p => p.socket.playerId !== playerId);
         
         // Remove from private rooms if waiting
         for (const [code, roomInfo] of this.privateRooms.entries()) {
-             if (roomInfo.socket.id === socketId) {
+             if (roomInfo.socket.playerId === playerId) {
                   this.privateRooms.delete(code);
                   console.log(`Private room ${code} deleted because host disconnected.`);
              }

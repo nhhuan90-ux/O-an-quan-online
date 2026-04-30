@@ -1,6 +1,16 @@
 export default class SocketClient {
     constructor() {
-        this.socket = io();
+        let playerId = localStorage.getItem('oanquan_playerId');
+        if (!playerId) {
+            playerId = 'player_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+            localStorage.setItem('oanquan_playerId', playerId);
+        }
+        
+        this.playerId = playerId;
+        this.socket = io({
+            auth: { playerId: this.playerId }
+        });
+        
         this.handlers = {};
 
         // Wire up all registered handlers
@@ -51,6 +61,6 @@ export default class SocketClient {
     }
     
     getId() {
-        return this.socket.id;
+        return this.playerId;
     }
 }
