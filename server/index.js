@@ -75,6 +75,17 @@ io.on('connection', (socket) => {
     }
   });
   
+  socket.on('chat-message', (data) => {
+    const roomId = gameManager.playerRooms.get(socket.playerId);
+    if (roomId) {
+      io.to(roomId).emit('chat-message', {
+        playerId: socket.playerId,
+        text: data.text,
+        type: data.type || 'text'
+      });
+    }
+  });
+
   socket.on('disconnect', () => {
     console.log(`User disconnected: ${socket.id} (PlayerID: ${socket.playerId})`);
     matchmaker.removePlayer(socket.playerId);

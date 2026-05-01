@@ -1,6 +1,8 @@
 import SocketClient from './socket-client.js';
 import GameController from './game-controller.js';
 import TutorialController from './tutorial-controller.js';
+import ChatController from './chat-controller.js';
+import SoundManager from './sound-manager.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // UI Elements
@@ -17,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const socketClient = new SocketClient();
     const gameController = new GameController(socketClient);
     const tutorialController = new TutorialController();
+    const chatController = new ChatController(socketClient);
 
     // Load stats
     function loadStats() {
@@ -166,6 +169,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const btnSoundToggle = document.getElementById('btn-sound-toggle');
+    btnSoundToggle.addEventListener('click', () => {
+        const enabled = window.soundManager.toggle();
+        if (enabled) {
+            btnSoundToggle.classList.remove('disabled');
+        } else {
+            btnSoundToggle.classList.add('disabled');
+        }
+    });
+
+    // Removed BGM initialization on first interaction
     const localSetupModal = document.getElementById('local-setup-modal');
     document.getElementById('btn-local').addEventListener('click', () => {
         localSetupModal.classList.remove('hidden');

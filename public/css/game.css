@@ -45,7 +45,9 @@
 .player-info {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1rem;
+    flex: 1;
+    position: relative;
 }
 
 .avatar {
@@ -386,6 +388,7 @@
     align-items: center;
     gap: 10px;
 }
+
 .turn-timer.warning {
     color: var(--accent);
     border-color: var(--accent);
@@ -395,6 +398,62 @@
     from { box-shadow: 0 0 5px var(--accent); transform: scale(1); }
     to { box-shadow: 0 0 20px var(--accent); transform: scale(1.1); }
 }
+
+
+/* CONTROL BUTTONS */
+.fullscreen-btn {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 10001;
+    width: 38px;
+    height: 38px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    transition: all 0.2s ease;
+}
+.fullscreen-btn svg { width: 28px; height: 28px; }
+.fullscreen-btn .hidden { display: none; }
+.fullscreen-btn:hover { background: rgba(212, 175, 55, 0.2); transform: scale(1.05); }
+
+.sound-btn {
+    position: fixed;
+    top: 15px;
+    right: 65px;
+    z-index: 10001;
+    width: 38px;
+    height: 38px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    transition: all 0.2s ease;
+}
+.sound-btn:hover { background: rgba(212, 175, 55, 0.2); transform: scale(1.05); }
+.sound-btn.disabled { border-color: #444; }
+
+.music-icon-img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    filter: invert(80%) sepia(50%) saturate(400%) hue-rotate(350deg) brightness(100%);
+    transition: all 0.3s ease;
+}
+.sound-btn.disabled .music-icon-img { filter: grayscale(1) opacity(0.4); }
+
+.sound-btn.disabled .music-icon-img { filter: grayscale(1) opacity(0.4); }
 
 /* Stage 2 Additions */
 .central-deck {
@@ -631,6 +690,13 @@
     .avatar { width: 40px; height: 40px; font-size: 1rem; }
     .direction-chooser { padding: 10px; gap: 10px; }
     .dir-btn { width: 40px; height: 40px; font-size: 1.2rem; }
+    
+    .dir-btn { width: 40px; height: 40px; font-size: 1.2rem; }
+    
+    /* Lowered top-right controls to avoid player panel */
+    .fullscreen-btn { top: 100px !important; bottom: auto !important; left: auto !important; right: 15px !important; }
+    .sound-btn { top: 100px !important; bottom: auto !important; left: auto !important; right: 60px !important; }
+    .turn-timer { left: 15px !important; top: 15px !important; font-size: 1.2rem !important; }
 }
 
 @media (max-height: 500px) {
@@ -714,6 +780,13 @@
     }
     .direction-chooser { padding: 10px !important; gap: 10px !important; }
     .dir-btn { width: 35px !important; height: 35px !important; font-size: 1rem !important; }
+    
+    .direction-chooser { padding: 10px !important; gap: 10px !important; }
+    .dir-btn { width: 35px !important; height: 35px !important; font-size: 1rem !important; }
+    
+    .fullscreen-btn { top: 55px !important; bottom: auto !important; left: auto !important; right: 10px !important; width: 32px !important; height: 32px !important; }
+    .sound-btn { top: 55px !important; bottom: auto !important; left: auto !important; right: 50px !important; width: 32px !important; height: 32px !important; }
+    .turn-timer { left: 15px !important; top: 10px !important; font-size: 1rem !important; padding: 2px 10px !important; }
 }
 
 @media (max-width: 768px) {
@@ -796,3 +869,6 @@
         padding: 15px;
     }
 }
+
+
+

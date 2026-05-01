@@ -245,6 +245,7 @@ export default class GameController {
                 if (card) {
                     this.showGiantCardToast(card);
                     this.addHistory(data.state.turn, `Sử dụng thẻ: ${card.name}`);
+                    if (window.soundManager) window.soundManager.play('card');
                 }
                 this.updateState(data.state);
             } else {
@@ -460,6 +461,7 @@ export default class GameController {
              } else {
                  if (isMyTurnNow) {
                      this.showToast(`Đến Lượt Bạn (${activePlayerName})!`);
+                     if (window.soundManager) window.soundManager.play('turn');
                  } else {
                      this.showToast(`Đến Lượt ${activePlayerName}...`);
                  }
@@ -675,12 +677,15 @@ export default class GameController {
              winnerText = "Hòa!";
         } else {
              const winnerIndex = gameState.winner;
-             if (gameState.isLocalMatch) {
-                 winnerText = winnerIndex === 0 ? "Người chơi 1 thắng! 🎉" : "Người chơi 2 thắng! 🎉";
-             } else {
-                 winnerText = winnerIndex === this.myPlayerIndex ? "Chiến Thắng! 🎉" : "Thất Bại 💀";
-             }
-        }
+              if (gameState.isLocalMatch) {
+                  winnerText = winnerIndex === 0 ? "Người chơi 1 thắng! 🎉" : "Người chơi 2 thắng! 🎉";
+                  if (window.soundManager) window.soundManager.play('win');
+              } else {
+                  const isWin = winnerIndex === this.myPlayerIndex;
+                  winnerText = isWin ? "Chiến Thắng! 🎉" : "Thất Bại 💀";
+                  if (window.soundManager) window.soundManager.play(isWin ? 'win' : 'lose');
+              }
+         }
         
         if (!this.statsSaved) {
             this.statsSaved = true;

@@ -158,6 +158,7 @@ export default class BoardRenderer {
                  tempState.board[step.pitIndex].regularStones = 0;
                  tempState.board[step.pitIndex].redStones = 0;
                  this.pits[step.pitIndex].classList.add('highlight');
+                 if (window.soundManager) window.soundManager.play('pickup');
                  setTimeout(() => this.pits[step.pitIndex].classList.remove('highlight'), 300);
                  this.renderPit(step.pitIndex, tempState.board[step.pitIndex]); // Faster update
                  await this.sleep(300);
@@ -178,6 +179,7 @@ export default class BoardRenderer {
                      tempState.board[step.pitIndex].regularStones += 1;
                  }
                  this.pits[step.pitIndex].classList.add('highlight');
+                 if (window.soundManager) window.soundManager.play('drop');
                  setTimeout(() => this.pits[step.pitIndex].classList.remove('highlight'), 300);
                  this.renderPit(step.pitIndex, tempState.board[step.pitIndex]); // Local update
                  this.moveHandTo(step.pitIndex, true); // grab again
@@ -187,6 +189,7 @@ export default class BoardRenderer {
                  // Green highlight for eating
                  this.pits[step.pitIndex].classList.add('eat-highlight');
                  if (window.currentGameController) window.currentGameController.showToast("Ăn Quân! 🎉");
+                 if (window.soundManager) window.soundManager.play('eat');
                  
                  // Fireworks!
                  if (typeof confetti === 'function') {
@@ -218,6 +221,7 @@ export default class BoardRenderer {
                  // Red highlight + shake for stop
                  this.pits[step.pitIndex].classList.add('stop-highlight');
                  if (window.currentGameController) window.currentGameController.showToast("Dừng lượt 😢");
+                 if (window.soundManager) window.soundManager.play('stop');
                  setTimeout(() => this.pits[step.pitIndex].classList.remove('stop-highlight'), 1000);
                  await this.sleep(1000);
              }

@@ -59,6 +59,10 @@ export default class SocketClient {
     sendAction(actionData) {
         this.socket.emit('game-action', actionData);
     }
+
+    emit(event, data) {
+        this.socket.emit(event, data);
+    }
     
     getId() {
         return this.playerId;

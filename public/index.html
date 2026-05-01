@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/game.css">
+    <link rel="stylesheet" href="css/chat.css">
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
@@ -251,6 +252,17 @@
                             <span class="ap-dot"></span><span class="ap-dot"></span>
                         </div>
                     </div>
+                    <div class="chat-wrapper" id="chat-wrapper-b">
+                        <button class="player-chat-btn" data-player="b" title="Gửi tin nhắn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 20h4l4 4v-4h2a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-4"></path>
+                                <path d="M2 15h2l4 4v-4h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2z"></path>
+                                <line x1="6" y1="6" x2="14" y2="6"></line>
+                                <line x1="6" y1="10" x2="10" y2="10"></line>
+                            </svg>
+                        </button>
+                        <div class="phrase-popup hidden" id="phrase-popup-b"></div>
+                    </div>
                 </div>
                 
                 <div class="cards-container" id="opp-cards">
@@ -337,6 +349,17 @@
                             <span class="ap-dot"></span><span class="ap-dot"></span>
                         </div>
                     </div>
+                    <div class="chat-wrapper" id="chat-wrapper-a">
+                        <button class="player-chat-btn" data-player="a" title="Gửi tin nhắn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 20h4l4 4v-4h2a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-4"></path>
+                                <path d="M2 15h2l4 4v-4h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2z"></path>
+                                <line x1="6" y1="6" x2="14" y2="6"></line>
+                                <line x1="6" y1="10" x2="10" y2="10"></line>
+                            </svg>
+                        </button>
+                        <div class="phrase-popup hidden" id="phrase-popup-a"></div>
+                    </div>
                 </div>
                 
                 <div class="action-buttons" style="flex-direction:row; justify-content:center;">
@@ -402,6 +425,7 @@
 
         <!-- Notifications -->
         <div id="toast-container" class="toast-container"></div>
+        <div id="global-chat-container" style="position:fixed; top:0; left:0; width:100vw; height:100vh; pointer-events:none; z-index:99999;"></div>
     </div>
 
     <!-- Scripts -->
@@ -435,6 +459,11 @@
             <path d="M21 16H16V21" stroke="url(#grad-fs)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M3 16H8V21" stroke="url(#grad-fs)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
+    </button>
+
+    <!-- SOUND TOGGLE -->
+    <button id="btn-sound-toggle" class="sound-btn" title="Âm thanh">
+        <img src="assets/images/music-notes.png" alt="Âm thanh" class="music-icon-img">
     </button>
 
     <!-- Tutorial UI -->
