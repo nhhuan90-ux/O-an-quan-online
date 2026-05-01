@@ -160,6 +160,7 @@ export default class GameController {
 
         document.getElementById('btn-exit-game').addEventListener('click', () => {
             if (confirm("Bạn có chắc chắn muốn thoát trận đấu này?")) {
+                this.isLeaving = true;
                 this.socket.sendAction({ type: 'leave-game' });
                 location.reload();
             }
@@ -211,6 +212,7 @@ export default class GameController {
 
         if (this.btnDisconnectLeave) {
             this.btnDisconnectLeave.addEventListener('click', () => {
+                this.isLeaving = true;
                 this.socket.sendAction({ type: 'leave-game' });
                 location.reload();
             });
@@ -342,7 +344,9 @@ export default class GameController {
                     }, 1000);
                 }
             } else {
-                alert("Đối thủ đã thoát vĩnh viễn hoặc mất kết nối quá lâu. Kết thúc game.");
+                if (!this.isLeaving) {
+                    alert("Đối thủ đã thoát vĩnh viễn hoặc mất kết nối quá lâu. Kết thúc game.");
+                }
                 location.reload();
             }
         });
