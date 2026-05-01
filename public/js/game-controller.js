@@ -154,7 +154,15 @@ export default class GameController {
         });
         
         document.getElementById('btn-home').addEventListener('click', () => {
+            this.socket.sendAction({ type: 'leave-game' });
             location.reload();
+        });
+
+        document.getElementById('btn-exit-game').addEventListener('click', () => {
+            if (confirm("Bạn có chắc chắn muốn thoát trận đấu này?")) {
+                this.socket.sendAction({ type: 'leave-game' });
+                location.reload();
+            }
         });
 
         document.getElementById('btn-rematch').addEventListener('click', () => {
@@ -401,9 +409,18 @@ export default class GameController {
         // Hide game over modal and reset rematch state if it was open
         this.gameOverModal.classList.add('hidden');
         document.getElementById('btn-rematch').disabled = false;
+        document.getElementById('btn-rematch').classList.add('hidden');
         document.getElementById('rematch-status').classList.add('hidden');
+        document.getElementById('btn-exit-game').classList.add('hidden');
 
         this.updateState(gameState);
+        
+        // Show exit button for online games
+        if (!gameState.isLocalMatch && !gameState.players[1].isBot) {
+            document.getElementById('btn-exit-game').classList.remove('hidden');
+        } else {
+            document.getElementById('btn-exit-game').classList.add('hidden');
+        }
         
         // Force multiple re-renders to ensure visibility across different browsers/latencies
         [100, 500, 1000].forEach(delay => {
@@ -703,11 +720,11 @@ export default class GameController {
             }
         }
         
-        if (gameState.isPrivate || gameState.isLocalMatch) {
-            document.getElementById('btn-rematch').classList.remove('hidden');
-        } else {
-            document.getElementById('btn-rematch').classList.add('hidden');
-        }
+        // Rematch button visibility
+        document.getElementById('btn-rematch').classList.remove('hidden');
+        
+        // Hide exit button when game is over
+        document.getElementById('btn-exit-game').classList.add('hidden');
         
         title.innerText = winnerText;
         desc.innerText = `Điểm cuối cùng:\n${gameState.players[0].name}: ${gameState.players[0].score}\n${gameState.players[1].name}: ${gameState.players[1].score}`;

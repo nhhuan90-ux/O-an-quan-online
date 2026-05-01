@@ -444,6 +444,27 @@
 .sound-btn:hover { background: rgba(212, 175, 55, 0.2); transform: scale(1.05); }
 .sound-btn.disabled { border-color: #444; }
 
+.exit-btn {
+    position: fixed;
+    top: 15px;
+    right: 115px;
+    z-index: 10001;
+    width: 38px;
+    height: 38px;
+    background: rgba(198, 60, 47, 0.7);
+    border: 1px solid #c63c2f;
+    color: white;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    transition: all 0.2s ease;
+}
+.exit-btn:hover { background: #c63c2f; transform: scale(1.05); }
+.exit-btn.hidden { display: none; }
+
 .music-icon-img {
     width: 22px;
     height: 22px;
@@ -696,6 +717,7 @@
     /* Lowered top-right controls to avoid player panel */
     .fullscreen-btn { top: 100px !important; bottom: auto !important; left: auto !important; right: 15px !important; }
     .sound-btn { top: 100px !important; bottom: auto !important; left: auto !important; right: 60px !important; }
+    .exit-btn { top: 100px !important; bottom: auto !important; left: auto !important; right: 105px !important; }
     .turn-timer { left: 15px !important; top: 15px !important; font-size: 1.2rem !important; }
 }
 
@@ -786,6 +808,7 @@
     
     .fullscreen-btn { top: 55px !important; bottom: auto !important; left: auto !important; right: 10px !important; width: 32px !important; height: 32px !important; }
     .sound-btn { top: 55px !important; bottom: auto !important; left: auto !important; right: 50px !important; width: 32px !important; height: 32px !important; }
+    .exit-btn { top: 55px !important; bottom: auto !important; left: auto !important; right: 90px !important; width: 32px !important; height: 32px !important; }
     .turn-timer { left: 15px !important; top: 10px !important; font-size: 1rem !important; padding: 2px 10px !important; }
 }
 

@@ -366,8 +366,15 @@ export default class GameManager {
             this.io.to(roomId).emit('opponent-disconnected', { reconnecting: false });
             this.clearTimer(roomId);
             this.games.delete(roomId);
+            // Clear playerRooms for all players in this room
             for (let [pId, rId] of this.playerRooms.entries()) {
-                if (rId === roomId) this.playerRooms.delete(pId);
+                if (rId === roomId) {
+                    this.playerRooms.delete(pId);
+                    if (this.disconnectTimers.has(pId)) {
+                        clearTimeout(this.disconnectTimers.get(pId));
+                        this.disconnectTimers.delete(pId);
+                    }
+                }
             }
         }
     }
@@ -380,12 +387,15 @@ export default class GameManager {
         
         const roomId = this.playerRooms.get(playerId);
         if (roomId) {
-            socket.join(roomId);
             const gs = this.games.get(roomId);
-            if (gs) {
+            if (gs && gs.status === 'playing') {
+                socket.join(roomId);
                 // Ensure socket is joined to the room
                 this.io.to(roomId).emit('opponent-reconnected');
                 socket.emit('game-start', { roomId, state: gs });
+            } else if (gs && gs.status !== 'playing') {
+                // Game already ended, clear the room association
+                this.playerRooms.delete(playerId);
             }
         }
     }

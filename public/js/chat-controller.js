@@ -4,6 +4,7 @@ const QUICK_PHRASES = [
     { text: "Hên xui thôi... 😅", icon: "fa-dice" },
     { text: "Wow! 😮", icon: "fa-surprise" },
     { text: "Hahaha 😂", icon: "fa-laugh-squint" },
+    { text: "Nhanh nào! ⚡", icon: "fa-bolt" },
     { text: "Chúc mừng! 🎉", icon: "fa-party-horn" },
     { text: "Đợi tí nhé... ⏳", icon: "fa-hourglass-half" }
 ];
@@ -152,9 +153,11 @@ export default class ChatController {
     canIControl(side) {
         if (!window.currentGameController) return true;
         const gc = window.currentGameController;
-        if (gc.gameState.isLocalMatch) return true;
-        const myIndex = gc.myPlayerIndex;
-        return (side === 'a' && myIndex === 0) || (side === 'b' && myIndex === 1);
+        // player-a-panel is always the local user's panel (friendly) in both local and online
+        if (!gc.gameState.isLocalMatch) {
+            return side === 'a';
+        }
+        return true; // In local match, can control both
     }
 
     sendPhrase(text, popupSide) {
