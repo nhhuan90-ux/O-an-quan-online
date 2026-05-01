@@ -20,6 +20,8 @@ export default class GameController {
         
         window.currentGameController = this;
         
+        this.isLeaving = false;
+        
         this.gameState = null;
         this.myPlayerIndex = null;
         this.roomId = null;
@@ -344,6 +346,13 @@ export default class GameController {
                     }, 1000);
                 }
             } else {
+                if (this.disconnectModal) {
+                    this.disconnectModal.classList.add('hidden');
+                }
+                if (this.disconnectInterval) {
+                    clearInterval(this.disconnectInterval);
+                }
+
                 if (!this.isLeaving) {
                     alert("Đối thủ đã thoát vĩnh viễn hoặc mất kết nối quá lâu. Kết thúc game.");
                 }

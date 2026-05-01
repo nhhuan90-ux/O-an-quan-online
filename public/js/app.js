@@ -283,7 +283,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Prevent accidental page leave
     window.addEventListener('beforeunload', (e) => {
-        if (gameView.classList.contains('active')) {
+        const gc = window.currentGameController;
+        if (gameView.classList.contains('active') && (!gc || !gc.isLeaving)) {
              e.preventDefault();
              e.returnValue = ''; // Standard for showing confirmation
         }
