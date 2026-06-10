@@ -154,12 +154,162 @@ const questionBank = [
     question: "Con cá nào không biết bơi?",
     options: ["Cá voi", "Cá gỗ (hoặc cá kho, cá chết)", "Cá chuồn", "Cá đuối"],
     answer: 1
+  },
+  {
+    question: "Con gì đầu dê mình ốc?",
+    options: ["Con dê núi", "Con dốc", "Con ốc sên", "Con sên trần"],
+    answer: 1
+  },
+  {
+    question: "Cái gì bằng cái vung, vùng xuống ao, đào không thấy, lấy không được?",
+    options: ["Cái lá sen", "Bóng mặt trăng", "Bọt nước", "Hạt mưa sa"],
+    answer: 1
+  },
+  {
+    question: "Đầu đuôi vuông vắn như nhau, thân chia nhiều đốt rất mau rất đều. Giúp người học tập sớm chiều có nhau?",
+    options: ["Cái bút chì", "Thước kẻ", "Vở bài tập", "Hộp bút màu"],
+    answer: 1
+  },
+  {
+    question: "Mặt thì vuông vức, tai thì không có. Miệng rộng bao la, nuốt người rồi lại nhả ra?",
+    options: ["Thang máy", "Ngôi nhà", "Chiếc tủ", "Tàu hỏa"],
+    answer: 1
+  },
+  {
+    question: "Con gì đuôi ngắn tai dài, mắt hồng lông mượt, có tài chạy nhanh?",
+    options: ["Con sóc", "Con chuột túi", "Con thỏ", "Con chuột lang"],
+    answer: 2
+  },
+  {
+    question: "Bốn cột trụ trời, quả đồi di động. Cái vòi nghẹo nghễ, cái đuôi ngoe nguẩy?",
+    options: ["Con voi", "Con trâu nước", "Con hươu cao cổ", "Con tê giác"],
+    answer: 0
+  },
+  {
+    question: "Càng lau càng bẩn là cái gì?",
+    options: ["Cái chổi quét nhà", "Cái khăn lau bảng", "Cái giẻ lau tay", "Khăn rửa mặt"],
+    answer: 1
+  },
+  {
+    question: "Cái gì tay trái cầm được mà tay phải không cầm được?",
+    options: ["Cổ tay trái", "Khuỷu tay trái", "Khuỷu tay phải / Cổ tay phải", "Điện thoại di động"],
+    answer: 2
+  },
+  {
+    question: "Bố mẹ có sáu người con trai, mỗi người con trai có một người em gái. Hỏi gia đình có mấy con?",
+    options: ["7 người con", "8 người con", "12 người con", "14 người con"],
+    answer: 0
+  },
+  {
+    question: "Một đàn chim đậu trên cành, thợ săn bắn chết một con. Hỏi trên cành còn mấy con?",
+    options: ["Còn lại các con khác", "Còn đúng 0 con", "Còn 9 con", "Còn 1 con"],
+    answer: 1
+  },
+  {
+    question: "Gặp đười ươi rất hung dữ trong rừng sâu, trong tay có 2 con dao. Làm sao để thoát?",
+    options: ["Ném 2 con dao xuống đất cho đười ươi tự đâm ngực", "Chạy trốn thật nhanh", "Trèo lên cây cao", "Nằm giả chết"],
+    answer: 0
+  },
+  {
+    question: "Quả gì không học mà đỗ?",
+    options: ["Quả bí ngô", "Quả đỗ (quả đậu)", "Quả sung", "Quả lê rừng"],
+    answer: 1
+  },
+  {
+    question: "Con đường nào mà chỉ có xe chạy chứ không bao giờ có người đi bộ?",
+    options: ["Đường cao tốc", "Đường ray xe lửa", "Đường hàng không", "Đường sông"],
+    answer: 1
+  },
+  {
+    question: "Con mèo nào cực kỳ sợ chuột?",
+    options: ["Mèo Kitty", "Mèo Tom", "Mèo máy Doraemon", "Mèo đen mun"],
+    answer: 2
+  },
+  {
+    question: "Sông nào có tên vừa ngọt ngào vừa chua chát?",
+    options: ["Sông Cam Lộ", "Sông Hồng Hà", "Sông Cửu Long", "Sông Lam"],
+    answer: 0
+  },
+  {
+    question: "Cái gì chứa nhiều sông hồ nước nôi nhất mà lại luôn khô ráo?",
+    options: ["Đám mây mùa hạ", "Bản đồ", "Quả dưa hấu lớn", "Thủy cung"],
+    answer: 1
+  },
+  {
+    question: "Con gì sinh ra đã có râu như cụ già lớn tuổi?",
+    options: ["Con dê", "Con khỉ vàng", "Con rùa biển", "Con mèo mun"],
+    answer: 0
+  },
+  {
+    question: "Loại hạt nào mắt thấy tai nghe nhưng không bao giờ ăn được?",
+    options: ["Hạt hướng dương chín", "Hạt mưa", "Hạt bụi lơ lửng", "Hạt cát trắng"],
+    answer: 1
+  },
+  {
+    question: "Vua nào thưở nhỏ chăn trâu, lấy bông lau làm cờ tập trận giả?",
+    options: ["Vua Lê Lợi", "Vua Đinh Bộ Lĩnh", "Vua Quang Trung", "Trần Hưng Đạo"],
+    answer: 1
+  },
+  {
+    question: "Con chim nào có kích thước lớn nhất hành tinh hiện nay?",
+    options: ["Đại bàng đầu hói", "Đà điểu Châu Phi", "Chim ưng lửa", "Chim hải âu khổng lồ"],
+    answer: 1
+  },
+  {
+    question: "Cánh gì không biết bay, chỉ đứng yên một chỗ che mưa nắng cho nhà?",
+    options: ["Cánh quạt trần", "Cánh diều giấy", "Cánh buồm lớn", "Cánh cửa"],
+    answer: 3
+  },
+  {
+    question: "Trái gì lúc nhỏ màu xanh, chín màu vàng đỏ nhạt, hạt như ngọc hồng mọng nước?",
+    options: ["Quả thanh long", "Quả lựu", "Quả dâu tây ngọt", "Quả chôm chôm"],
+    answer: 1
+  },
+  {
+    question: "Hoa gì chỉ nở âm thầm vào đêm khuya, tỏa hương và rụng lúc ban sáng?",
+    options: ["Hoa hồng nhung", "Hoa cúc vàng", "Hoa quỳnh", "Hoa hướng dương"],
+    answer: 2
+  },
+  {
+    question: "Cái gì mà bạn càng lấy đi nhiều từ nó thì nó lại càng phình to ra?",
+    options: ["Cây tre non", "Cái hố cát", "Đám mây đen", "Quả bóng bay"],
+    answer: 1
+  },
+  {
+    question: "Con gì sáng đi bằng 4 chân, trưa đi bằng 2 chân, chiều đi bằng 3 chân?",
+    options: ["Con vượn cổ", "Con chó săn", "Con người", "Con gấu nâu"],
+    answer: 2
+  },
+  {
+    question: "Cây gì có hoa mà không có lá, có quả tròn mà không bao giờ có hạt?",
+    options: ["Cây xương rồng", "Cây nấm mối", "Cây cột điện", "Cây hoa đá"],
+    answer: 2
+  },
+  {
+    question: "Cái gì đi vòng quanh thế giới rộng lớn mà vẫn đứng nguyên ở một góc nhỏ?",
+    options: ["Bức ảnh kỷ niệm", "Con tem thư", "Bản đồ thế giới", "Vệ tinh nhân tạo"],
+    answer: 1
+  },
+  {
+    question: "Tôi chứa đựng tất cả các từ ngữ thế gian, nhưng tôi không biết nói. Tôi là gì?",
+    options: ["Cuốn từ điển", "Quyển vở nháp", "Bức thư tình", "Tờ báo sáng"],
+    answer: 0
+  },
+  {
+    question: "Tháng nào trong năm dương lịch có 28 ngày?",
+    options: ["Chỉ có tháng 2", "Tất cả 12 tháng", "Tháng 2 năm nhuận", "Tháng Chạp"],
+    answer: 1
+  },
+  {
+    question: "Cá gì có hai mắt nhưng không vảy, sống trên cạn và có thể biết hát?",
+    options: ["Cá nhân (con người)", "Cá voi xanh", "Cá chép vàng", "Cá ngựa biển"],
+    answer: 0
   }
 ];
 
 // --- State Variables ---
 let grid = [];
-let gridSize = 25; // Increased to 25 to make the maze denser with more fake paths
+let gridSize = 101; // Doubled from 51 to 101 to increase difficulty and scale
 let shapeType = "square";
 let startCell = null;
 let endCell = null;
@@ -295,7 +445,7 @@ function playPoisonSound() {
   playSound(200, 'sawtooth', 0.8, 0.15, 60); // Low sliding buzz explosion
 }
 
-// --- Maze Generator (DFS Carving) ---
+// --- Maze Generator (Iterative DFS Stack with Loop Generation) ---
 function generateMaze() {
   grid = Array(gridSize).fill(null).map(() => Array(gridSize).fill('W'));
   
@@ -308,8 +458,9 @@ function generateMaze() {
     }
   }
 
-  // 2. DFS Maze Carving on valid odd coordinates
+  // 2. Iterative DFS Maze Carving using stack (prevents Maximum Call Stack size errors)
   const visited = new Set();
+  const stack = [];
   
   // Find first valid odd cell inside shape to start DFS
   let startR = 1, startC = 1;
@@ -326,34 +477,67 @@ function generateMaze() {
     if (found) break;
   }
 
-  function carve(r, c) {
-    visited.add(`${r},${c}`);
-    grid[r][c] = 'O'; // Path cell
+  grid[startR][startC] = 'O'; // Path cell
+  visited.add(`${startR},${startC}`);
+  stack.push({ r: startR, c: startC });
 
-    // Get random directions
+  while (stack.length > 0) {
+    const curr = stack[stack.length - 1]; // peek
+    const r = curr.r;
+    const c = curr.c;
+
+    // Get unvisited directions
     const dirs = [
       [0, 2], [0, -2], [2, 0], [-2, 0]
     ];
-    // Shuffle directions
-    dirs.sort(() => Math.random() - 0.5);
-
+    const unvisitedNeighbors = [];
     for (const [dr, dc] of dirs) {
       const nr = r + dr;
       const nc = c + dc;
       if (nr > 0 && nr < gridSize - 1 && nc > 0 && nc < gridSize - 1) {
         if (grid[nr][nc] === 'W' && !visited.has(`${nr},${nc}`)) {
-          // Carve wall in between
-          grid[r + dr / 2][c + dc / 2] = 'O';
-          carve(nr, nc);
+          unvisitedNeighbors.push({ nr, nc, dr, dc });
+        }
+      }
+    }
+
+    if (unvisitedNeighbors.length > 0) {
+      // Pick random neighbor
+      const next = unvisitedNeighbors[Math.floor(Math.random() * unvisitedNeighbors.length)];
+      
+      // Carve wall in between
+      grid[r + next.dr / 2][c + next.dc / 2] = 'O';
+      grid[next.nr][next.nc] = 'O';
+      
+      visited.add(`${next.nr},${next.nc}`);
+      stack.push({ r: next.nr, c: next.nc });
+    } else {
+      stack.pop();
+    }
+  }
+
+  // 2.5 Randomly remove walls to create loops ("đường giả") to increase difficulty
+  for (let r = 2; r < gridSize - 2; r++) {
+    for (let c = 2; c < gridSize - 2; c++) {
+      if (grid[r][c] === 'W') {
+        const left = grid[r][c-1];
+        const right = grid[r][c+1];
+        const top = grid[r-1][c];
+        const bottom = grid[r+1][c];
+        
+        // If it separates two paths horizontally or vertically
+        if ((left === 'O' && right === 'O') || (top === 'O' && bottom === 'O')) {
+          // 5% chance to remove the wall to create a loop/dead-end alternative
+          if (Math.random() < 0.05) {
+            grid[r][c] = 'O';
+          }
         }
       }
     }
   }
 
-  carve(startR, startC);
-
   // 3. Find Entrance & Exit
-  // Look for first valid cell on top rows (row 1 or 2 or 3) for entrance
+  // Look for first valid cell on top rows for entrance
   startCell = null;
   for (let r = 1; r < gridSize - 1; r++) {
     for (let c = 1; c < gridSize - 1; c++) {
@@ -379,7 +563,7 @@ function generateMaze() {
     if (endCell) break;
   }
 
-  playerPos = { r: startCell.r - 1, c: startCell.c }; // Start at the entrance entrance path
+  playerPos = { r: startCell.r - 1, c: startCell.c }; // Start at entrance
 }
 
 // --- Pathfinder (BFS to trace solution path and allocate gates) ---
@@ -492,7 +676,7 @@ function navigateToCell(targetR, targetC) {
   const path = findPathBFS(playerPos, { r: targetR, c: targetC });
   if (path.length <= 1) return;
 
-  // Move player along the path step-by-step
+  // Move player along the path step-by-step (speed increased to 40ms for 101x101 grid)
   let stepIdx = 1;
   const timer = setInterval(() => {
     if (lives <= 0 || activeGate) {
@@ -525,7 +709,7 @@ function navigateToCell(targetR, targetC) {
     } else {
       clearInterval(timer);
     }
-  }, 100);
+  }, 40);
 }
 
 function findPathBFS(start, target) {
@@ -647,6 +831,11 @@ function selectChest(idx) {
     // Major win!
     playChestWinSound();
     score = score * 2 + 100; // Double score + bonus
+    localStorage.setItem('riddle_maze_score', score); // Save accumulated score
+    
+    // Save level progression
+    const currentLevel = parseInt(localStorage.getItem('riddle_maze_level')) || 1;
+    localStorage.setItem('riddle_maze_level', currentLevel + 1);
     
     document.getElementById('victory-icon-display').innerText = '👑🏆';
     document.getElementById('victory-title-display').innerText = 'KHO BÁU VÀNG! 👑';
@@ -658,7 +847,12 @@ function selectChest(idx) {
     // Medium win!
     playChestWinSound();
     score += 150; // Bonus
+    localStorage.setItem('riddle_maze_score', score); // Save accumulated score
     
+    // Save level progression
+    const currentLevel = parseInt(localStorage.getItem('riddle_maze_level')) || 1;
+    localStorage.setItem('riddle_maze_level', currentLevel + 1);
+
     document.getElementById('victory-icon-display').innerText = '🥈🎁';
     document.getElementById('victory-title-display').innerText = 'KHO BÁU BẠC! 🥈';
     document.getElementById('victory-desc-display').innerText = `Chúc mừng bạn đã mở trúng Rương Bạc chứa nhiều vàng bạc đá quý quý giá bên trong!`;
@@ -668,6 +862,11 @@ function selectChest(idx) {
   else {
     // Toxic gas loss!
     playPoisonSound();
+    
+    // Reset player's active score to last successfully saved checkpoint on death
+    const saved = parseInt(localStorage.getItem('riddle_maze_score')) || 0;
+    localStorage.setItem('riddle_maze_score', saved);
+    score = saved;
     
     // Trigger ghost floating animation
     const ghost = document.getElementById('ghost-char');
@@ -683,6 +882,12 @@ function goHomeSafely() {
   // Safe exit victory
   playCorrectSound();
   document.getElementById('chest-overlay').classList.add('hidden');
+
+  localStorage.setItem('riddle_maze_score', score); // Save accumulated score
+
+  // Save level progression
+  const currentLevel = parseInt(localStorage.getItem('riddle_maze_level')) || 1;
+  localStorage.setItem('riddle_maze_level', currentLevel + 1);
 
   document.getElementById('victory-icon-display').innerText = '🏡💖';
   document.getElementById('victory-title-display').innerText = 'Thoát Hiểm An Toàn! 🏡';
@@ -723,12 +928,11 @@ function drawBoard() {
       const cy = r * cellSize;
 
       if (type === 'B') {
-        // Outside boundary - draw nothing or soft decorative background
         continue;
       }
 
       if (type === 'W') {
-        // Wall - draw soft pastel brown wall
+        // Wall - soft pastel brown
         ctx.fillStyle = '#E8DCD0';
         ctx.fillRect(cx, cy, cellSize, cellSize);
       } else {
@@ -739,21 +943,58 @@ function drawBoard() {
     }
   }
 
-  // Draw entrance arrow
+  // Draw entrance (vector arrow)
   if (startCell) {
-    const ecx = startCell.c * cellSize + cellSize / 2;
-    const ecy = (startCell.r - 1) * cellSize + cellSize / 2;
-    ctx.font = `${cellSize * 0.9}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('📥', ecx, ecy - 2);
+    const ecx = startCell.c * cellSize;
+    const ecy = (startCell.r - 1) * cellSize;
+    ctx.fillStyle = '#86EFAC'; // green-300
+    ctx.fillRect(ecx, ecy, cellSize, cellSize);
+    
+    // Draw small down arrow
+    ctx.beginPath();
+    ctx.moveTo(ecx + cellSize * 0.25, ecy + cellSize * 0.3);
+    ctx.lineTo(ecx + cellSize * 0.75, ecy + cellSize * 0.3);
+    ctx.lineTo(ecx + cellSize * 0.5, ecy + cellSize * 0.7);
+    ctx.closePath();
+    ctx.fillStyle = '#166534'; // green-800
+    ctx.fill();
   }
 
-  // Draw exit arrow
+  // Draw exit (vector star)
   if (endCell) {
-    const excx = endCell.c * cellSize + cellSize / 2;
-    const excy = (endCell.r + 1) * cellSize + cellSize / 2;
-    ctx.fillText('📤', excx, excy + 2);
+    const excx = endCell.c * cellSize;
+    const excy = (endCell.r + 1) * cellSize;
+    ctx.fillStyle = '#FDE68A'; // yellow-200
+    ctx.fillRect(excx, excy, cellSize, cellSize);
+    
+    // Draw simple star
+    ctx.fillStyle = '#D97706'; // amber-600
+    ctx.beginPath();
+    const cx = excx + cellSize / 2;
+    const cy = excy + cellSize / 2;
+    const spikes = 5;
+    const outerRadius = cellSize * 0.35;
+    const innerRadius = cellSize * 0.15;
+    let rot = Math.PI / 2 * 3;
+    let x = cx;
+    let y = cy;
+    const step = Math.PI / spikes;
+
+    ctx.moveTo(cx, cy - outerRadius);
+    for (let i = 0; i < spikes; i++) {
+      x = cx + Math.cos(rot) * outerRadius;
+      y = cy + Math.sin(rot) * outerRadius;
+      ctx.lineTo(x, y);
+      rot += step;
+
+      x = cx + Math.cos(rot) * innerRadius;
+      y = cy + Math.sin(rot) * innerRadius;
+      ctx.lineTo(x, y);
+      rot += step;
+    }
+    ctx.lineTo(cx, cy - outerRadius);
+    ctx.closePath();
+    ctx.fill();
   }
 
   // Draw gates/checkpoints (only if solved! Unsolved gates are hidden)
@@ -769,13 +1010,15 @@ function drawBoard() {
     ctx.fill();
 
     // Border
-    ctx.lineWidth = 2;
+    ctx.lineWidth = Math.max(1, cellSize * 0.1);
     ctx.strokeStyle = '#FFFFFF';
     ctx.stroke();
 
     // Checkmark text
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = `bold ${cellSize * 0.5}px 'Quicksand', sans-serif`;
+    ctx.font = `bold ${Math.max(5, cellSize * 0.6)}px 'Quicksand', sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
     ctx.fillText('✓', gcx, gcy);
   });
 
@@ -786,18 +1029,18 @@ function drawBoard() {
     
     // Draw cute orange thám hiểm ball
     ctx.beginPath();
-    ctx.arc(pcx, pcy, cellSize * 0.38, 0, 2 * Math.PI);
+    ctx.arc(pcx, pcy, cellSize * 0.4, 0, 2 * Math.PI);
     ctx.fillStyle = '#FFA07A'; // coral
     ctx.fill();
 
     // Concentric inner highlight
     ctx.beginPath();
-    ctx.arc(pcx, pcy, cellSize * 0.16, 0, 2 * Math.PI);
+    ctx.arc(pcx, pcy, cellSize * 0.18, 0, 2 * Math.PI);
     ctx.fillStyle = '#FFFFFF';
     ctx.fill();
 
     // Border
-    ctx.lineWidth = 2;
+    ctx.lineWidth = Math.max(1, cellSize * 0.15);
     ctx.strokeStyle = '#4A3F35';
     ctx.stroke();
   }
@@ -827,8 +1070,15 @@ function updateProgressUI() {
 // --- Game Initializer ---
 function initGame() {
   lives = 5;
-  score = 0;
   activeGate = null;
+
+  // Load accumulated score or reset to checkpoint if they died
+  const savedScore = parseInt(localStorage.getItem('riddle_maze_score')) || 0;
+  score = savedScore;
+
+  // Load and display current level
+  const savedLevel = parseInt(localStorage.getItem('riddle_maze_level')) || 1;
+  document.getElementById('display-level').innerText = `Màn ${savedLevel}`;
 
   // List of shapes
   const shapes = ["square", "rectangle", "circle", "moon", "heart", "star", "triangle", "diamond", "cross"];
@@ -864,6 +1114,12 @@ function initGame() {
 
   // Resize and redraw canvas
   resizeCanvas();
+}
+
+function startNewExploration() {
+  localStorage.removeItem('riddle_maze_score');
+  localStorage.removeItem('riddle_maze_level');
+  initGame();
 }
 
 // --- Window event wiring ---

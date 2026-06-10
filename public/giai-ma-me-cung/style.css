@@ -211,7 +211,7 @@ body {
 .canvas-container {
   position: relative;
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
   aspect-ratio: 1;
   background: rgba(255, 255, 255, 0.4);
   border-radius: 20px;

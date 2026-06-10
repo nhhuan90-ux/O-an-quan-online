@@ -27,6 +27,10 @@
         
         <div class="status-box">
           <div class="status-row">
+            <span class="status-label">Màn Chơi:</span>
+            <span id="display-level" class="status-value" style="color: var(--color-primary); font-weight: 800; font-size: 1.25rem;">Màn 1</span>
+          </div>
+          <div class="status-row">
             <span class="status-label">Mạng Sống:</span>
             <span id="lives-container" class="lives-indicator">💖💖💖💖💖</span>
           </div>
@@ -44,7 +48,7 @@
           </div>
         </div>
 
-        <button id="btn-restart" class="btn btn-secondary btn-block" onclick="initGame()">
+        <button id="btn-restart" class="btn btn-secondary btn-block" onclick="startNewExploration()">
           🔄 Bắt Đầu Thám Hiểm Mới
         </button>
 
