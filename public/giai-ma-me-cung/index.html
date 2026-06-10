@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giải Mã Mê Cung - Trò Chơi Trí Tuệ</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Google Fonts for friendly, playful look -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300..900&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="game-header" style="position: relative;">
+      <a href="/" class="btn btn-secondary" style="position: absolute; left: 0; top: 12px; text-decoration: none;">🏠 Trang Chủ</a>
+      <h1 class="game-title">Giải Mã Mê Cung 🧭</h1>
+      <p class="game-subtitle">Vượt qua các câu hỏi hóc búa tại cửa ải và quyết định số phận trước những rương kho báu!</p>
+    </header>
+
+    <!-- Main Layout -->
+    <main class="game-layout">
+      <!-- Left column: Sidebar for Status & Config -->
+      <aside class="sidebar-card glass-panel">
+        <h3 class="panel-title">Hành Trình Của Bạn</h3>
+        
+        <div class="status-box">
+          <div class="status-row">
+            <span class="status-label">Mạng Sống:</span>
+            <span id="lives-container" class="lives-indicator">💖💖💖💖💖</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label">Điểm Số:</span>
+            <span id="display-score" class="status-value highlight">0</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label">Hình Dáng:</span>
+            <span id="display-shape" class="status-value difficulty-tag">Ngẫu Nhiên</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label">Cửa Ải Đã Qua:</span>
+            <span id="display-gates" class="status-value">0 / 0</span>
+          </div>
+        </div>
+
+        <button id="btn-restart" class="btn btn-secondary btn-block" onclick="initGame()">
+          🔄 Bắt Đầu Thám Hiểm Mới
+        </button>
+
+        <!-- Dynamic Game Instructions -->
+        <div class="help-section">
+          <h4>📖 Luật Chơi:</h4>
+          <ul>
+            <li>Di chuyển từ <strong>Lối vào (Mũi tên đỏ phía trên)</strong> đến <strong>Lối ra (Mũi tên đỏ phía dưới)</strong>.</li>
+            <li>Khi gặp <strong>Cửa Ải (Đố Vui)</strong>, bạn phải trả lời đúng câu hỏi để đi tiếp.</li>
+            <li>Bạn có <strong>5 Mạng</strong>. Trả lời sai mất 1 mạng, trả lời lại cho đến khi đúng.</li>
+            <li>Thoát khỏi mê cung, bạn được chọn: <strong>Mở 1 trong 5 bảo rương</strong> (chỉ có 2 rương thật: 1 Vàng, 1 Bạc. 3 rương Độc sẽ khiến bạn "bay hồn"!) HOẶC <strong>Đi về an toàn</strong> bảo toàn điểm số!</li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- Right column: Canvas Game Board & Popups -->
+      <section class="game-area">
+        <div class="board-card glass-panel">
+          <!-- Canvas Container -->
+          <div class="canvas-container" id="canvas-container">
+            <canvas id="game-canvas"></canvas>
+            
+            <!-- Riddle Popup Overlay -->
+            <div id="riddle-overlay" class="overlay hidden">
+              <div class="riddle-box glass-panel">
+                <div class="riddle-header">
+                  <span class="riddle-icon">❓</span>
+                  <h3>Cửa Ải Số <span id="riddle-gate-num">1</span></h3>
+                </div>
+                <p id="riddle-text" class="riddle-question">Câu hỏi sẽ hiển thị ở đây?</p>
+                <div id="riddle-options" class="riddle-options-grid">
+                  <!-- Generated options buttons -->
+                </div>
+                <div id="riddle-feedback" class="feedback-msg hidden">Sai rồi! Bạn mất 1 mạng 💔</div>
+              </div>
+            </div>
+
+            <!-- End Game / Chest Decision Overlay -->
+            <div id="chest-overlay" class="overlay hidden">
+              <div class="chest-decision-box glass-panel">
+                <h2>🎉 Bạn Đã Thoát Khỏi Mê Cung!</h2>
+                <p class="chest-intro">Trước mắt bạn là 5 bảo rương lấp lánh bí ẩn. 2 rương chứa kho báu thật (Vàng và Bạc), 3 rương còn lại là khí độc "bay hồn". Bạn sẽ quyết định thế nào?</p>
+                
+                <div class="chests-display">
+                  <div class="chest-item" onclick="selectChest(1)">
+                    <div class="chest-image" id="chest-1">📦</div>
+                    <span>Rương 1</span>
+                  </div>
+                  <div class="chest-item" onclick="selectChest(2)">
+                    <div class="chest-image" id="chest-2">📦</div>
+                    <span>Rương 2</span>
+                  </div>
+                  <div class="chest-item" onclick="selectChest(3)">
+                    <div class="chest-image" id="chest-3">📦</div>
+                    <span>Rương 3</span>
+                  </div>
+                  <div class="chest-item" onclick="selectChest(4)">
+                    <div class="chest-image" id="chest-4">📦</div>
+                    <span>Rương 4</span>
+                  </div>
+                  <div class="chest-item" onclick="selectChest(5)">
+                    <div class="chest-image" id="chest-5">📦</div>
+                    <span>Rương 5</span>
+                  </div>
+                </div>
+
+                <div class="chest-actions">
+                  <button class="btn btn-secondary" onclick="goHomeSafely()">🚶 Đi Về An Toàn (Bảo toàn điểm)</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Poison Ghost Animation Overlay -->
+            <div id="poison-overlay" class="overlay hidden">
+              <div class="poison-content">
+                <div class="skull-cloud">💀💨</div>
+                <div class="ghost-character" id="ghost-char">👻</div>
+                <h2 class="poison-title">BAY HỒN! 💀</h2>
+                <p class="poison-desc">Bạn đã mở trúng rương chứa khí độc nguy hiểm! Hồn ma của bạn đã bay về trời...</p>
+                <button class="btn btn-primary" onclick="initGame()">Chơi Lại 🔄</button>
+              </div>
+            </div>
+
+            <!-- Victory Celebration Overlay -->
+            <div id="victory-overlay" class="overlay hidden">
+              <div class="victory-content">
+                <div class="victory-icon" id="victory-icon-display">🏆</div>
+                <h2 class="victory-title" id="victory-title-display">Thành Công!</h2>
+                <p class="victory-desc" id="victory-desc-display">Mô tả chiến thắng...</p>
+                <div class="victory-stats">
+                  <span>✨ Tổng điểm: <strong id="victory-final-score">0</strong></span>
+                </div>
+                <button class="btn btn-primary" onclick="initGame()">Chơi Tiếp Màn Khác 🎮</button>
+              </div>
+            </div>
+
+            <!-- Game Over Overlay -->
+            <div id="game-over-overlay" class="overlay hidden">
+              <div class="game-over-content">
+                <div class="game-over-icon">💔</div>
+                <h2>Hết Mạng!</h2>
+                <p>Bạn đã mất hết 5 mạng sống do trả lời sai quá nhiều câu đố. Hãy rèn luyện thêm trí óc và thử lại nhé!</p>
+                <button class="btn btn-primary" onclick="initGame()">Thử Lại 🔄</button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Controls Bar -->
+          <div class="controls-bar">
+            <span class="control-tip">Sử dụng <strong>phím mũi tên</strong> hoặc <strong>chuột kéo/chạm</strong> nhân vật màu cam để di chuyển</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="game-footer">
+      <p>© 2026 Giải Mã Mê Cung. Thiết kế màu sắc pastel hòa quyện phiêu lưu kỳ thú.</p>
+    </footer>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

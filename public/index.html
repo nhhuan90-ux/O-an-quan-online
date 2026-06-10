@@ -20,6 +20,8 @@
       --color-maze-bg: rgba(255, 160, 122, 0.15);
       --color-oanquan: #95DAC1;
       --color-oanquan-bg: rgba(149, 218, 193, 0.18);
+      --color-riddle: #B89CFF;
+      --color-riddle-bg: rgba(184, 156, 255, 0.16);
     }
 
     * {
@@ -118,8 +120,8 @@
     /* Game Selection Grid */
     .game-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 32px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
       width: 100%;
     }
 
@@ -156,6 +158,10 @@
       --card-hover-border: var(--color-oanquan);
     }
 
+    .card-riddle {
+      --card-hover-border: var(--color-riddle);
+    }
+
     .game-icon-wrapper {
       width: 100px;
       height: 100px;
@@ -181,6 +187,11 @@
     .bg-oanquan {
       background: var(--color-oanquan-bg);
       color: var(--color-oanquan);
+    }
+
+    .bg-riddle {
+      background: var(--color-riddle-bg);
+      color: #8C52FF;
     }
 
     .game-name {
@@ -209,6 +220,11 @@
     .tag-oanquan {
       background: rgba(149, 218, 193, 0.25);
       color: #2e7a60;
+    }
+
+    .tag-riddle {
+      background: rgba(184, 156, 255, 0.22);
+      color: #6C22F2;
     }
 
     .game-desc {
@@ -253,6 +269,15 @@
       box-shadow: 0 6px 20px rgba(149, 218, 193, 0.45);
     }
 
+    .btn-riddle {
+      background: #986BFF;
+      color: white;
+    }
+    .btn-riddle:hover {
+      background: #814CFA;
+      box-shadow: 0 6px 20px rgba(152, 107, 255, 0.4);
+    }
+
     /* Footer */
     .lobby-footer {
       font-size: 0.85rem;
@@ -267,7 +292,7 @@
     }
 
     /* Responsive Design */
-    @media (max-width: 768px) {
+    @media (max-width: 900px) {
       .game-grid {
         grid-template-columns: 1fr;
         gap: 24px;
@@ -306,13 +331,22 @@
         <button class="btn-play btn-maze">Chơi Ngay 🎮</button>
       </div>
 
-      <!-- Game Card 2: O An Quan Online -->
+      <!-- Game Card 2: Ô Ăn Quan Online -->
       <div class="game-card card-oanquan" onclick="location.href='/o-an-quan/'">
         <div class="game-icon-wrapper bg-oanquan">🌾</div>
         <h2 class="game-name">Ô Ăn Quan Online</h2>
         <span class="game-tag tag-oanquan">Đấu Trí Chiến Thuật</span>
         <p class="game-desc">Đấu trí Ô ăn quan trực tuyến với bạn bè, đấu với Máy (AI) hoặc chơi cùng người bên cạnh trên cùng thiết bị!</p>
         <button class="btn-play btn-oanquan">Chơi Ngay 🎮</button>
+      </div>
+
+      <!-- Game Card 3: Giải Mã Mê Cung -->
+      <div class="game-card card-riddle" onclick="location.href='/giai-ma-me-cung/'">
+        <div class="game-icon-wrapper bg-riddle">🧭</div>
+        <h2 class="game-name">Giải Mã Mê Cung</h2>
+        <span class="game-tag tag-riddle">Thử Thách Giải Đố</span>
+        <p class="game-desc">Vượt qua mê cung đa hình dáng, trả lời các câu hỏi hóc búa tại cửa ải và thử vận may với kho báu cuối game!</p>
+        <button class="btn-play btn-riddle">Chơi Ngay 🎮</button>
       </div>
     </div>
 
