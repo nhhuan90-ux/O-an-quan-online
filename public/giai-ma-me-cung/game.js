@@ -159,7 +159,7 @@ const questionBank = [
 
 // --- State Variables ---
 let grid = [];
-let gridSize = 19; // Must be odd
+let gridSize = 25; // Increased to 25 to make the maze denser with more fake paths
 let shapeType = "square";
 let startCell = null;
 let endCell = null;
@@ -416,8 +416,8 @@ function allocateGates() {
   
   if (sol.length < 10) return; // grid too small
 
-  // Place 3 to 4 gates along the solution path
-  const numGates = 3 + Math.floor(Math.random() * 2); // 3 or 4 gates
+  // Place 4 to 5 gates along the solution path
+  const numGates = 4 + Math.floor(Math.random() * 2); // 4 or 5 gates
   const step = Math.floor((sol.length - 4) / numGates);
 
   for (let i = 1; i <= numGates; i++) {
@@ -461,18 +461,20 @@ function movePlayer(dr, dc) {
 
   if (nr >= 0 && nr < gridSize && nc >= 0 && nc < gridSize) {
     if (grid[nr][nc] === 'O') {
-      // Check if entering a gate
-      const gate = gates.find(g => g.r === nr && g.c === nc);
-      if (gate && !gate.solved) {
-        // Stop movement and trigger riddle
-        activeGate = gate;
-        showRiddlePopup(gate);
-        return;
-      }
-
+      // Step onto the cell first (so they land on it and it triggers)
       playerPos = { r: nr, c: nc };
       playMoveSound();
       drawBoard();
+
+      // Check if player stepped on a gate
+      const gate = gates.find(g => g.r === nr && g.c === nc);
+      if (gate && !gate.solved) {
+        activeGate = gate;
+        setTimeout(() => {
+          showRiddlePopup(gate);
+        }, 150); // slight delay so player sees they stepped on it
+        return;
+      }
 
       // Check if reached exit
       if (playerPos.r === endCell.r + 1 && playerPos.c === endCell.c) {
@@ -500,18 +502,20 @@ function navigateToCell(targetR, targetC) {
 
     const next = path[stepIdx];
     if (next) {
+      playerPos = next;
+      playMoveSound();
+      drawBoard();
+
       // Check for gate
       const gate = gates.find(g => g.r === next.r && g.c === next.c);
       if (gate && !gate.solved) {
         clearInterval(timer);
         activeGate = gate;
-        showRiddlePopup(gate);
+        setTimeout(() => {
+          showRiddlePopup(gate);
+        }, 150);
         return;
       }
-
-      playerPos = next;
-      playMoveSound();
-      drawBoard();
 
       if (playerPos.r === endCell.r + 1 && playerPos.c === endCell.c) {
         clearInterval(timer);
@@ -752,14 +756,16 @@ function drawBoard() {
     ctx.fillText('📤', excx, excy + 2);
   }
 
-  // Draw gates/checkpoints
+  // Draw gates/checkpoints (only if solved! Unsolved gates are hidden)
   gates.forEach((gate, idx) => {
+    if (!gate.solved) return; // Hidden initially!
+
     const gcx = gate.c * cellSize + cellSize / 2;
     const gcy = gate.r * cellSize + cellSize / 2;
     
     ctx.beginPath();
     ctx.arc(gcx, gcy, cellSize * 0.42, 0, 2 * Math.PI);
-    ctx.fillStyle = gate.solved ? '#95DAC1' : '#B89CFF'; // green solved, purple unsolved
+    ctx.fillStyle = '#95DAC1'; // green solved
     ctx.fill();
 
     // Border
@@ -767,10 +773,10 @@ function drawBoard() {
     ctx.strokeStyle = '#FFFFFF';
     ctx.stroke();
 
-    // Text number
+    // Checkmark text
     ctx.fillStyle = '#FFFFFF';
     ctx.font = `bold ${cellSize * 0.5}px 'Quicksand', sans-serif`;
-    ctx.fillText(idx + 1, gcx, gcy);
+    ctx.fillText('✓', gcx, gcy);
   });
 
   // Draw Player Avatar
