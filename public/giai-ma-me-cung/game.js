@@ -696,6 +696,37 @@ function handlePointerUp() {
   lastDraggedCell = null;
 }
 
+function findPathBFS(start, target) {
+  if (grid[target.r][target.c] !== 'O') return [];
+
+  const queue = [[start]];
+  const visited = new Set([`${start.r},${start.c}`]);
+
+  while (queue.length > 0) {
+    const path = queue.shift();
+    const curr = path[path.length - 1];
+
+    if (curr.r === target.r && curr.c === target.c) {
+      return path;
+    }
+
+    if (path.length > 6) continue; // Cap interpolation length to prevent long-distance teleportation
+
+    const dirs = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+    for (const [dr, dc] of dirs) {
+      const nr = curr.r + dr;
+      const nc = curr.c + dc;
+      if (nr >= 0 && nr < gridSize && nc >= 0 && nc < gridSize) {
+        if (grid[nr][nc] === 'O' && !visited.has(`${nr},${nc}`)) {
+          visited.add(`${nr},${nc}`);
+          queue.push([...path, { r: nr, c: nc }]);
+        }
+      }
+    }
+  }
+  return [];
+}
+
 function executeMove(r, c) {
   if (lives <= 0 || activeGate) return;
 
@@ -714,30 +745,37 @@ function executeMove(r, c) {
     return;
   }
 
-  // 2. Extend path if adjacent to the current path tip
+  // 2. Interpolate path if pointer skipped cells (corner turns / fast dragging)
   const lastNode = playerPath[playerPath.length - 1];
-  const dist = Math.abs(lastNode.r - r) + Math.abs(lastNode.c - c);
-  if (dist === 1) {
-    playerPath.push({ r, c });
-    playMoveSound();
+  const segment = findPathBFS(lastNode, { r, c });
+
+  if (segment.length > 1 && segment.length <= 6) {
+    for (let i = 1; i < segment.length; i++) {
+      const cell = segment[i];
+      playerPath.push(cell);
+      playMoveSound();
+
+      // Check if player stepped on a gate
+      const gate = gates.find(g => g.r === cell.r && g.c === cell.c);
+      if (gate && !gate.solved) {
+        isDragging = false; // stop dragging
+        activeGate = gate;
+        setTimeout(() => {
+          showRiddlePopup(gate);
+        }, 150);
+        drawBoard();
+        return; // stop extending further
+      }
+
+      // Check if reached exit
+      if (cell.r === endCell.r + 1 && cell.c === endCell.c) {
+        isDragging = false;
+        showChestSelection();
+        drawBoard();
+        return;
+      }
+    }
     drawBoard();
-
-    // Check if player stepped on a gate
-    const gate = gates.find(g => g.r === r && g.c === c);
-    if (gate && !gate.solved) {
-      isDragging = false; // stop dragging
-      activeGate = gate;
-      setTimeout(() => {
-        showRiddlePopup(gate);
-      }, 150);
-      return;
-    }
-
-    // Check if reached exit
-    if (r === endCell.r + 1 && c === endCell.c) {
-      isDragging = false;
-      showChestSelection();
-    }
   }
 }
 
