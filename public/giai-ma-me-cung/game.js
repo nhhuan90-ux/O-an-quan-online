@@ -309,7 +309,7 @@ const questionBank = [
 
 // --- State Variables ---
 let grid = [];
-let gridSize = 101; // Doubled from 51 to 101 to increase difficulty and scale
+let gridSize = 51; // Scaled to 51 to make it comfortable to control and draw, while still twice the original 25x25 size
 let shapeType = "square";
 let startCell = null;
 let endCell = null;
