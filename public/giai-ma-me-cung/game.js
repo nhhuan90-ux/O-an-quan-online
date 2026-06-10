@@ -313,7 +313,9 @@ let gridSize = 101; // Doubled from 51 to 101 to increase difficulty and scale
 let shapeType = "square";
 let startCell = null;
 let endCell = null;
-let playerPos = null;
+let playerPath = [];
+let isDragging = false;
+let lastDraggedCell = null;
 let gates = []; // Array of { r, c, riddle, solved: false }
 let activeGate = null;
 let lives = 5;
@@ -563,7 +565,7 @@ function generateMaze() {
     if (endCell) break;
   }
 
-  playerPos = { r: startCell.r - 1, c: startCell.c }; // Start at entrance
+  playerPath = [{ r: startCell.r - 1, c: startCell.c }];
 }
 
 // --- Pathfinder (BFS to trace solution path and allocate gates) ---
@@ -635,110 +637,108 @@ function getRandomRiddle() {
   return riddle;
 }
 
-// --- Player Movement & Control handlers ---
+// --- Player Movement & Control handlers (Manual Drawing & Keyboard) ---
 function movePlayer(dr, dc) {
-  if (lives <= 0) return;
-  if (activeGate) return; // blocked by active riddle popup
+  if (lives <= 0 || activeGate) return;
 
-  const nr = playerPos.r + dr;
-  const nc = playerPos.c + dc;
+  const lastNode = playerPath[playerPath.length - 1];
+  const nr = lastNode.r + dr;
+  const nc = lastNode.c + dc;
 
   if (nr >= 0 && nr < gridSize && nc >= 0 && nc < gridSize) {
     if (grid[nr][nc] === 'O') {
-      // Step onto the cell first (so they land on it and it triggers)
-      playerPos = { r: nr, c: nc };
-      playMoveSound();
-      drawBoard();
-
-      // Check if player stepped on a gate
-      const gate = gates.find(g => g.r === nr && g.c === nc);
-      if (gate && !gate.solved) {
-        activeGate = gate;
-        setTimeout(() => {
-          showRiddlePopup(gate);
-        }, 150); // slight delay so player sees they stepped on it
-        return;
-      }
-
-      // Check if reached exit
-      if (playerPos.r === endCell.r + 1 && playerPos.c === endCell.c) {
-        showChestSelection();
-      }
+      executeMove(nr, nc);
     }
   }
 }
 
-// Click-to-move pathfinding (BFS path to destination)
-function navigateToCell(targetR, targetC) {
+function getCellFromCoordinates(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  const x = clientX - rect.left;
+  const y = clientY - rect.top;
+  
+  const cellSize = rect.width / gridSize;
+  const col = Math.floor(x / cellSize);
+  const row = Math.floor(y / cellSize);
+  
+  if (col >= 0 && col < gridSize && row >= 0 && row < gridSize) {
+    return { r: row, c: col };
+  }
+  return null;
+}
+
+function handlePointerDown(e) {
+  if (lives <= 0 || activeGate) return;
+  getAudioContext();
+
+  const cell = getCellFromCoordinates(e.clientX, e.clientY);
+  if (cell) {
+    isDragging = true;
+    executeMove(cell.r, cell.c);
+    lastDraggedCell = cell;
+  }
+}
+
+function handlePointerMove(e) {
+  if (!isDragging || lives <= 0 || activeGate) return;
+
+  const cell = getCellFromCoordinates(e.clientX, e.clientY);
+  if (cell) {
+    if (!lastDraggedCell || lastDraggedCell.r !== cell.r || lastDraggedCell.c !== cell.c) {
+      executeMove(cell.r, cell.c);
+      lastDraggedCell = cell;
+    }
+  }
+}
+
+function handlePointerUp() {
+  isDragging = false;
+  lastDraggedCell = null;
+}
+
+function executeMove(r, c) {
   if (lives <= 0 || activeGate) return;
 
-  // Find shortest path from current player position to targeted cell
-  const path = findPathBFS(playerPos, { r: targetR, c: targetC });
-  if (path.length <= 1) return;
+  // Only walkable on path cells 'O'
+  if (grid[r][c] !== 'O') return;
 
-  // Move player along the path step-by-step (speed increased to 40ms for 101x101 grid)
-  let stepIdx = 1;
-  const timer = setInterval(() => {
-    if (lives <= 0 || activeGate) {
-      clearInterval(timer);
+  // 1. Rollback path if stepping on a cell already in playerPath
+  const indexInPath = playerPath.findIndex(node => node.r === r && node.c === c);
+  if (indexInPath !== -1) {
+    if (indexInPath === playerPath.length - 1) return; // already at the tip
+    
+    // Truncate path
+    playerPath = playerPath.slice(0, indexInPath + 1);
+    playMoveSound();
+    drawBoard();
+    return;
+  }
+
+  // 2. Extend path if adjacent to the current path tip
+  const lastNode = playerPath[playerPath.length - 1];
+  const dist = Math.abs(lastNode.r - r) + Math.abs(lastNode.c - c);
+  if (dist === 1) {
+    playerPath.push({ r, c });
+    playMoveSound();
+    drawBoard();
+
+    // Check if player stepped on a gate
+    const gate = gates.find(g => g.r === r && g.c === c);
+    if (gate && !gate.solved) {
+      isDragging = false; // stop dragging
+      activeGate = gate;
+      setTimeout(() => {
+        showRiddlePopup(gate);
+      }, 150);
       return;
     }
 
-    const next = path[stepIdx];
-    if (next) {
-      playerPos = next;
-      playMoveSound();
-      drawBoard();
-
-      // Check for gate
-      const gate = gates.find(g => g.r === next.r && g.c === next.c);
-      if (gate && !gate.solved) {
-        clearInterval(timer);
-        activeGate = gate;
-        setTimeout(() => {
-          showRiddlePopup(gate);
-        }, 150);
-        return;
-      }
-
-      if (playerPos.r === endCell.r + 1 && playerPos.c === endCell.c) {
-        clearInterval(timer);
-        showChestSelection();
-      }
-      stepIdx++;
-    } else {
-      clearInterval(timer);
-    }
-  }, 40);
-}
-
-function findPathBFS(start, target) {
-  if (grid[target.r][target.c] !== 'O') return [];
-
-  const queue = [[start]];
-  const visited = new Set([`${start.r},${start.c}`]);
-
-  while (queue.length > 0) {
-    const path = queue.shift();
-    const curr = path[path.length - 1];
-
-    if (curr.r === target.r && curr.c === target.c) {
-      return path;
-    }
-
-    const dirs = [[0, 1], [0, -1], [1, 0], [-1, 0]];
-    for (const [dr, dc] of dirs) {
-      const nr = curr.r + dr;
-      const nc = curr.c + dc;
-      if (nr >= 0 && nr < gridSize && nc >= 0 && nc < gridSize) {
-        if (grid[nr][nc] === 'O' && !visited.has(`${nr},${nc}`)) {
-          visited.add(`${nr},${nc}`);
-          queue.push([...path, { r: nr, c: nc }]);
-        }
-      }
+    // Check if reached exit
+    if (r === endCell.r + 1 && c === endCell.c) {
+      isDragging = false;
+      showChestSelection();
     }
   }
-  return [];
 }
 
 // --- Riddle Overlay Control ---
@@ -911,6 +911,99 @@ function resizeCanvas() {
   drawBoard();
 }
 
+function drawShapeBorder(width) {
+  ctx.save();
+  ctx.strokeStyle = '#4A3F35'; // Dark border
+  ctx.lineWidth = 4;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  
+  const cx = width / 2;
+  const cy = width / 2;
+  const r = (width - 2) / 2 * 0.95;
+
+  ctx.beginPath();
+  switch (shapeType) {
+    case "square":
+      ctx.rect(width * 0.025, width * 0.025, width * 0.95, width * 0.95);
+      break;
+    case "rectangle":
+      ctx.rect(width * 0.025, width * 0.125, width * 0.95, width * 0.75);
+      break;
+    case "circle":
+      ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+      break;
+    case "moon":
+      ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, false);
+      const subCx = cx + r * 0.45;
+      const subR = r * 0.79;
+      ctx.arc(subCx, cy, subR, Math.PI / 2, -Math.PI / 2, true);
+      break;
+    case "heart": {
+      const hx = cx;
+      const hy = cy - width * 0.05;
+      const hw = width * 0.85;
+      ctx.moveTo(hx, hy + hw * 0.3);
+      ctx.bezierCurveTo(hx - hw/2, hy - hw/2, hx - hw, hy + hw/3, hx, hy + hw * 0.85);
+      ctx.bezierCurveTo(hx + hw, hy + hw/3, hx + hw/2, hy - hw/2, hx, hy + hw * 0.3);
+      break;
+    }
+    case "star": {
+      const spikes = 5;
+      const outerR = r;
+      const innerR = r * 0.4;
+      let rot = Math.PI / 2 * 3;
+      let sx = cx;
+      let sy = cy;
+      const step = Math.PI / spikes;
+      ctx.moveTo(cx, cy - outerR);
+      for (let i = 0; i < spikes; i++) {
+        sx = cx + Math.cos(rot) * outerR;
+        sy = cy + Math.sin(rot) * outerR;
+        ctx.lineTo(sx, sy);
+        rot += step;
+        sx = cx + Math.cos(rot) * innerR;
+        sy = cy + Math.sin(rot) * innerR;
+        ctx.lineTo(sx, sy);
+        rot += step;
+      }
+      ctx.closePath();
+      break;
+    }
+    case "triangle":
+      ctx.moveTo(cx, cy - r);
+      ctx.lineTo(cx - r * 0.86, cy + r * 0.85);
+      ctx.lineTo(cx + r * 0.86, cy + r * 0.85);
+      ctx.closePath();
+      break;
+    case "diamond":
+      ctx.moveTo(cx, cy - r);
+      ctx.lineTo(cx + r, cy);
+      ctx.lineTo(cx, cy + r);
+      ctx.lineTo(cx - r, cy);
+      ctx.closePath();
+      break;
+    case "cross":
+      const cw = r * 0.35;
+      ctx.moveTo(cx - cw, cy - r);
+      ctx.lineTo(cx + cw, cy - r);
+      ctx.lineTo(cx + cw, cy - cw);
+      ctx.lineTo(cx + r, cy - cw);
+      ctx.lineTo(cx + r, cy + cw);
+      ctx.lineTo(cx + cw, cy + cw);
+      ctx.lineTo(cx + cw, cy + r);
+      ctx.lineTo(cx - cw, cy + r);
+      ctx.lineTo(cx - cw, cy + cw);
+      ctx.lineTo(cx - r, cy + cw);
+      ctx.lineTo(cx - r, cy - cw);
+      ctx.lineTo(cx - cw, cy - cw);
+      ctx.closePath();
+      break;
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
 function drawBoard() {
   if (!canvas || !ctx) return;
 
@@ -942,6 +1035,37 @@ function drawBoard() {
       }
     }
   }
+
+  // Draw player trail line
+  if (playerPath.length > 1) {
+    ctx.beginPath();
+    ctx.lineWidth = Math.max(2, cellSize * 0.4);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#FFA07A'; // Coral
+    
+    for (let i = 0; i < playerPath.length; i++) {
+      const node = playerPath[i];
+      const ncx = node.c * cellSize + cellSize / 2;
+      const ncy = node.r * cellSize + cellSize / 2;
+      if (i === 0) {
+        ctx.moveTo(ncx, ncy);
+      } else {
+        ctx.lineTo(ncx, ncy);
+      }
+    }
+    ctx.stroke();
+  }
+
+  // Draw player trail circles
+  playerPath.forEach((node) => {
+    const cx = node.c * cellSize + cellSize / 2;
+    const cy = node.r * cellSize + cellSize / 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, cellSize * 0.2, 0, 2 * Math.PI);
+    ctx.fillStyle = 'rgba(255, 160, 122, 0.6)';
+    ctx.fill();
+  });
 
   // Draw entrance (vector arrow)
   if (startCell) {
@@ -1022,12 +1146,12 @@ function drawBoard() {
     ctx.fillText('✓', gcx, gcy);
   });
 
-  // Draw Player Avatar
-  if (playerPos) {
+  // Draw Player Avatar (at path tip)
+  if (playerPath.length > 0) {
+    const playerPos = playerPath[playerPath.length - 1];
     const pcx = playerPos.c * cellSize + cellSize / 2;
     const pcy = playerPos.r * cellSize + cellSize / 2;
     
-    // Draw cute orange thám hiểm ball
     ctx.beginPath();
     ctx.arc(pcx, pcy, cellSize * 0.4, 0, 2 * Math.PI);
     ctx.fillStyle = '#FFA07A'; // coral
@@ -1102,6 +1226,7 @@ function initGame() {
   // Generate Maze & Gates
   generateMaze();
   allocateGates();
+  playerPath = [{ r: startCell.r - 1, c: startCell.c }];
   
   // Reset all UI overlays
   document.getElementById('riddle-overlay').classList.add('hidden');
@@ -1129,20 +1254,10 @@ window.addEventListener('load', () => {
 
   window.addEventListener('resize', resizeCanvas);
 
-  // Click / Tap interactions on canvas
-  canvas.addEventListener('click', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const cellSize = rect.width / gridSize;
-    const col = Math.floor(x / cellSize);
-    const row = Math.floor(y / cellSize);
-
-    if (row >= 0 && row < gridSize && col >= 0 && col < gridSize) {
-      navigateToCell(row, col);
-    }
-  });
+  // Pointer events for drag-drawing
+  canvas.addEventListener('pointerdown', handlePointerDown);
+  canvas.addEventListener('pointermove', handlePointerMove);
+  window.addEventListener('pointerup', handlePointerUp);
 
   // Keyboard navigation
   window.addEventListener('keydown', (e) => {
