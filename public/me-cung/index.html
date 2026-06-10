@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mê cung Bong Bóng Pastel - Trò Chơi Trí Tuệ</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Google Fonts for friendly, playful look -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300..900&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="game-header" style="position: relative;">
+      <a href="/" class="btn btn-secondary" style="position: absolute; left: 0; top: 12px; text-decoration: none;">🏠 Trang Chủ</a>
+      <h1 class="game-title">Mê Cung Bong Bóng 🫧</h1>
+      <p class="game-subtitle">Nối tất cả bong bóng màu cam đúng một lần để chiến thắng!</p>
+    </header>
+
+    <!-- Main Content Layout -->
+    <main class="game-layout">
+      
+      <!-- Left column: Sidebar for Level Select -->
+      <aside class="sidebar-card glass-panel">
+        <div class="tabs-header">
+          <button id="tab-campaign" class="tab-btn active" onclick="switchTab('campaign')">Màn Chơi</button>
+          <button id="tab-custom" class="tab-btn" onclick="switchTab('custom')">Tự Tạo Màn</button>
+        </div>
+
+        <!-- Tab 1: Levels List -->
+        <div id="panel-campaign" class="tab-panel active">
+          <h3>Màn Chơi</h3>
+          <p class="panel-desc">Gồm 306 màn chơi từ dễ (5x5) đến siêu khó (9x9).</p>
+          <div class="campaign-selector">
+            <label for="campaign-filter">Độ khó:</label>
+            <select id="campaign-filter" onchange="filterCampaignLevels()">
+              <option value="all">Tất cả</option>
+              <option value="easy">Dễ (5x5)</option>
+              <option value="medium">Vừa (6x6)</option>
+              <option value="hard">Khó (7x7)</option>
+              <option value="expert">Rất Khó (8x8)</option>
+              <option value="master">Siêu Khó (9x9)</option>
+            </select>
+          </div>
+          <div class="level-grid campaign-grid" id="campaign-levels-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Tab 2: Custom Level Generator -->
+        <div id="panel-custom" class="tab-panel">
+          <h3>Tự Tạo Mê Cung</h3>
+          <p class="panel-desc">Tạo ngẫu nhiên một mê cung mới có lời giải với kích thước mong muốn!</p>
+          <div class="custom-generator-form">
+            <div class="form-group">
+              <label for="grid-size-select">Kích thước lưới:</label>
+              <select id="grid-size-select">
+                <option value="5">5 x 5 (Dễ)</option>
+                <option value="6">6 x 6 (Trung bình)</option>
+                <option value="7">7 x 7 (Khó)</option>
+                <option value="8">8 x 8 (Thử thách)</option>
+                <option value="9">9 x 9 (Siêu Khó)</option>
+              </select>
+            </div>
+            <button id="btn-generate-custom" class="btn btn-primary btn-block" onclick="generateCustomLevel()">
+              🪄 Sinh Mê Cung Mới
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Right column: Game Board & Controls -->
+      <section class="game-area">
+        
+        <!-- Status Bar -->
+        <div class="status-bar glass-panel">
+          <div class="status-item">
+            <span class="status-label">Màn chơi</span>
+            <span id="display-level-name" class="status-value">Màn 1: Mẫu PDF</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Độ khó</span>
+            <span id="display-difficulty" class="status-value difficulty-tag easy">Dễ (5x5)</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Bong bóng</span>
+            <span id="display-progress" class="status-value">0 / 0</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Thời gian</span>
+            <span id="display-timer" class="status-value">00:00</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Số bước</span>
+            <span id="display-moves" class="status-value">0</span>
+          </div>
+        </div>
+
+        <!-- Main Board Card -->
+        <div class="board-card glass-panel">
+          <!-- Sound toggle and Sound indicator -->
+          <div class="board-header-controls">
+            <button id="btn-sound" class="btn btn-icon" onclick="toggleSound()" title="Bật/Tắt âm thanh">
+              🔊
+            </button>
+          </div>
+          
+          <!-- Canvas Container -->
+          <div class="canvas-container" id="canvas-container">
+            <canvas id="game-canvas"></canvas>
+            <canvas id="confetti-canvas"></canvas>
+            
+            <!-- Success Overlay -->
+            <div id="success-overlay" class="overlay hidden">
+              <div class="success-content">
+                <div class="success-icon">🎉</div>
+                <h2>Tuyệt Vời!</h2>
+                <p>Bạn đã giải thành công mê cung này!</p>
+                <div class="success-stats">
+                  <span>⏱️ <span id="stat-time">00:00</span></span>
+                  <span>👣 <span id="stat-moves">0</span> bước</span>
+                </div>
+                <div class="success-actions">
+                  <button class="btn btn-secondary" onclick="restartLevel()">Chơi Lại</button>
+                  <button id="btn-next-level" class="btn btn-primary" onclick="loadNextLevel()">Màn Tiếp Theo ➡️</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controls Bar -->
+          <div class="controls-bar">
+            <button class="btn btn-secondary" onclick="undoMove()" title="Quay lại bước trước (Phím U / Backspace)">
+              ↩️ Quay Lại
+            </button>
+            <button class="btn btn-secondary" onclick="restartLevel()" title="Chơi lại màn này (Phím R)">
+              🔄 Làm Lại
+            </button>
+            <button class="btn btn-accent" id="btn-hint" onclick="getHint()" title="Gợi ý bước đi tiếp theo (Phím H)">
+              💡 Gợi Ý
+            </button>
+            <button class="btn btn-primary" id="btn-solve" onclick="toggleAutoSolve()" title="Xem tự động giải mê cung">
+              🤖 Tự Động Giải
+            </button>
+          </div>
+        </div>
+
+        <!-- Help Section (Instructions) -->
+        <div class="help-card glass-panel">
+          <h3>📖 Hướng dẫn cách chơi</h3>
+          <div class="instructions-content">
+            <ul>
+              <li><strong>Mục tiêu:</strong> Hãy nối <strong>tất cả bong bóng màu cam</strong> lại với nhau tạo thành một đường đi liên tục. Không được bỏ sót bong bóng cam nào và không được đi lặp lại.</li>
+              <li><strong>Điểm xuất phát & Đích:</strong> Bắt đầu từ 1 trong 2 bong bóng cam có <strong class="text-highlight">viền tròn màu đen đậm</strong> và kết thúc tại bong bóng viền đen còn lại.</li>
+              <li><strong>Vật cản:</strong> Các bong bóng <strong>màu trắng</strong> là chướng ngại vật, bạn không được đi vào chúng.</li>
+              <li><strong>Cách vẽ đường đi:</strong>
+                <ul>
+                  <li><strong>Cách 1 (Kéo chuột/Chạm):</strong> Nhấn chuột hoặc chạm vào bong bóng viền đen bắt đầu, giữ và <strong>kéo rê</strong> qua các bong bóng cam cạnh nhau để vẽ đường đi.</li>
+                  <li><strong>Cách 2 (Click):</strong> Nhấp chuột vào một bong bóng cam liền kề (ngang hoặc dọc) với đầu đường đi hiện tại để mở rộng.</li>
+                  <li><strong>Cách 3 (Bàn phím):</strong> Sử dụng phím <strong>Mũi tên</strong> hoặc <strong>W, A, S, D</strong> để di chuyển nhanh chóng.</li>
+                </ul>
+              </li>
+              <li>Nếu muốn xóa bước đi, hãy <strong>kéo ngược lại</strong> ô vừa đi qua hoặc nhấn nút <strong>Quay Lại</strong> (hoặc nhấn phím <strong>U / Backspace</strong>).</li>
+            </ul>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="game-footer">
+      <p>© 2026 Mê Cung Bong Bóng. Được thiết kế với màu pastel thân thiện cho mọi lứa tuổi.</p>
+    </footer>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
