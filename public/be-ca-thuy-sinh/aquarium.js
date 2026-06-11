@@ -3,10 +3,160 @@
  * Core game engine using HTML5 Canvas & Web Audio API
  */
 
+// Base path for assets - Use jsDelivr CDN in production (Render.com), local path in local development
+const isDev = window.location.hostname === 'localhost' || 
+              window.location.hostname === '127.0.0.1' || 
+              window.location.hostname.startsWith('192.168.') || 
+              window.location.hostname.startsWith('10.') || 
+              window.location.protocol === 'file:' || 
+              window.location.port !== '';
+const ASSETS_BASE = isDev ? './assets/' : 'https://cdn.jsdelivr.net/gh/nhhuan90-ux/O-an-quan-online@master/public/be-ca-thuy-sinh/assets/';
+
+// Assets files definitions
+const assetFiles = {
+  // Backgrounds
+  'bg_default': 'background.png',
+  'bg_mavi': 'background_mavi.png',
+  'bg_purple': 'backmorl.png',
+  
+  // Grounds
+  'ground_green': 'zemin_yesil.png',
+  'ground_blue': 'zemin_mavi.png',
+  'ground_pink': 'zemin_pembe.png',
+  'ground_orange': 'zemin_turuncu.png',
+  'ground_mushroom': 'zemin_mantar.png',
+  
+  // Glass
+  'glass_overlay': 'cam.png',
+  'decor_skull': 'skull.png',
+  
+  // Food & Bubble
+  'food': 'yem.png',
+  'bubble_food': 'balikyembaloncugu.png',
+  'bubble_normal': 'baloncuk2.png',
+  
+  // Fishes
+  'fish_yellow_striped': 'saricizgilibalik.png',
+  
+  // UI & Cards
+  'slot_back_1': 'slotback1.png',
+  'slot_back_2': 'slotback2.png',
+  'slot_back_3': 'slotback3.png',
+  'slot_back_4': 'slotback4.png',
+  'slot_back_5': 'slotback5.png',
+  'spin_button': 'spinbutton.png',
+  'card_common': 'fishcardcommon.png',
+  'card_rare': 'fishcardrare.png',
+  'card_epic': 'fishcardepic.png',
+  'card_legend': 'fishcardlegend.png',
+  'badge_common': 'commonsprite2.png',
+  'badge_rare': 'raresprite2.png',
+  'badge_epic': 'epicsprite2.png',
+  'badge_legend': 'legendarysprite2.png',
+  'slot_button': 'slotbutton.png',
+  // Aquarium 3D Frames
+  'akvaryum10': 'akvaryum10.png',
+  'akvaryum3': 'akvaryum3.png',
+  'akvaryum5': 'akvaryum5.png',
+  'akvaryum7': 'akvaryum7.png',
+  'akvaryum8': 'akvaryum8.png',
+  'akvaryum9': 'akvaryum9.png',
+  'akvaryumkapali': 'akvaryumkapali.png',
+  'akvaryum_pembe': 'akvaryum_pembe.png',
+  'decor_skull': 'skull.png',
+  'decor_kask': 'kask.png'
+};
+
+// Add fish2 to fish22 dynamically (skip non-existent fish7)
+for (let i = 2; i <= 22; i++) {
+  if (i === 7) continue;
+  assetFiles[`fish_${i}`] = `fish${i}.png`;
+}
+
+// Add bitki2 to bitki23 dynamically (skip non-existent bitki10, bitki14)
+for (let i = 2; i <= 23; i++) {
+  if (i === 10 || i === 14) continue;
+  assetFiles[`plant_${i}`] = `bitki${i}.png`;
+}
+
+let loadedImages = {};
+let assetsLoaded = false;
+
+function preloadAssets(callback) {
+  let loadedCount = 0;
+  const keys = Object.keys(assetFiles);
+  const total = keys.length;
+  
+  if (total === 0) {
+    assetsLoaded = true;
+    if (callback) callback();
+    return;
+  }
+  
+  keys.forEach(key => {
+    const img = new Image();
+    img.src = ASSETS_BASE + assetFiles[key];
+    img.onload = () => {
+      loadedImages[key] = img;
+      loadedCount++;
+      if (loadedCount === total) {
+        assetsLoaded = true;
+        console.log("All assets preloaded successfully!");
+        if (callback) callback();
+      }
+    };
+    img.onerror = () => {
+      console.warn(`Failed to load asset: ${key} (${img.src}). Using vector fallback.`);
+      loadedImages[key] = null;
+      
+      loadedCount++;
+      if (loadedCount === total) {
+        assetsLoaded = true;
+        if (callback) callback();
+      }
+    };
+  });
+}
+
+
+const fishCollection = [
+  // Common
+  { id: 'fish_2', name: 'Cá Neon Xanh', rarity: 'common' },
+  { id: 'fish_3', name: 'Cá Neon Đỏ', rarity: 'common' },
+  { id: 'fish_4', name: 'Cá Tam Giác', rarity: 'common' },
+  { id: 'fish_5', name: 'Cá Mún Đỏ', rarity: 'common' },
+  { id: 'fish_6', name: 'Cá Bảy Màu', rarity: 'common' },
+  { id: 'fish_8', name: 'Tép Cherry Đỏ', rarity: 'common' },
+  // Rare
+  { id: 'fish_9', name: 'Tép Amano Cảnh', rarity: 'rare' },
+  { id: 'fish_10', name: 'Cá Hồng Tử Kỳ', rarity: 'rare' },
+  { id: 'fish_11', name: 'Cá Phượng Hoàng', rarity: 'rare' },
+  { id: 'fish_12', name: 'Cá Sọc Ngựa', rarity: 'rare' },
+  { id: 'fish_13', name: 'Cá Chuột Thái', rarity: 'rare' },
+  { id: 'fish_14', name: 'Cá Bút Chì', rarity: 'rare' },
+  // Epic
+  { id: 'fish_15', name: 'Cá Thần Tiên', rarity: 'epic' },
+  { id: 'fish_16', name: 'Cá Đĩa Đỏ', rarity: 'epic' },
+  { id: 'fish_17', name: 'Cá Neon Đen', rarity: 'epic' },
+  { id: 'fish_18', name: 'Cá Betta Halfmoon', rarity: 'epic' },
+  { id: 'fish_19', name: 'Cá Sặc Gấm', rarity: 'epic' },
+  { id: 'fish_yellow_striped', name: 'Cá Hề Nắng Vàng', rarity: 'epic' },
+  // Legendary
+  { id: 'fish_20', name: 'Cá Đĩa Albino Vàng', rarity: 'legendary' },
+  { id: 'fish_21', name: 'Cá Betta Rồng Đỏ', rarity: 'legendary' },
+  { id: 'fish_22', name: 'Cá Kỳ Dông Axolotl', rarity: 'legendary' }
+];
+
+let isSpinning = false;
+let finalSpinResult = null;
+let animFrameIndex = 1;
+let animTimer = null;
+
 // Global Game State
 let state = {
   step: 1,
   tankSize: 'standard60', // cubic40, standard60, premium90
+  tankFrame: 'akvaryum7', // akvaryum10, akvaryum7, akvaryum_pembe, etc. (Default to blue)
   substrate: {
     base: Array(40).fill(15), // Height values across 40 segments
     soil: Array(40).fill(30),
@@ -29,7 +179,8 @@ let state = {
     cycled: false
   },
   fishes: [], // { type, x, y, vx, vy, size, targetX, targetY, angle }
-  themeOverride: 'auto' // auto, light, dark
+  themeOverride: 'auto', // auto, light, dark
+  selectedTemplateId: null
 };
 
 // Sync Code variables
@@ -55,9 +206,15 @@ let waterDroplets = []; // For bacteria drops
 let activeTool = null; // 'brush-base', 'brush-soil', 'brush-sand', 'place-plant', 'prune', 'scrape', 'drag-hardscape'
 let selectedToolOption = null; // specific stone/wood/plant type
 let selectedHardscapeIndex = -1;
+let selectedPlantIndex = -1;
 let isDragging = false;
+let isFillingWater = false;
 let dragOffset = { x: 0, y: 0 };
 let algaeLevel = 0.0; // 0 to 1, increases if lights on without filter/CO2
+
+// Base scale factors to keep assets properly proportioned in the tank
+const HARDSCAPE_BASE_SCALE = 0.55;
+const PLANT_BASE_SCALE = 0.75;
 
 // Dimensions mapping
 const tankDims = {
@@ -74,17 +231,186 @@ const materials = {
 };
 
 const hardscapeItems = {
-  bonsai: { label: 'Lũa Bonsai 🌳', icon: '🌳', desc: 'Tạo hình cây cổ thụ rêu phong' },
-  driftwood: { label: 'Lũa Xương Chùm 🪵', icon: '🪵', desc: 'Lũa uốn khúc tự nhiên' },
-  tiger: { label: 'Đá Tiger 🪨', icon: '🪨', desc: 'Đá vàng óng, nhiều kẽ nứt' },
-  taimeo: { label: 'Đá Tai Mèo 🏔️', icon: '🏔️', desc: 'Đá nhọn hoang sơ' }
+  driftwood: { label: 'Lũa Xương Chùm 🪵', imageKey: 'plant_12', desc: 'Lũa uốn khúc tự nhiên', bbox: { x: 152, y: 64, w: 96, h: 168 }, icon: '🪵' },
+  bonsai: { label: 'Lũa Bonsai 🌳', imageKey: 'plant_23', desc: 'Tạo hình cây cổ thụ rêu phong', bbox: { x: 124, y: 68, w: 144, h: 168 }, icon: '🌳' },
+  mossy_wood: { label: 'Lũa Bám Rêu 🌿', imageKey: 'plant_13', desc: 'Lũa bám rêu xum xuê sinh động', bbox: { x: 100, y: 52, w: 224, h: 204 }, icon: '🌿' },
+  rock: { label: 'Đá Cảnh Pixel 🪨', imageKey: 'plant_21', desc: 'Đồi đá nhấp nhô phong cảnh', bbox: { x: 64, y: 60, w: 276, h: 176 }, icon: '🪨' },
+  skull: { label: 'Đầu Lâu Cổ 💀', imageKey: 'decor_skull', desc: 'Đầu lâu trang trí kỳ bí', bbox: { x: 176, y: 72, w: 44, h: 40 }, icon: '💀' },
+  coral: { label: 'San Hô Biển 🪸', imageKey: 'plant_5', desc: 'San hô pixel sặc sỡ', bbox: { x: 120, y: 60, w: 160, h: 180 }, icon: '🪸' },
+  javamoss: { label: 'Rêu Java 🌿', imageKey: 'plant_9', desc: 'Rêu mịn phủ lũa đá', bbox: { x: 100, y: 80, w: 200, h: 140 }, icon: '🌿' },
+  bridge: { label: 'Cầu Gỗ Nhỏ 🌉', imageKey: 'plant_16', desc: 'Cầu gỗ trang trí tinh tế', bbox: { x: 92, y: 72, w: 220, h: 156 }, icon: '🌉' },
+  castle: { label: 'Lâu Đài Cổ 🏰', imageKey: 'plant_22', desc: 'Phế tích lâu đài bí ẩn', bbox: { x: 132, y: 72, w: 132, h: 168 }, icon: '🏰' },
+  helmet: { label: 'Mũ Giáp Cổ ⛑️', imageKey: 'decor_kask', desc: 'Mũ hiệp sĩ chìm đáy', bbox: { x: 140, y: 100, w: 120, h: 100 }, icon: '⛑️' },
+  ship: { label: 'Tàu Đắm Cổ 🚢', imageKey: 'plant_15', desc: 'Xác tàu gỗ đắm chìm', bbox: { x: 108, y: 92, w: 184, h: 112 }, icon: '🚢' },
+  mushroom_house: { label: 'Nhà Nấm 🍄', imageKey: 'plant_19', desc: 'Nhà nấm trang trí dễ thương', bbox: { x: 104, y: 52, w: 184, h: 200 }, icon: '🍄' }
 };
 
+// Substrate profile generator helper
+function genSub(fn) {
+  return Array.from({length: 40}, (_, i) => Math.max(0, Math.round(fn(i / 39))));
+}
+
+// 6 Pre-made Aquascape Templates
+const aquascapeTemplates = [
+  {
+    id: 'iwagumi', name: '🏔️ Iwagumi', desc: 'Bố cục đá Nhật tối giản, thanh lịch',
+    color: '#6b8f71', tankSize: 'standard60',
+    substrate: {
+      base: genSub(t => 12 + 18 * Math.pow(t - 0.35, 2)),
+      soil: genSub(t => 20 + 20 * Math.pow(t - 0.35, 2)),
+      sand: genSub(t => 4 + 4 * Math.sin(t * Math.PI))
+    },
+    hardscapesDef: [
+      { type: 'rock', col: 16, scale: 1.4, rotation: -10 },
+      { type: 'rock', col: 12, scale: 0.9, rotation: -25 },
+      { type: 'rock', col: 22, scale: 0.7, rotation: 15 },
+      { type: 'rock', col: 26, scale: 0.4, rotation: 5 }
+    ],
+    plantsDef: [
+      { type: 'plant2', col: 6, size: 0.75 }, { type: 'plant2', col: 9, size: 0.8 },
+      { type: 'plant2', col: 12, size: 0.9 }, { type: 'plant2', col: 18, size: 0.95 },
+      { type: 'plant2', col: 20, size: 0.85 }, { type: 'plant2', col: 24, size: 0.8 },
+      { type: 'plant2', col: 28, size: 0.7 }, { type: 'plant2', col: 32, size: 0.75 },
+      { type: 'plant3', col: 2, size: 0.95 }, { type: 'plant3', col: 37, size: 0.9 }
+    ],
+    fishesDef: ['neon', 'neon', 'neon', 'neon', 'neon', 'neon', 'neon', 'neon', 'neon', 'neon'],
+    equipment: { filter: true, light: true, co2: true, fan: false }
+  },
+  {
+    id: 'dutch', name: '🌿 Dutch Style', desc: 'Vườn cây Hà Lan muôn sắc rực rỡ',
+    color: '#4a8c5c', tankSize: 'standard60',
+    substrate: {
+      base: genSub(t => 12 + 12 * t),
+      soil: genSub(t => 20 + 20 * t),
+      sand: genSub(() => 0)
+    },
+    hardscapesDef: [],
+    plantsDef: [
+      { type: 'plant4', col: 2, size: 1.35 }, { type: 'plant4', col: 4, size: 1.25 },
+      { type: 'plant20', col: 9, size: 1.15 }, { type: 'plant20', col: 12, size: 1.0 },
+      { type: 'plant15', col: 16, size: 1.05 }, { type: 'plant15', col: 19, size: 0.95 },
+      { type: 'plant19', col: 22, size: 1.1 }, { type: 'plant19', col: 25, size: 1.0 },
+      { type: 'plant7', col: 28, size: 1.15 }, { type: 'plant7', col: 31, size: 1.0 },
+      { type: 'plant4', col: 35, size: 1.25 }, { type: 'plant4', col: 37, size: 1.35 },
+      { type: 'plant2', col: 7, size: 0.85 }, { type: 'plant2', col: 14, size: 0.8 },
+      { type: 'plant2', col: 20, size: 0.75 }, { type: 'plant2', col: 27, size: 0.8 }
+    ],
+    fishesDef: ['neon', 'neon', 'neon', 'neon', 'mun', 'mun', 'mun', 'mun'],
+    equipment: { filter: true, light: true, co2: true, fan: false }
+  },
+  {
+    id: 'nature', name: '🌳 Nature Aquarium', desc: 'Amano tự nhiên ôm đá kẹp cát trắng',
+    color: '#34a853', tankSize: 'standard60',
+    substrate: {
+      base: genSub(t => 14 + 14 * Math.pow(t - 0.5, 2)),
+      soil: genSub(t => (t < 0.38 || t > 0.62) ? (24 + 16 * Math.pow(t - 0.5, 2)) : 5),
+      sand: genSub(t => (t >= 0.35 && t <= 0.65) ? (16 - 12 * Math.abs(t - 0.5)) : 2)
+    },
+    hardscapesDef: [
+      { type: 'mossy_wood', col: 10, scale: 1.0, rotation: -20 },
+      { type: 'bonsai', col: 28, scale: 0.95, rotation: 10 },
+      { type: 'rock', col: 14, scale: 0.55, rotation: -10 },
+      { type: 'rock', col: 23, scale: 0.5, rotation: 15 }
+    ],
+    plantsDef: [
+      { type: 'plant11', col: 12, size: 0.85 }, { type: 'plant11', col: 26, size: 0.8 },
+      { type: 'plant15', col: 7, size: 1.05 }, { type: 'plant15', col: 31, size: 1.0 },
+      { type: 'plant19', col: 4, size: 1.15 }, { type: 'plant19', col: 34, size: 1.2 },
+      { type: 'plant20', col: 11, size: 0.95 }, { type: 'plant20', col: 29, size: 0.9 },
+      { type: 'plant2', col: 3, size: 0.8 }, { type: 'plant2', col: 36, size: 0.75 }
+    ],
+    fishesDef: ['neon', 'neon', 'neon', 'neon', 'cherry', 'cherry', 'cherry', 'cherry', 'cherry'],
+    equipment: { filter: true, light: true, co2: true, fan: false }
+  },
+  {
+    id: 'jungle', name: '🌴 Rừng Nhiệt Đới', desc: 'Hoang dã rậm rạp um tùm phân tầng',
+    color: '#2d5a1e', tankSize: 'premium90',
+    substrate: {
+      base: genSub(t => 22 - 12 * t),
+      soil: genSub(t => 28 - 18 * t),
+      sand: genSub(() => 0)
+    },
+    hardscapesDef: [
+      { type: 'driftwood', col: 8, scale: 1.3, rotation: 15 },
+      { type: 'mossy_wood', col: 18, scale: 1.1, rotation: -10 },
+      { type: 'bonsai', col: 28, scale: 0.95, rotation: -30 },
+      { type: 'rock', col: 6, scale: 0.7, rotation: -5 },
+      { type: 'rock', col: 22, scale: 0.6, rotation: 12 }
+    ],
+    plantsDef: [
+      { type: 'plant4', col: 2, size: 1.35 }, { type: 'plant4', col: 4, size: 1.25 },
+      { type: 'plant4', col: 35, size: 1.15 }, { type: 'plant4', col: 38, size: 1.3 },
+      { type: 'plant19', col: 7, size: 1.15 }, { type: 'plant19', col: 12, size: 1.0 },
+      { type: 'plant15', col: 16, size: 1.1 }, { type: 'plant15', col: 21, size: 0.95 },
+      { type: 'plant7', col: 25, size: 1.05 }, { type: 'plant7', col: 29, size: 0.9 },
+      { type: 'plant20', col: 14, size: 1.0 }, { type: 'plant20', col: 32, size: 0.95 },
+      { type: 'plant11', col: 10, size: 0.85 }, { type: 'plant11', col: 19, size: 0.8 },
+      { type: 'plant11', col: 27, size: 0.75 }, { type: 'plant3', col: 13, size: 0.9 },
+      { type: 'plant3', col: 24, size: 0.85 }, { type: 'plant2', col: 1, size: 0.85 },
+      { type: 'plant2', col: 31, size: 0.75 }, { type: 'plant2', col: 36, size: 0.8 }
+    ],
+    fishesDef: ['tamgiac', 'tamgiac', 'tamgiac', 'tamgiac', 'tamgiac', 'neon', 'neon', 'neon', 'neon', 'neon'],
+    equipment: { filter: true, light: true, co2: true, fan: true }
+  },
+  {
+    id: 'fantasy', name: '💀 Fantasy Biển Sâu', desc: 'Bảo tàng đắm tàu lâu đài phế tích kì bí',
+    color: '#6a4c93', tankSize: 'standard60',
+    substrate: {
+      base: genSub(t => 12 + 6 * Math.sin(t * Math.PI)),
+      soil: genSub(() => 4),
+      sand: genSub(t => 16 + 8 * Math.cos(t * Math.PI * 2))
+    },
+    hardscapesDef: [
+      { type: 'ship', col: 11, scale: 1.25, rotation: -12 },
+      { type: 'castle', col: 28, scale: 0.85, rotation: 6 },
+      { type: 'helmet', col: 5, scale: 0.9, rotation: -15 },
+      { type: 'skull', col: 34, scale: 1.5, rotation: 22 },
+      { type: 'coral', col: 18, scale: 0.85, rotation: 0 },
+      { type: 'coral', col: 22, scale: 0.7, rotation: 0 }
+    ],
+    plantsDef: [
+      { type: 'plant7', col: 3, size: 0.85 }, { type: 'plant7', col: 15, size: 0.75 },
+      { type: 'plant7', col: 32, size: 0.9 }, { type: 'plant3', col: 8, size: 0.95 },
+      { type: 'plant3', col: 25, size: 0.9 }, { type: 'plant2', col: 13, size: 0.75 },
+      { type: 'plant2', col: 21, size: 0.7 }
+    ],
+    fishesDef: ['neon', 'neon', 'neon', 'neon', 'mun', 'mun', 'mun', 'mun'],
+    equipment: { filter: true, light: true, co2: false, fan: false }
+  },
+  {
+    id: 'zen', name: '🎋 Zen Tĩnh Lặng', desc: 'Đền đá tối giản bên cầu gỗ cát trắng',
+    color: '#8a7e6b', tankSize: 'standard60',
+    substrate: {
+      base: genSub(() => 6),
+      soil: genSub(t => (t > 0.58) ? (6 + 12 * (t - 0.58)) : 2),
+      sand: genSub(t => 16 + 6 * Math.sin(t * Math.PI * 0.7))
+    },
+    hardscapesDef: [
+      { type: 'rock', col: 26, scale: 0.95, rotation: -6 },
+      { type: 'rock', col: 29, scale: 0.55, rotation: 12 },
+      { type: 'rock', col: 11, scale: 0.65, rotation: -10 },
+      { type: 'rock', col: 9, scale: 0.35, rotation: 20 },
+      { type: 'bridge', col: 18, scale: 0.8, rotation: 0 }
+    ],
+    plantsDef: [
+      { type: 'plant11', col: 24, size: 0.75 }, { type: 'plant15', col: 28, size: 0.85 },
+      { type: 'plant3', col: 7, size: 0.9 }, { type: 'plant3', col: 33, size: 0.85 },
+      { type: 'plant2', col: 13, size: 0.7 }
+    ],
+    fishesDef: ['cherry', 'cherry', 'cherry', 'cherry', 'cherry', 'cherry', 'cherry', 'mun', 'mun'],
+    equipment: { filter: true, light: true, co2: false, fan: false }
+  }
+];
+
 const floraItems = {
-  montecarlo: { label: 'Trân châu ngọc trai (Tiền cảnh)', color: '#68b85c', desc: 'Thảm cỏ xanh bò sát nền' },
-  anubias: { label: 'Ráy lá nhỏ Nana (Trung cảnh)', color: '#2d6d35', desc: 'Lá dày sẫm buộc lên gỗ, đá' },
-  fern: { label: 'Dương xỉ (Trung cảnh)', color: '#448c4e', desc: 'Lá dài feathery tự nhiên' },
-  rotala: { label: 'Cắt cắm lá đỏ (Hậu cảnh)', color: '#cc4d4d', desc: 'Thân cao lá đỏ hồng rực rỡ' }
+  plant2: { label: 'Trân châu ngọc trai 🌱', imageKey: 'plant_2', desc: 'Thảm cỏ xanh mịn bò sát nền', bbox: { x: 152, y: 84, w: 96, h: 136 }, baseW: 40, baseH: 57 },
+  plant3: { label: 'Cỏ Nhật xanh mướt 🌿', imageKey: 'plant_3', desc: 'Lá dài mềm mại trung cảnh', bbox: { x: 148, y: 72, w: 104, h: 156 }, baseW: 50, baseH: 75 },
+  plant4: { label: 'Hẹ nước lá dài 🌾', imageKey: 'plant_4', desc: 'Thân cao thanh mảnh hậu cảnh', bbox: { x: 128, y: 52, w: 140, h: 200 }, baseW: 105, baseH: 150 },
+  plant7: { label: 'Rong đuôi chồn ☘️', imageKey: 'plant_7', desc: 'Cành lá kim dày đặc lọc nước', bbox: { x: 88, y: 56, w: 228, h: 188 }, baseW: 145, baseH: 120 },
+  plant11: { label: 'Ráy Nana lá sẫm 🍃', imageKey: 'plant_11', desc: 'Buộc lũa hoặc đá rất dai sức', bbox: { x: 112, y: 44, w: 192, h: 208 }, baseW: 83, baseH: 90 },
+  plant15: { label: 'Dương xỉ Mỹ nhân 🎋', imageKey: 'plant_17', desc: 'Lá răng cưa sang trọng', bbox: { x: 136, y: 52, w: 128, h: 200 }, baseW: 90, baseH: 140 },
+  plant19: { label: 'Trầu bà lá lớn 🍁', imageKey: 'plant_18', desc: 'Khóm to nổi bật hậu cảnh', bbox: { x: 156, y: 40, w: 84, h: 220 }, baseW: 65, baseH: 170 },
+  plant20: { label: 'Cây cắt cắm lá đỏ 🍂', imageKey: 'plant_20', desc: 'Sắc đỏ rực rỡ làm điểm nhấn', bbox: { x: 132, y: 72, w: 136, h: 156 }, baseW: 96, baseH: 110 }
 };
 
 const faunaItems = {
@@ -101,10 +427,13 @@ window.addEventListener('DOMContentLoaded', () => {
   
   setupTheme();
   setupEventListeners();
+  updateUI(); // Render immediately to prevent white screens/missing toolbox while loading
   loadOrInitProgress();
   
-  // Start Game loop
-  tick();
+  // Start Game loop after assets are loaded
+  preloadAssets(() => {
+    tick();
+  });
 });
 
 // Theme Setup & Clock check
@@ -240,6 +569,58 @@ async function loadOrInitProgress() {
     // Save state once to generate code
     await saveStateToServer(true);
   }
+  updateUI(); // Always update UI at the end to ensure step 1 or loaded step renders correctly!
+}
+
+function sanitizeState(loadedState) {
+  const defaultState = {
+    step: 1,
+    tankSize: 'standard60',
+    tankFrame: 'akvaryum7',
+    substrate: {
+      base: Array(40).fill(15),
+      soil: Array(40).fill(30),
+      sand: Array(40).fill(0)
+    },
+    hardscapes: [],
+    plants: [],
+    equipment: {
+      filter: false,
+      light: false,
+      co2: false,
+      fan: false
+    },
+    bioCycle: {
+      bacteria: 0.0,
+      ammonia: 1.0,
+      nitrite: 0.0,
+      cycled: false
+    },
+    waterLevel: 0.0,
+    fishes: [],
+    themeOverride: 'auto',
+    selectedTemplateId: null
+  };
+
+  if (!loadedState) return defaultState;
+  
+  const merged = { ...defaultState, ...loadedState };
+  
+  merged.substrate = { ...defaultState.substrate, ...(loadedState.substrate || {}) };
+  ['base', 'soil', 'sand'].forEach(k => {
+    if (!Array.isArray(merged.substrate[k]) || merged.substrate[k].length !== 40) {
+      merged.substrate[k] = Array(40).fill(k === 'base' ? 15 : (k === 'soil' ? 30 : 0));
+    }
+  });
+  
+  if (!Array.isArray(merged.hardscapes)) merged.hardscapes = [];
+  if (!Array.isArray(merged.plants)) merged.plants = [];
+  if (!Array.isArray(merged.fishes)) merged.fishes = [];
+  
+  merged.equipment = { ...defaultState.equipment, ...(loadedState.equipment || {}) };
+  merged.bioCycle = { ...defaultState.bioCycle, ...(loadedState.bioCycle || {}) };
+  
+  return merged;
 }
 
 async function fetchStateFromServer(code) {
@@ -248,7 +629,7 @@ async function fetchStateFromServer(code) {
     if (res.ok) {
       const data = await res.json();
       if (data.success && data.state) {
-        state = data.state;
+        state = sanitizeState(data.state);
         updateUI();
         showToast("Đã đồng bộ bể cá của bạn!");
       }
@@ -368,6 +749,24 @@ function loadToolbox() {
             <span class="tool-desc">90x45x45cm (~180L)<br>Hùng vĩ, rộng rãi</span>
           </div>
         </div>
+        
+        <div class="template-section-title" style="margin-top: 25px; margin-bottom: 8px; font-weight: bold; border-top: 1px dashed var(--glass-border); padding-top: 15px;">
+          ✨ Mẫu Tiểu Cảnh Sẵn
+        </div>
+        <p class="tool-desc" style="margin-bottom: 12px; font-size: 0.75rem; opacity: 0.85;">
+          Hoặc chọn nhanh 1 trong 6 phong cách bố cục được setup sẵn cực đẹp bên dưới:
+        </p>
+        <div class="template-grid">
+          ${aquascapeTemplates.map(tpl => `
+            <div class="template-card ${state.selectedTemplateId === tpl.id ? 'selected' : ''}" onclick="applyTemplate('${tpl.id}')" style="color: ${tpl.color || '#fff'}">
+              <div class="template-header">
+                <span class="template-name">${tpl.name}</span>
+                <span class="template-badge">${tpl.tankSize === 'cubic40' ? 'Cubic 40' : tpl.tankSize === 'premium90' ? 'Premium 90' : 'Standard 60'}</span>
+              </div>
+              <span class="template-desc">${tpl.desc}</span>
+            </div>
+          `).join('')}
+        </div>
       `;
       break;
       
@@ -400,26 +799,19 @@ function loadToolbox() {
       
     case 3:
       title.textContent = 'Bố cục Lũa & Đá';
-      container.innerHTML = `
-        <p class="tool-desc" style="margin-bottom:10px;">Nhấn vào vật liệu để thêm vào bể. Kéo di chuyển, và dùng các núm xoay bên dưới:</p>
-        <div class="tool-grid">
-          <div class="tool-card" onclick="addHardscape('bonsai')">
-            <span class="tool-icon">🌳</span>
-            <span class="tool-name">${hardscapeItems.bonsai.label}</span>
+      let html = `<p class="tool-desc" style="margin-bottom:10px;">Nhấn vào vật liệu để thêm vào bể. Kéo di chuyển, và dùng các núm xoay bên dưới:</p>
+        <div class="tool-grid">`;
+      for (const key in hardscapeItems) {
+        const item = hardscapeItems[key];
+        const icon = item.icon || '🪵';
+        html += `
+          <div class="tool-card" onclick="addHardscape('${key}')">
+            <span class="tool-icon">${icon}</span>
+            <span class="tool-name">${item.label}</span>
           </div>
-          <div class="tool-card" onclick="addHardscape('driftwood')">
-            <span class="tool-icon">🪵</span>
-            <span class="tool-name">${hardscapeItems.driftwood.label}</span>
-          </div>
-          <div class="tool-card" onclick="addHardscape('tiger')">
-            <span class="tool-icon">🪨</span>
-            <span class="tool-name">${hardscapeItems.tiger.label}</span>
-          </div>
-          <div class="tool-card" onclick="addHardscape('taimeo')">
-            <span class="tool-icon">🏔️</span>
-            <span class="tool-name">${hardscapeItems.taimeo.label}</span>
-          </div>
-        </div>
+        `;
+      }
+      html += `</div>
         
         <div class="hardscape-controls" id="hardscape-sliders" style="display:none; margin-top: 15px; display:flex; flex-direction:column; gap:12px;">
           <h4 style="font-size:0.9rem; font-weight:700;">Điều chỉnh Vật thể Đang Chọn:</h4>
@@ -440,6 +832,7 @@ function loadToolbox() {
           <button class="btn-action" style="background:var(--color-danger); color:white; border:none;" onclick="removeSelectedHardscape()">🗑️ Xóa vật thể chọn</button>
         </div>
       `;
+      container.innerHTML = html;
       activeTool = 'drag-hardscape';
       break;
       
@@ -447,22 +840,38 @@ function loadToolbox() {
       title.textContent = 'Cắm Cây Thủy Sinh';
       container.innerHTML = `
         <p class="tool-desc" style="margin-bottom:10px;">Chọn cây rồi click lên đất nền/gỗ đá trong bể để trồng:</p>
-        <div class="tool-grid">
-          <div class="tool-card" id="card-plant-montecarlo" onclick="selectPlantTool('montecarlo')">
+        <div class="tool-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px;">
+          <div class="tool-card" id="card-plant-plant2" onclick="selectPlantTool('plant2')">
             <span class="tool-icon">🌱</span>
-            <span class="tool-name">Trân châu ngọc trai</span>
+            <span class="tool-name">${floraItems.plant2.label}</span>
           </div>
-          <div class="tool-card" id="card-plant-anubias" onclick="selectPlantTool('anubias')">
+          <div class="tool-card" id="card-plant-plant3" onclick="selectPlantTool('plant3')">
             <span class="tool-icon">🌿</span>
-            <span class="tool-name">Ráy Nana</span>
+            <span class="tool-name">${floraItems.plant3.label}</span>
           </div>
-          <div class="tool-card" id="card-plant-fern" onclick="selectPlantTool('fern')">
+          <div class="tool-card" id="card-plant-plant4" onclick="selectPlantTool('plant4')">
+            <span class="tool-icon">🌾</span>
+            <span class="tool-name">${floraItems.plant4.label}</span>
+          </div>
+          <div class="tool-card" id="card-plant-plant7" onclick="selectPlantTool('plant7')">
             <span class="tool-icon">☘️</span>
-            <span class="tool-name">Dương xỉ</span>
+            <span class="tool-name">${floraItems.plant7.label}</span>
           </div>
-          <div class="tool-card" id="card-plant-rotala" onclick="selectPlantTool('rotala')">
+          <div class="tool-card" id="card-plant-plant11" onclick="selectPlantTool('plant11')">
+            <span class="tool-icon">🍃</span>
+            <span class="tool-name">${floraItems.plant11.label}</span>
+          </div>
+          <div class="tool-card" id="card-plant-plant15" onclick="selectPlantTool('plant15')">
+            <span class="tool-icon">🎋</span>
+            <span class="tool-name">${floraItems.plant15.label}</span>
+          </div>
+          <div class="tool-card" id="card-plant-plant19" onclick="selectPlantTool('plant19')">
             <span class="tool-icon">🍁</span>
-            <span class="tool-name">Cắt cắm lá đỏ</span>
+            <span class="tool-name">${floraItems.plant19.label}</span>
+          </div>
+          <div class="tool-card" id="card-plant-plant20" onclick="selectPlantTool('plant20')">
+            <span class="tool-icon">🍂</span>
+            <span class="tool-name">${floraItems.plant20.label}</span>
           </div>
         </div>
         <div class="btn-action-block" style="margin-top: 15px;">
@@ -524,35 +933,40 @@ function loadToolbox() {
       break;
       
     case 7:
-      title.textContent = 'Thả Cá & Tép Cảnh';
-      container.innerHTML = `
-        <p class="tool-desc" style="margin-bottom:10px;">Bể đã an toàn sinh học! Nhấn chọn cá/tép để thả vào bể (tối đa 25 con):</p>
-        <div class="tool-grid">
-          <div class="tool-card" onclick="spawnFauna('neon')">
-            <span class="tool-icon">🐟</span>
-            <span class="tool-name">${faunaItems.neon.label}</span>
-            <span class="tool-desc">${faunaItems.neon.desc}</span>
+      title.textContent = 'Thả Cá & Sinh Vật Cảnh';
+      
+      const rarityLabels = {
+        'common': 'Thường',
+        'rare': 'Hiếm',
+        'epic': 'Sử thi',
+        'legendary': 'Huyền thoại'
+      };
+      
+      let fishGridHtml = `<p class="tool-desc" style="margin-bottom:12px;">Nhấp vào sinh vật bất kỳ dưới đây để thả vào bể (Tối đa 25 con):</p>
+        <div class="fish-selection-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-height: 280px; overflow-y: auto; padding-right: 5px;">`;
+      
+      fishCollection.forEach(fish => {
+        const fishImg = ASSETS_BASE + (fish.id === 'fish_yellow_striped' ? 'saricizgilibalik.png' : `${fish.id}.png`);
+        fishGridHtml += `
+          <div class="fish-selection-card" onclick="addFishDirectly('${fish.id}')" style="display: flex; align-items: center; gap: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); padding: 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s ease;">
+            <div style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 4px; overflow: hidden; position: relative;">
+              <img src="${fishImg}" style="max-width: 90%; max-height: 90%; object-fit: contain; image-rendering: pixelated;">
+            </div>
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+              <span style="font-size: 0.8rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main);">${fish.name}</span>
+              <span class="rarity-badge-text ${fish.rarity}" style="font-size: 0.65rem; font-weight: bold; width: fit-content; text-transform: uppercase;">${rarityLabels[fish.rarity]}</span>
+            </div>
           </div>
-          <div class="tool-card" onclick="spawnFauna('tamgiac')">
-            <span class="tool-icon">🐠</span>
-            <span class="tool-name">${faunaItems.tamgiac.label}</span>
-            <span class="tool-desc">${faunaItems.tamgiac.desc}</span>
-          </div>
-          <div class="tool-card" onclick="spawnFauna('cherry')">
-            <span class="tool-icon">🦐</span>
-            <span class="tool-name">${faunaItems.cherry.label}</span>
-            <span class="tool-desc">${faunaItems.cherry.desc}</span>
-          </div>
-          <div class="tool-card" onclick="spawnFauna('mun')">
-            <span class="tool-icon">🐡</span>
-            <span class="tool-name">${faunaItems.mun.label}</span>
-            <span class="tool-desc">${faunaItems.mun.desc}</span>
-          </div>
-        </div>
-        <div class="btn-action-block" style="margin-top: 15px;">
-          <button class="btn-action" style="background:var(--color-danger); color:white; border:none;" onclick="clearFauna()">🗑️ Vớt hết cá tép ra</button>
+        `;
+      });
+      
+      fishGridHtml += `</div>
+        <div class="btn-action-block" style="margin-top: 15px; border-top: 1px dashed var(--glass-border); padding-top: 15px;">
+          <button class="btn-action" style="background:var(--color-danger); color:white; border:none;" onclick="clearFauna()">🗑️ Vớt hết cá ra</button>
         </div>
       `;
+      
+      container.innerHTML = fishGridHtml;
       break;
       
     case 8:
@@ -574,6 +988,129 @@ function loadToolbox() {
 // Select size
 function selectTankSize(size) {
   state.tankSize = size;
+  state.selectedTemplateId = null; // Clear template selection if size changed manually
+  updateUI();
+  saveStateToServer();
+}
+
+function selectTankFrame(frame) {
+  state.tankFrame = frame;
+  updateUI();
+  saveStateToServer();
+}
+
+// Template Sound synthesis
+function playTemplateSound() {
+  if (!soundActive || !audioCtx) return;
+  try {
+    const now = audioCtx.currentTime;
+    for (let i = 0; i < 5; i++) {
+      const timeOffset = i * 0.08;
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      osc.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(350 + i * 110 + Math.random() * 40, now + timeOffset);
+      osc.frequency.exponentialRampToValueAtTime(900 + Math.random() * 200, now + timeOffset + 0.12);
+      
+      gainNode.gain.setValueAtTime(0.025 + Math.random() * 0.015, now + timeOffset);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + timeOffset + 0.12);
+      
+      osc.start(now + timeOffset);
+      osc.stop(now + timeOffset + 0.12);
+    }
+  } catch (e) {
+    console.error("Template sound playback error:", e);
+  }
+}
+
+// Apply a selected layout template
+function applyTemplate(templateId) {
+  const template = aquascapeTemplates.find(t => t.id === templateId);
+  if (!template) return;
+  
+  state.tankSize = template.tankSize;
+  state.selectedTemplateId = templateId;
+  
+  // Set substrate values from template
+  state.substrate.base = [...template.substrate.base];
+  state.substrate.soil = [...template.substrate.soil];
+  state.substrate.sand = [...template.substrate.sand];
+  
+  // Clear existing items
+  state.hardscapes = [];
+  state.plants = [];
+  state.fishes = [];
+  
+  // Setup coordinate mapping
+  const dim = tankDims[template.tankSize];
+  const startX = (canvas.width - dim.width) / 2;
+  const innerStartX = startX;
+  const innerWidth = dim.width;
+  const innerHeight = dim.height;
+  const colWidth = innerWidth / 40;
+  const bottom = canvas.height - 20;
+  
+  // Add hardscape objects
+  if (template.hardscapesDef) {
+    state.hardscapes = template.hardscapesDef.map(def => {
+      const x = innerStartX + def.col * colWidth;
+      const colIdx = Math.max(0, Math.min(39, Math.round(def.col)));
+      const h_below = (state.substrate.base[colIdx] || 0) + (state.substrate.soil[colIdx] || 0) + (state.substrate.sand[colIdx] || 0);
+      const y = bottom - h_below;
+      return {
+        type: def.type,
+        x: x,
+        y: y,
+        scale: def.scale,
+        rotation: def.rotation * Math.PI / 180
+      };
+    });
+  }
+  
+  // Add plants
+  if (template.plantsDef) {
+    state.plants = template.plantsDef.map(def => {
+      const x = innerStartX + def.col * colWidth;
+      const colIdx = Math.max(0, Math.min(39, Math.round(def.col)));
+      const h_below = (state.substrate.base[colIdx] || 0) + (state.substrate.soil[colIdx] || 0) + (state.substrate.sand[colIdx] || 0);
+      const y = bottom - h_below;
+      return {
+        type: def.type,
+        x: x,
+        y: y,
+        size: def.size
+      };
+    });
+  }
+  
+  // Spawn default fishes/fauna
+  if (template.fishesDef) {
+    template.fishesDef.forEach(type => {
+      const fishX = innerStartX + 50 + Math.random() * (innerWidth - 100);
+      const fishY = dim.yOffset + 50 + Math.random() * (innerHeight - 150);
+      spawnFaunaObject(type, fishX, fishY);
+    });
+  }
+  
+  // Setup equipments & water
+  state.equipment = { ...template.equipment };
+  state.waterLevel = 0.9;
+  
+  // Cycle the bio system
+  state.bioCycle.bacteria = 1.0;
+  state.bioCycle.ammonia = 0.0;
+  state.bioCycle.nitrite = 0.0;
+  state.bioCycle.nitrate = 0.5;
+  state.bioCycle.cycled = true;
+  
+  // Play sound
+  playTemplateSound();
+  
+  showToast(`✨ Đã thiết lập phong cách: ${template.name}!`);
+  
   updateUI();
   saveStateToServer();
 }
@@ -589,17 +1126,22 @@ function clearSubstrate() {
   state.substrate.base = Array(40).fill(0);
   state.substrate.soil = Array(40).fill(0);
   state.substrate.sand = Array(40).fill(0);
+  state.selectedTemplateId = null; // Clear template selection
   updateUI();
   saveStateToServer();
 }
 
 // Hardscape Arrangement
 function addHardscape(type) {
+  state.selectedTemplateId = null; // Clear template selection
   const dim = tankDims[state.tankSize];
+  const startX = (canvas.width - dim.width) / 2;
+  const bottom = canvas.height - 20;
+  const innerBottom = dim.yOffset + 0.903 * (bottom - dim.yOffset);
   const item = {
     type,
     x: canvas.width / 2 + (Math.random() * 80 - 40),
-    y: canvas.height - 100,
+    y: innerBottom,
     scale: 1.0,
     rotation: 0.0
   };
@@ -697,16 +1239,7 @@ function fillWater() {
   fillBtn.disabled = true;
   fillBtn.textContent = '🌊 Đang Bơm Nước...';
   
-  const waterOverlay = document.getElementById('water-filling-overlay');
-  waterOverlay.style.height = '85%';
-  
-  setTimeout(() => {
-    state.waterLevel = 0.85;
-    fillBtn.textContent = '✓ Bể Đầy Nước';
-    loadToolbox();
-    updateUI();
-    saveStateToServer();
-  }, 3000);
+  isFillingWater = true; // Animate rising water in tick() game loop
 }
 
 function doseBacteria() {
@@ -805,8 +1338,139 @@ function spawnFauna(type) {
 
 function clearFauna() {
   state.fishes = [];
+  finalSpinResult = null;
+  updateUI();
+  loadToolbox();
+  saveStateToServer();
+}
+
+function spawnSlotFish(fish) {
+  if (state.fishes.length >= 25) {
+    showToast("Bể cá đã chật, không nên thả thêm!");
+    return;
+  }
+  
+  const dim = tankDims[state.tankSize];
+  const startX = (canvas.width - dim.width) / 2;
+  const bottom = canvas.height - 20;
+  const innerStartX = startX;
+  const innerEndX = startX + dim.width;
+  const innerTop = dim.yOffset;
+  const innerBottom = bottom;
+  const innerHeight = innerBottom - innerTop;
+  const waterTop = innerTop + (1.0 - state.waterLevel) * (innerHeight - 10);
+  
+  const isCrawler = fish.id === 'fish_8' || fish.id === 'fish_9';
+  
+  state.fishes.push({
+    type: isCrawler ? 'cherry' : 'fish',
+    imageKey: fish.id,
+    fishName: fish.name,
+    rarity: fish.rarity,
+    x: innerStartX + (innerEndX - innerStartX) / 2 + (Math.random() * 100 - 50),
+    y: isCrawler ? innerBottom - 25 : waterTop + Math.random() * (innerBottom - waterTop - 40),
+    vx: (Math.random() > 0.5 ? 1 : -1) * (0.8 + Math.random() * 0.8),
+    vy: isCrawler ? 0 : (Math.random() * 2 - 1) * 0.4,
+    size: isCrawler ? 12 : 16 + Math.random() * 6,
+    angle: 0,
+    targetX: canvas.width / 2,
+    targetY: canvas.height / 2
+  });
+  
   updateUI();
   saveStateToServer();
+}
+
+function addFishDirectly(fishId) {
+  const fish = fishCollection.find(f => f.id === fishId);
+  if (!fish) return;
+  spawnSlotFish(fish);
+  showToast("🐠 Đã thả " + fish.name + " vào bể!");
+  
+  // Play bubble sound
+  if (audioCtx && soundActive) {
+    playBubbleSound();
+  }
+}
+
+function animateSlotFrame() {
+  if (!isSpinning) return;
+  
+  const frame = document.getElementById('slot-machine-frame');
+  if (frame) {
+    animFrameIndex = (animFrameIndex % 5) + 1;
+    frame.style.backgroundImage = `url('${ASSETS_BASE}slotback${animFrameIndex}.png')`;
+  }
+  
+  setTimeout(animateSlotFrame, 120);
+}
+
+function spinSlotMachine() {
+  if (isSpinning) return;
+  if (state.fishes.length >= 25) {
+    showToast("Bể cá đã chật, không nên thả thêm!");
+    return;
+  }
+  
+  isSpinning = true;
+  finalSpinResult = null;
+  loadToolbox(); // Re-render to disable button
+  animateSlotFrame(); // Start frame animation
+  
+  // Play initial pop sound if audio initialized
+  if (audioCtx && soundActive) {
+    playBubbleSound();
+  }
+  
+  let speed = 60; // ms per shuffle
+  let duration = 0;
+  
+  const runShuffle = () => {
+    duration += speed;
+    
+    // Pick random fish for visual shuffle
+    const randFish = fishCollection[Math.floor(Math.random() * fishCollection.length)];
+    const cardImg = document.getElementById('slot-card-image');
+    const fishPrev = document.getElementById('slot-fish-preview');
+    
+    if (cardImg && fishPrev) {
+      cardImg.src = ASSETS_BASE + `fishcard${randFish.rarity}.png`;
+      fishPrev.src = ASSETS_BASE + (randFish.id === 'fish_yellow_striped' ? 'saricizgilibalik.png' : `${randFish.id}.png`);
+    }
+    
+    if (audioCtx && soundActive && Math.random() < 0.3) {
+      playBubbleSound();
+    }
+    
+    if (duration < 1800) {
+      // Accelerate or decelerate speed
+      if (duration > 1200) speed += 40;
+      setTimeout(runShuffle, speed);
+    } else {
+      // Calculate final result
+      // Probabilities: Common 60%, Rare 25%, Epic 12%, Legendary 3%
+      const rand = Math.random() * 100;
+      let selectedRarity = 'common';
+      if (rand < 3) selectedRarity = 'legendary';
+      else if (rand < 15) selectedRarity = 'epic';
+      else if (rand < 40) selectedRarity = 'rare';
+      
+      const filteredFishes = fishCollection.filter(f => f.rarity === selectedRarity);
+      const finalFish = filteredFishes[Math.floor(Math.random() * filteredFishes.length)];
+      
+      // Stop spinning
+      isSpinning = false;
+      finalSpinResult = finalFish;
+      
+      // Auto-spawn in tank
+      spawnSlotFish(finalFish);
+      
+      // Re-render Step 7 toolbox to show congrats card
+      loadToolbox();
+    }
+  };
+  
+  setTimeout(runShuffle, speed);
 }
 
 // Maintenance Mode tools
@@ -826,17 +1490,15 @@ function performWaterChange() {
   
   showToast("🪣 Đang hút 30% nước cũ...");
   
-  // Lower water level
-  const origLevel = state.waterLevel;
+  // Lower water level to 0.55
   state.waterLevel = 0.55;
-  
-  const waterOverlay = document.getElementById('water-filling-overlay');
-  waterOverlay.style.height = '55%';
+  updateUI();
   
   setTimeout(() => {
     showToast("💧 Đang bơm nước sạch mới...");
-    state.waterLevel = 0.85;
-    waterOverlay.style.height = '85%';
+    
+    // Trigger smooth rising animation on canvas!
+    isFillingWater = true;
     
     // Water change clears algae and resets nitrates
     algaeLevel = Math.max(0.0, algaeLevel - 0.5);
@@ -937,7 +1599,12 @@ function setupEventListeners() {
   const syncModal = document.getElementById('sync-modal');
   document.getElementById('btn-sync-dialog').addEventListener('click', () => {
     syncModal.classList.add('open');
-    document.getElementById('sync-input-code').value = '';
+    const input = document.getElementById('sync-input-code');
+    input.value = '';
+    // Autofocus input after transition finishes (150ms)
+    setTimeout(() => {
+      input.focus();
+    }, 150);
   });
   
   document.getElementById('btn-sync-cancel').addEventListener('click', () => {
@@ -968,6 +1635,22 @@ function setupEventListeners() {
   canvas.addEventListener('pointerleave', handlePointerUp);
 }
 
+// Helper function to map plant types to their asset keys
+function getPlantImageKey(type) {
+  switch (type) {
+    case 'montecarlo': return 'plant_2';
+    case 'anubias': return 'plant_11';
+    case 'fern': return 'plant_15';
+    case 'rotala': return 'plant_20';
+    default:
+      if (type && type.startsWith('plant')) {
+        const num = type.replace('plant', '');
+        return `plant_${num}`;
+      }
+      return type;
+  }
+}
+
 // Canvas Interaction Handlers
 function handlePointerDown(e) {
   const rect = canvas.getBoundingClientRect();
@@ -977,8 +1660,15 @@ function handlePointerDown(e) {
   const y = (e.clientY - rect.top) * scaleY;
   
   const dim = tankDims[state.tankSize];
-  if (x < (canvas.width - dim.width)/2 || x > (canvas.width + dim.width)/2 || y < dim.yOffset || y > canvas.height - 20) {
-    return; // Clicked outside the tank glass
+  const startX = (canvas.width - dim.width) / 2;
+  const bottom = canvas.height - 20;
+  const innerStartX = startX;
+  const innerEndX = startX + dim.width;
+  const innerTop = dim.yOffset;
+  const innerBottom = bottom;
+  
+  if (x < innerStartX || x > innerEndX || y < innerTop || y > innerBottom) {
+    return; // Clicked outside the inner tank glass
   }
   
   isDragging = true;
@@ -988,13 +1678,21 @@ function handlePointerDown(e) {
     applySubstrateBrush(x, activeTool.split('-')[1]);
   } 
   else if (state.step === 3) {
-    // Select or drag hardscapes
+    // Select or drag hardscapes using bounding box of the drawn sprite area
     selectedHardscapeIndex = -1;
     for (let i = state.hardscapes.length - 1; i >= 0; i--) {
       const hs = state.hardscapes[i];
-      const radius = 40 * hs.scale;
-      // Distance check
-      if (Math.hypot(hs.x - x, hs.y - y) < radius) {
+      const item = hardscapeItems[hs.type];
+      if (!item) continue;
+      
+      const bbox = item.bbox;
+      const scaleFactor = hs.scale * HARDSCAPE_BASE_SCALE;
+      const w = bbox.w * scaleFactor;
+      const h = bbox.h * scaleFactor;
+      const dx = (bbox.w / 2) * scaleFactor;
+      const dy = bbox.h * scaleFactor;
+      
+      if (x > hs.x - dx && x < hs.x + dx && y > hs.y - dy && y < hs.y) {
         selectedHardscapeIndex = i;
         dragOffset.x = hs.x - x;
         dragOffset.y = hs.y - y;
@@ -1004,28 +1702,52 @@ function handlePointerDown(e) {
     }
     updateHardscapeSliders();
   }
-  else if (state.step === 4 && activeTool === 'place-plant') {
-    state.plants.push({
-      type: selectedToolOption,
-      x: x,
-      y: y,
-      size: 1.0
-    });
-    saveStateToServer();
+  else if (state.step === 4) {
+    // Select or drag plants using bounding box of the drawn plant area
+    selectedPlantIndex = -1;
+    for (let i = state.plants.length - 1; i >= 0; i--) {
+      const p = state.plants[i];
+      const item = floraItems[p.type];
+      if (!item) continue;
+      
+      const size = (p.size || 1.0) * PLANT_BASE_SCALE;
+      const w = item.baseW * size;
+      const h = item.baseH * size;
+      
+      if (x > p.x - w/2 && x < p.x + w/2 && y > p.y - h && y < p.y) {
+        selectedPlantIndex = i;
+        dragOffset.x = p.x - x;
+        dragOffset.y = p.y - y;
+        break;
+      }
+    }
+    
+    // If no existing plant was clicked and a plant tool is selected, place a new plant
+    if (selectedPlantIndex < 0 && activeTool === 'place-plant' && selectedToolOption) {
+      state.selectedTemplateId = null; // Clear template selection
+      state.plants.push({
+        type: selectedToolOption,
+        x: x,
+        y: y,
+        size: 1.0
+      });
+      saveStateToServer();
+      showToast("🌱 Đã trồng cây!");
+    }
   }
   else if (state.step === 8 && activeTool === 'feed') {
     // Drop fish food
-    fishFood.push({ x, y: y < dim.yOffset ? dim.yOffset : y, speed: 1 + Math.random() * 1.5 });
+    fishFood.push({ x, y: y < innerTop ? innerTop : y, speed: 1 + Math.random() * 1.5 });
   }
   else if (state.step === 8 && activeTool === 'prune') {
     // Cut background plants
     state.plants = state.plants.filter(p => {
-      if (p.type === 'rotala' && Math.hypot(p.x - x, p.y - y) < 35) {
+      const imgKey = getPlantImageKey(p.type);
+      if ((p.type === 'rotala' || imgKey === 'plant_20') && Math.hypot(p.x - x, p.y - y) < 45) {
         p.size = 0.5; // Cut down
         return true;
       }
-      // Bứng cây khác nếu nhấp trúng
-      return Math.hypot(p.x - x, p.y - y) >= 20;
+      return Math.hypot(p.x - x, p.y - y) >= 30;
     });
     saveStateToServer();
   }
@@ -1048,6 +1770,12 @@ function handlePointerMove(e) {
   const y = (e.clientY - rect.top) * scaleY;
   
   const dim = tankDims[state.tankSize];
+  const startX = (canvas.width - dim.width) / 2;
+  const bottom = canvas.height - 20;
+  const innerStartX = startX;
+  const innerEndX = startX + dim.width;
+  const innerTop = dim.yOffset;
+  const innerBottom = bottom;
   
   if (state.step === 2 && activeTool && activeTool.startsWith('brush-')) {
     applySubstrateBrush(x, activeTool.split('-')[1]);
@@ -1055,8 +1783,15 @@ function handlePointerMove(e) {
   else if (state.step === 3 && selectedHardscapeIndex >= 0) {
     // Drag hardscape item
     const hs = state.hardscapes[selectedHardscapeIndex];
-    hs.x = Math.max((canvas.width - dim.width)/2 + 20, Math.min((canvas.width + dim.width)/2 - 20, x + dragOffset.x));
-    hs.y = Math.max(dim.yOffset + 40, Math.min(canvas.height - 30, y + dragOffset.y));
+    hs.x = Math.max(innerStartX + 20, Math.min(innerEndX - 20, x + dragOffset.x));
+    hs.y = Math.max(innerTop + 40, Math.min(innerBottom, y + dragOffset.y));
+    saveStateToServer();
+  }
+  else if (state.step === 4 && selectedPlantIndex >= 0) {
+    // Drag plant item
+    const p = state.plants[selectedPlantIndex];
+    p.x = Math.max(innerStartX + 10, Math.min(innerEndX - 10, x + dragOffset.x));
+    p.y = Math.max(innerTop + 40, Math.min(innerBottom, y + dragOffset.y));
     saveStateToServer();
   }
   else if (state.step === 8 && activeTool === 'scrape') {
@@ -1066,19 +1801,23 @@ function handlePointerMove(e) {
 
 function handlePointerUp() {
   isDragging = false;
+  selectedPlantIndex = -1;
 }
 
 // Substrate brush logic
 function applySubstrateBrush(x, type) {
+  state.selectedTemplateId = null; // Clear template selection
   const dim = tankDims[state.tankSize];
   const startX = (canvas.width - dim.width) / 2;
-  const segmentWidth = dim.width / 40;
+  const innerStartX = startX;
+  const innerWidth = dim.width;
+  const segmentWidth = innerWidth / 40;
   
-  const segmentIdx = Math.floor((x - startX) / segmentWidth);
+  const segmentIdx = Math.floor((x - innerStartX) / segmentWidth);
   if (segmentIdx >= 0 && segmentIdx < 40) {
     // Increase thickness at index and adjacent indices for a smoother curve
     const indices = [segmentIdx - 2, segmentIdx - 1, segmentIdx, segmentIdx + 1, segmentIdx + 2];
-    const intensities = [2, 6, 12, 6, 2];
+    const intensities = [0.2, 0.6, 1.2, 0.6, 0.2];
     
     indices.forEach((idx, i) => {
       if (idx >= 0 && idx < 40) {
@@ -1105,6 +1844,7 @@ function spawnFaunaObject(type, x, y) {
 
 // Validation utils
 function isEmptyArray(arr) {
+  if (!arr || !Array.isArray(arr)) return true;
   return arr.every(v => v === 0);
 }
 
@@ -1183,12 +1923,36 @@ function updateUI() {
   
   // Update water level visuals
   const waterOverlay = document.getElementById('water-filling-overlay');
-  waterOverlay.style.height = (state.waterLevel * 100) + '%';
+  if (waterOverlay) {
+    waterOverlay.style.height = (state.waterLevel * 100) + '%';
+  }
 }
 
 // GAME SIMULATION LOOP (60fps)
 function tick() {
   time += 0.05;
+  
+  // Update water level rising if filling
+  if (isFillingWater) {
+    state.waterLevel += 0.005;
+    if (state.waterLevel >= 0.85) {
+      state.waterLevel = 0.85;
+      isFillingWater = false;
+      
+      const doseBtn = document.getElementById('btn-dose-bacteria');
+      if (doseBtn) {
+        doseBtn.disabled = false;
+      }
+      const fillBtn = document.getElementById('btn-fill-water');
+      if (fillBtn) {
+        fillBtn.textContent = '✓ Bể đã đầy nước';
+      }
+      
+      showToast("🌊 Bơm nước hoàn tất!");
+      saveStateToServer();
+    }
+    updateUI();
+  }
   
   // Update physics/biology simulations
   simulateParticles();
@@ -1320,22 +2084,29 @@ function simulateFauna() {
   const startX = (canvas.width - dim.width) / 2;
   const endX = startX + dim.width;
   const bottom = canvas.height - 20;
-  const waterTop = dim.yOffset + (1.0 - state.waterLevel) * (canvas.height - dim.yOffset - 30);
+  
+  const innerStartX = startX;
+  const innerEndX = endX;
+  const innerWidth = dim.width;
+  const innerTop = dim.yOffset;
+  const innerBottom = bottom;
+  const innerHeight = innerBottom - innerTop;
+  const waterTop = innerTop + (1.0 - state.waterLevel) * (innerHeight - 10);
   
   state.fishes.forEach(fish => {
     if (fish.type === 'cherry') {
       // Shrimp behavior: crawl on bottom substrate, crawl on wood, rocks
       // Look for a close hardscape or crawl bottom
-      let targetY = bottom;
+      let targetY = innerBottom;
       let targetX = fish.x;
       
-      const segmentWidth = dim.width / 40;
-      const segIdx = Math.floor((fish.x - startX) / segmentWidth);
+      const segmentWidth = innerWidth / 40;
+      const segIdx = Math.floor((fish.x - innerStartX) / segmentWidth);
       if (segIdx >= 0 && segIdx < 40) {
         const hBase = state.substrate.base[segIdx] || 0;
         const hSoil = state.substrate.soil[segIdx] || 0;
         const hSand = state.substrate.sand[segIdx] || 0;
-        targetY = bottom - hBase - hSoil - hSand - 6;
+        targetY = innerBottom - hBase - hSoil - hSand - 6;
       }
       
       // Crawling movement
@@ -1347,8 +2118,8 @@ function simulateFauna() {
       fish.y += (targetY - fish.y) * 0.1; // Snap to ground
       
       // Boundaries
-      if (fish.x < startX + 15) { fish.x = startX + 15; fish.vx = 0.3; }
-      if (fish.x > endX - 15) { fish.x = endX - 15; fish.vx = -0.3; }
+      if (fish.x < innerStartX + 15) { fish.x = innerStartX + 15; fish.vx = 0.3; }
+      if (fish.x > innerEndX - 15) { fish.x = innerEndX - 15; fish.vx = -0.3; }
     } 
     else {
       // Fish behavior
@@ -1426,22 +2197,71 @@ function simulateFauna() {
       // Angle facing velocity
       fish.angle = Math.atan2(fish.vy, fish.vx);
       
-      // Avoid borders
+      // Avoid borders (inner glass bounds)
       const borderForce = 0.15;
-      if (fish.x < startX + 35) fish.vx += borderForce;
-      if (fish.x > endX - 35) fish.vx -= borderForce;
+      if (fish.x < innerStartX + 20) fish.vx += borderForce;
+      if (fish.x > innerEndX - 20) fish.vx -= borderForce;
       
-      const segmentWidth = dim.width / 40;
-      const segIdx = Math.floor((fish.x - startX) / segmentWidth);
-      let substrateY = bottom - 20;
+      const segmentWidth = innerWidth / 40;
+      const segIdx = Math.floor((fish.x - innerStartX) / segmentWidth);
+      let substrateY = innerBottom - 20;
       if (segIdx >= 0 && segIdx < 40) {
-        substrateY = bottom - (state.substrate.base[segIdx] || 0) - (state.substrate.soil[segIdx] || 0) - (state.substrate.sand[segIdx] || 0);
+        substrateY = innerBottom - (state.substrate.base[segIdx] || 0) - (state.substrate.soil[segIdx] || 0) - (state.substrate.sand[segIdx] || 0);
       }
       
-      if (fish.y < waterTop + 25) fish.vy += borderForce;
+      if (fish.y < waterTop + 20) fish.vy += borderForce;
       if (fish.y > substrateY - 15) fish.vy -= borderForce;
     }
   });
+}
+
+// Helper to calculate the non-transparent bounding box of an image dynamically (crops out transparent borders)
+function getImageBBox(img) {
+  if (img._bbox) return img._bbox;
+  try {
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = img.width;
+    tempCanvas.height = img.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCtx.drawImage(img, 0, 0);
+    const imgData = tempCtx.getImageData(0, 0, img.width, img.height);
+    const data = imgData.data;
+    
+    let minX = img.width, minY = img.height, maxX = 0, maxY = 0;
+    let hasAlpha = false;
+    
+    for (let y = 0; y < img.height; y++) {
+      for (let x = 0; x < img.width; x++) {
+        const idx = (y * img.width + x) * 4;
+        const alpha = data[idx + 3];
+        if (alpha > 5) {
+          if (x < minX) minX = x;
+          if (y < minY) minY = y;
+          if (x > maxX) maxX = x;
+          if (y > maxY) maxY = y;
+          hasAlpha = true;
+        }
+      }
+    }
+    
+    const bbox = hasAlpha ? {
+      x: minX,
+      y: minY,
+      w: maxX - minX + 1,
+      h: maxY - minY + 1
+    } : {
+      x: 0,
+      y: 0,
+      w: img.width,
+      h: img.height
+    };
+    
+    img._bbox = bbox;
+    return bbox;
+  } catch (e) {
+    // Fallback if canvas reading fails (cors, etc.)
+    return { x: 0, y: 0, w: img.width, h: img.height };
+  }
 }
 
 // CANVAS DRAWINGS
@@ -1453,20 +2273,59 @@ function render() {
   const endX = startX + dim.width;
   const bottom = canvas.height - 20;
   
+  // Calculate inner glass area boundaries (mapping to old full tank frame style)
+  const innerStartX = startX;
+  const innerEndX = endX;
+  const innerWidth = dim.width;
+  const innerTop = dim.yOffset;
+  const innerBottom = bottom;
+  const innerHeight = innerBottom - innerTop;
+  
   // 1. Draw Stand/Cabinet
   ctx.fillStyle = 'var(--aquarium-stand, #6d5c4c)';
   ctx.fillRect(startX - 20, bottom + 5, dim.width + 40, 20);
   ctx.fillStyle = '#2c221a';
   ctx.fillRect(startX - 30, bottom + 12, dim.width + 60, 4);
 
-  // 2. Draw glass background tint
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
-  ctx.fillRect(startX, dim.yOffset, dim.width, bottom - dim.yOffset);
+  // 2. Draw glass background tint (pixel-art image: Background_Mavi is used for a premium look)
+  const isNight = document.body.classList.contains('theme-dark');
+  const bgImg = loadedImages['bg_mavi'] || loadedImages['bg_default'];
+  if (bgImg) {
+    ctx.save();
+    ctx.imageSmoothingEnabled = false; // Prevent blurring of pixel art
+    
+    const bbox = getImageBBox(bgImg);
+    
+    if (bbox.w <= 64 && bbox.h <= 64) {
+      // Tile small patterns (like bg_default which is 32x32)
+      const pattern = ctx.createPattern(bgImg, 'repeat');
+      ctx.fillStyle = pattern;
+      ctx.translate(innerStartX, innerTop);
+      ctx.fillRect(0, 0, innerWidth, innerHeight);
+    } else {
+      // Draw cropped background stretched to cover the entire inner glass area
+      ctx.drawImage(
+        bgImg,
+        bbox.x, bbox.y, bbox.w, bbox.h,
+        innerStartX, innerTop, innerWidth, innerHeight
+      );
+    }
+    ctx.restore();
+  } else {
+    ctx.fillStyle = 'rgba(128, 208, 235, 0.05)';
+    ctx.fillRect(innerStartX, innerTop, innerWidth, innerHeight);
+  }
   
-  // 3. Draw Substrate Layers
-  drawSubstrateCurve(ctx, startX, bottom, dim.width, 'base', materials.base.color);
-  drawSubstrateCurve(ctx, startX, bottom, dim.width, 'soil', materials.soil.color);
-  drawSubstrateCurve(ctx, startX, bottom, dim.width, 'sand', materials.sand.color);
+  // If night mode, draw a dark blue ambient overlay over the background
+  if (isNight) {
+    ctx.fillStyle = 'rgba(10, 20, 50, 0.45)';
+    ctx.fillRect(innerStartX, innerTop, innerWidth, innerHeight);
+  }
+  
+  // 3. Draw Substrate Layers (Draw inside inner glass boundaries)
+  drawSubstrateCurve(ctx, innerStartX, innerBottom, innerWidth, 'base', materials.base.color);
+  drawSubstrateCurve(ctx, innerStartX, innerBottom, innerWidth, 'soil', materials.soil.color);
+  drawSubstrateCurve(ctx, innerStartX, innerBottom, innerWidth, 'sand', materials.sand.color);
   
   // 4. Draw Hardscape (Stones and Driftwoods)
   state.hardscapes.forEach((hs, idx) => {
@@ -1482,18 +2341,18 @@ function render() {
   // 6. Draw Equipments
   drawEquipments(ctx, startX, endX, bottom, dim.yOffset);
   
-  // 7. Draw Water level
+  // 7. Draw Water level (contained inside the inner glass box)
   if (state.waterLevel > 0.05) {
-    const waterTop = dim.yOffset + (1.0 - state.waterLevel) * (canvas.height - dim.yOffset - 30);
+    const waterTop = innerTop + (1.0 - state.waterLevel) * (innerHeight - 10);
     ctx.fillStyle = 'rgba(128, 208, 235, 0.15)';
-    ctx.fillRect(startX, waterTop, dim.width, bottom - waterTop);
+    ctx.fillRect(innerStartX, waterTop, innerWidth, innerBottom - waterTop);
     
-    // Draw Water Line
+    // Draw Water Line inside glass boundaries
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(startX, waterTop);
-    ctx.lineTo(endX, waterTop);
+    ctx.moveTo(innerStartX, waterTop);
+    ctx.lineTo(innerEndX, waterTop);
     ctx.stroke();
   }
   
@@ -1505,13 +2364,22 @@ function render() {
     drawFaunaObject(ctx, fish);
   });
   
-  // 10. Algae glass blur overlay
+  // 10. Algae glass blur overlay (restricted to inner glass)
   if (algaeLevel > 0.05) {
     ctx.fillStyle = `rgba(110, 160, 90, ${algaeLevel * 0.4})`;
-    ctx.fillRect(startX, dim.yOffset, dim.width, bottom - dim.yOffset);
+    ctx.fillRect(innerStartX, innerTop, innerWidth, innerHeight);
   }
   
-  // 11. Draw Tank glass outline
+  // Glass reflection overlay (restricted to inner glass)
+  const glassImg = loadedImages['glass_overlay'];
+  if (glassImg) {
+    ctx.save();
+    ctx.globalAlpha = 0.45;
+    ctx.drawImage(glassImg, innerStartX, innerTop, innerWidth, innerHeight);
+    ctx.restore();
+  }
+  
+  // 11. Draw Tank glass outline (old style)
   ctx.strokeStyle = 'var(--aquarium-border, #4A3F35)';
   ctx.lineWidth = 4;
   ctx.strokeRect(startX, dim.yOffset, dim.width, bottom - dim.yOffset);
@@ -1522,169 +2390,149 @@ function drawSubstrateCurve(ctx, startX, bottom, width, type, color) {
   const heights = state.substrate[type];
   if (isEmptyArray(heights)) return;
   
-  const segmentWidth = width / 40;
+  const colWidth = width / 40;
   
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.moveTo(startX, bottom);
+  let patternImg = null;
+  if (type === 'base') patternImg = loadedImages['ground_mushroom'];
+  else if (type === 'soil') patternImg = loadedImages['ground_green'];
+  else if (type === 'sand') patternImg = loadedImages['ground_orange'] || loadedImages['ground_blue'] || loadedImages['ground_pink'];
   
-  // Render heights as path
-  for (let i = 0; i <= 40; i++) {
-    const x = startX + i * segmentWidth;
+  if (patternImg && patternImg.complete && patternImg.naturalWidth > 0) {
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
     
-    // Calculate total height of this type plus all types underneath
-    let yHeight = 0;
+    // Apply soft, natural color filters to tone down the harsh neon Unity colors
     if (type === 'base') {
-      yHeight = heights[Math.min(39, i)] || 0;
+      ctx.filter = 'saturate(0.5) brightness(0.6) sepia(0.2)';
     } else if (type === 'soil') {
-      yHeight = (state.substrate.base[Math.min(39, i)] || 0) + (heights[Math.min(39, i)] || 0);
+      ctx.filter = 'saturate(0.1) brightness(0.35) contrast(1.1)';
     } else if (type === 'sand') {
-      yHeight = (state.substrate.base[Math.min(39, i)] || 0) + (state.substrate.soil[Math.min(39, i)] || 0) + (heights[Math.min(39, i)] || 0);
+      ctx.filter = 'saturate(0.4) brightness(0.95) sepia(0.35) contrast(0.95)';
     }
     
-    ctx.lineTo(x, bottom - yHeight);
-  }
-  
-  ctx.lineTo(startX + width, bottom);
-  ctx.closePath();
-  ctx.fill();
-  
-  // Draw granule textures (little dots)
-  ctx.fillStyle = type === 'sand' ? '#d8ae62' : (type === 'base' ? '#6e513d' : '#1a1512');
-  const segmentWidthTex = width / 40;
-  for (let i = 0; i < 40; i += 2) {
-    const x = startX + i * segmentWidthTex + Math.random() * 5;
-    let yHeight = state.substrate.base[i];
-    if (type === 'soil') yHeight += state.substrate.soil[i];
-    if (type === 'sand') yHeight += state.substrate.soil[i] + state.substrate.sand[i];
+    // Bounding box of the active ground region in the 400x300 sprite:
+    // x = 40, y = 212, w = 320, h = 64
+    const srcXStart = 40;
+    const srcYStart = 212;
+    const srcWidth = 320;
+    const srcHeight = 64;
+    const sh_surface = 36; // The top 36px contains the grass/wavy ripples
     
+    for (let i = 0; i < 40; i++) {
+      const h_current = heights[i] || 0;
+      if (h_current <= 0) continue;
+      
+      let h_below = 0;
+      if (type === 'soil') {
+        h_below = state.substrate.base[i] || 0;
+      } else if (type === 'sand') {
+        h_below = (state.substrate.base[i] || 0) + (state.substrate.soil[i] || 0);
+      }
+      
+      const x1 = Math.floor(startX + i * colWidth);
+      const x2 = Math.floor(startX + (i + 1) * colWidth);
+      const dw = x2 - x1;
+      
+      const yStart = Math.floor(bottom - h_below - h_current);
+      const yEnd = Math.floor(bottom - h_below);
+      const dh_total = yEnd - yStart;
+      
+      if (dh_total <= 0) continue;
+      
+      // Source X matching the segment index i (0 to 39) mapped to 320px
+      const sx = srcXStart + i * (srcWidth / 40);
+      const sw = srcWidth / 40;
+      
+      if (dh_total < sh_surface) {
+        // Draw only the top surface cropped to the height of the column
+        ctx.drawImage(
+          patternImg,
+          sx, srcYStart, sw, dh_total,
+          x1, yStart, dw, dh_total
+        );
+      } else {
+        // 1. Draw top surface (fixed sh_surface height)
+        ctx.drawImage(
+          patternImg,
+          sx, srcYStart, sw, sh_surface,
+          x1, yStart, dw, sh_surface
+        );
+        // 2. Draw body (stretched to fill the rest of the column)
+        ctx.drawImage(
+          patternImg,
+          sx, srcYStart + sh_surface, sw, srcHeight - sh_surface,
+          x1, yStart + sh_surface, dw, dh_total - sh_surface
+        );
+      }
+    }
+    ctx.restore();
+  } else {
+    // Fallback: draw smooth vector curve if image is not loaded yet
+    ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.arc(x, bottom - yHeight + 4, 1.5, 0, Math.PI*2);
+    ctx.moveTo(startX, bottom);
+    for (let i = 0; i <= 40; i++) {
+      const x = startX + i * colWidth;
+      let yHeight = 0;
+      if (type === 'base') {
+        yHeight = heights[Math.min(39, i)] || 0;
+      } else if (type === 'soil') {
+        yHeight = (state.substrate.base[Math.min(39, i)] || 0) + (heights[Math.min(39, i)] || 0);
+      } else if (type === 'sand') {
+        yHeight = (state.substrate.base[Math.min(39, i)] || 0) + (state.substrate.soil[Math.min(39, i)] || 0) + (heights[Math.min(39, i)] || 0);
+      }
+      ctx.lineTo(x, bottom - yHeight);
+    }
+    ctx.lineTo(startX + width, bottom);
+    ctx.closePath();
     ctx.fill();
+    
+    // Draw granule textures (little dots)
+    ctx.fillStyle = type === 'sand' ? '#d8ae62' : (type === 'base' ? '#6e513d' : '#1a1512');
+    for (let i = 0; i < 40; i += 2) {
+      const x = startX + i * colWidth + Math.random() * 5;
+      let yHeight = state.substrate.base[i];
+      if (type === 'soil') yHeight += state.substrate.soil[i];
+      if (type === 'sand') yHeight += state.substrate.soil[i] + state.substrate.sand[i];
+      
+      ctx.beginPath();
+      ctx.arc(x, bottom - yHeight + 4, 1.5, 0, Math.PI*2);
+      ctx.fill();
+    }
   }
 }
 
+
 // Hardscape Drawer
 function drawHardscapeObject(ctx, hs, isSelected) {
+  const item = hardscapeItems[hs.type];
+  if (!item) return;
+  
+  const img = loadedImages[item.imageKey];
+  if (!img || !img.complete || img.naturalWidth === 0) return; // Wait until loaded
+  
   ctx.save();
   ctx.translate(hs.x, hs.y);
   ctx.rotate(hs.rotation);
-  ctx.scale(hs.scale, hs.scale);
+  ctx.scale(hs.scale * HARDSCAPE_BASE_SCALE, hs.scale * HARDSCAPE_BASE_SCALE);
   
-  if (hs.type === 'bonsai') {
-    // Trunk
-    ctx.fillStyle = '#4e331c';
-    ctx.strokeStyle = '#2b1b0c';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.moveTo(-12, 0);
-    ctx.quadraticCurveTo(-15, -45, -5, -60);
-    ctx.lineTo(5, -60);
-    ctx.quadraticCurveTo(15, -45, 12, 0);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    
-    // Branches
-    ctx.beginPath();
-    ctx.moveTo(-7, -50);
-    ctx.quadraticCurveTo(-35, -75, -45, -65);
-    ctx.moveTo(7, -50);
-    ctx.quadraticCurveTo(35, -75, 45, -65);
-    ctx.moveTo(0, -60);
-    ctx.lineTo(0, -85);
-    ctx.stroke();
-    
-    // Moss cushions (glowing green blobs)
-    ctx.fillStyle = '#3a722e';
-    ctx.beginPath();
-    ctx.arc(-45, -65, 20, 0, Math.PI * 2);
-    ctx.arc(45, -65, 20, 0, Math.PI * 2);
-    ctx.arc(0, -85, 24, 0, Math.PI * 2);
-    ctx.fill();
-  } 
-  else if (hs.type === 'driftwood') {
-    ctx.strokeStyle = '#5a3f25';
-    ctx.fillStyle = '#362414';
-    ctx.lineWidth = 14;
-    ctx.lineCap = 'round';
-    
-    // Main branch curved
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.bezierCurveTo(-30, -50, 40, -100, 30, -130);
-    ctx.stroke();
-    
-    // Sub branches
-    ctx.lineWidth = 6;
-    ctx.beginPath();
-    ctx.moveTo(5, -45);
-    ctx.quadraticCurveTo(-35, -80, -40, -100);
-    ctx.moveTo(25, -95);
-    ctx.quadraticCurveTo(60, -110, 50, -135);
-    ctx.stroke();
-  } 
-  else if (hs.type === 'tiger') {
-    // Jagged Stone polygon
-    ctx.fillStyle = '#b78b53';
-    ctx.strokeStyle = '#5e4321';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.moveTo(-35, 0);
-    ctx.lineTo(-40, -45);
-    ctx.lineTo(-15, -75);
-    ctx.lineTo(20, -60);
-    ctx.lineTo(35, -30);
-    ctx.lineTo(30, 0);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    
-    // Tiger stripes (dark brown cracks)
-    ctx.strokeStyle = '#32220d';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.moveTo(-15, -75);
-    ctx.lineTo(-20, -20);
-    ctx.moveTo(10, -65);
-    ctx.lineTo(0, -10);
-    ctx.moveTo(-35, -40);
-    ctx.lineTo(-10, -35);
-    ctx.stroke();
-  } 
-  else if (hs.type === 'taimeo') {
-    // Tai Meo nhọn hoắt
-    ctx.fillStyle = '#65717a';
-    ctx.strokeStyle = '#384147';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(-25, 0);
-    ctx.lineTo(-10, -85);
-    ctx.lineTo(5, -50);
-    ctx.lineTo(20, -95);
-    ctx.lineTo(25, -40);
-    ctx.lineTo(30, 0);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    
-    // Ridges
-    ctx.strokeStyle = '#85929c';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(-10, -85);
-    ctx.lineTo(-5, 0);
-    ctx.moveTo(20, -95);
-    ctx.lineTo(10, 0);
-    ctx.stroke();
-  }
+  ctx.imageSmoothingEnabled = false;
+  
+  const bbox = item.bbox;
+  
+  // Draw the cropped pixel-art sprite centered horizontally, sitting exactly on the baseline
+  ctx.drawImage(
+    img,
+    bbox.x, bbox.y, bbox.w, bbox.h,
+    -bbox.w / 2, -bbox.h, bbox.w, bbox.h
+  );
   
   // Selection box outline if active tool is hardscape and clicked
   if (isSelected) {
     ctx.strokeStyle = 'var(--color-primary, #5a8df3)';
     ctx.lineWidth = 2;
     ctx.setLineDash([4, 4]);
-    ctx.strokeRect(-50, -140, 100, 150);
+    ctx.strokeRect(-bbox.w / 2, -bbox.h, bbox.w, bbox.h);
     ctx.setLineDash([]);
     
     // Draw small anchor ring
@@ -1699,94 +2547,108 @@ function drawHardscapeObject(ctx, hs, isSelected) {
 
 // Flora Plant Drawer
 function drawPlantObject(ctx, p) {
+  const item = floraItems[p.type];
+  if (!item) return;
+  
+  const imgKey = item.imageKey;
+  const plantImg = loadedImages[imgKey];
+  
+  if (plantImg && plantImg.complete && plantImg.naturalWidth > 0) {
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    
+    // Sine sway physics based on water current
+    const currentStrength = state.equipment.filter ? 1.0 : 0.25;
+    const sway = Math.sin(time * 1.5 + p.x * 0.02) * 0.06 * currentStrength;
+    ctx.rotate(sway);
+    
+    ctx.imageSmoothingEnabled = false;
+    
+    const size = (p.size || 1.0) * PLANT_BASE_SCALE;
+    const w = item.baseW * size;
+    const h = item.baseH * size;
+    const bbox = item.bbox;
+    
+    // Draw cropped plant centered horizontally, sitting on baseline
+    ctx.drawImage(
+      plantImg,
+      bbox.x, bbox.y, bbox.w, bbox.h,
+      -w / 2, -h, w, h
+    );
+    ctx.restore();
+    return;
+  }
+  
+  // Fallback vector drawing if image failed to load
   ctx.save();
   ctx.translate(p.x, p.y);
   
-  // Sine sway physics based on water current
   const currentStrength = state.equipment.filter ? 1.0 : 0.25;
   const sway = Math.sin(time * 1.5 + p.x * 0.02) * 4 * currentStrength * (p.size || 1.0);
   
-  if (p.type === 'montecarlo') {
-    // Foreground green bush clusters
-    ctx.fillStyle = floraItems.montecarlo.color;
-    ctx.beginPath();
-    ctx.arc(0, 0, 12 * (p.size || 1.0), 0, Math.PI * 2);
-    ctx.arc(8, -4, 8 * (p.size || 1.0), 0, Math.PI * 2);
-    ctx.arc(-8, -2, 9 * (p.size || 1.0), 0, Math.PI * 2);
-    ctx.fill();
-  } 
-  else if (p.type === 'anubias') {
-    // Ráy Nana: Broad leaves
-    ctx.fillStyle = '#1e5225';
-    ctx.strokeStyle = '#0e2b12';
-    ctx.lineWidth = 1;
-    
-    // Draw stems
+  // Map vector colors
+  let color = '#3a722e';
+  let isTall = false;
+  let isBushy = false;
+  
+  if (imgKey === 'plant_20') { color = '#cc4d4d'; isTall = true; }
+  else if (imgKey === 'plant_2') { color = '#68b85c'; }
+  else if (imgKey === 'plant_11') { color = '#2d6d35'; isBushy = true; }
+  else if (imgKey === 'plant_15' || imgKey === 'plant_17') { color = '#448c4e'; isBushy = true; }
+  else if (imgKey === 'plant_3') { color = '#55a045'; isBushy = true; }
+  else if (imgKey === 'plant_4') { color = '#348e3e'; isTall = true; }
+  else if (imgKey === 'plant_7') { color = '#2c7333'; isTall = true; }
+  else if (imgKey === 'plant_19' || imgKey === 'plant_18') { color = '#8cb83a'; isBushy = true; }
+  
+  const size = (p.size || 1.0) * 2.0 * PLANT_BASE_SCALE;
+  
+  if (isTall) {
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(0, 5);
-    ctx.quadraticCurveTo(-10 + sway, -10, -15 + sway, -20);
-    ctx.moveTo(0, 5);
-    ctx.quadraticCurveTo(10 + sway, -12, 18 + sway, -22);
+    ctx.quadraticCurveTo(sway * 0.8, -40, sway * 1.2, -80 * size);
     ctx.stroke();
     
-    // Draw broad leaves
-    ctx.save();
-    ctx.translate(sway, 0);
-    ctx.beginPath();
-    // Leaf 1
-    ctx.ellipse(-15, -20, 12, 6, -Math.PI/4, 0, Math.PI*2);
-    // Leaf 2
-    ctx.ellipse(18, -22, 13, 7, Math.PI/4, 0, Math.PI*2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
+    // Leaves
+    const leafNodes = 6;
+    for (let i = 1; i <= leafNodes; i++) {
+      const pct = i / leafNodes;
+      const nodeY = -80 * size * pct;
+      const nodeX = sway * 1.2 * pct;
+      ctx.beginPath();
+      ctx.arc(nodeX - 5, nodeY, 4 * size, 0, Math.PI*2);
+      ctx.arc(nodeX + 5, nodeY, 4 * size, 0, Math.PI*2);
+      ctx.fill();
+    }
   } 
-  else if (p.type === 'fern') {
-    // Dương xỉ
-    ctx.fillStyle = '#387340';
-    ctx.strokeStyle = '#224d27';
+  else if (isBushy) {
+    ctx.fillStyle = color;
+    ctx.strokeStyle = '#1a3c1c';
     ctx.lineWidth = 1.5;
     
     ctx.beginPath();
     ctx.moveTo(0, 5);
-    ctx.quadraticCurveTo(sway * 1.2, -15, sway * 1.5, -45);
+    ctx.quadraticCurveTo(sway * 1.2, -15, sway * 1.5, -45 * size);
     ctx.stroke();
     
-    // Feathery leaves
     ctx.save();
     ctx.translate(sway * 1.2, -20);
     ctx.beginPath();
-    ctx.ellipse(0, 0, 4, 18, sway * 0.05, 0, Math.PI*2);
-    ctx.ellipse(-8, -10, 3, 12, -Math.PI/6, 0, Math.PI*2);
-    ctx.ellipse(8, -10, 3, 12, Math.PI/6, 0, Math.PI*2);
+    ctx.ellipse(0, 0, 8 * size, 18 * size, sway * 0.05, 0, Math.PI*2);
+    ctx.ellipse(-10 * size, -10, 6 * size, 12 * size, -Math.PI/6, 0, Math.PI*2);
+    ctx.ellipse(10 * size, -10, 6 * size, 12 * size, Math.PI/6, 0, Math.PI*2);
     ctx.fill();
     ctx.restore();
   } 
-  else if (p.type === 'rotala') {
-    // Tall stems with red/pink leaves
-    ctx.strokeStyle = '#cc4d4d';
-    ctx.fillStyle = '#e86161';
-    ctx.lineWidth = 2;
-    
-    // Stem
+  else {
+    ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.moveTo(0, 5);
-    ctx.quadraticCurveTo(sway * 0.8, -40, sway * 1.2, -80 * (p.size || 1.0));
-    ctx.stroke();
-    
-    // Leaves alternating
-    ctx.fillStyle = '#f07878';
-    const leafNodes = 6;
-    for (let i = 1; i <= leafNodes; i++) {
-      const pct = i / leafNodes;
-      const nodeY = -80 * (p.size || 1.0) * pct;
-      const nodeX = sway * 1.2 * pct;
-      
-      ctx.beginPath();
-      ctx.arc(nodeX - 5, nodeY, 4, 0, Math.PI*2);
-      ctx.arc(nodeX + 5, nodeY, 4, 0, Math.PI*2);
-      ctx.fill();
-    }
+    ctx.arc(0, 0, 16 * size, 0, Math.PI * 2);
+    ctx.arc(12, -4, 10 * size, 0, Math.PI * 2);
+    ctx.arc(-12, -2, 11 * size, 0, Math.PI * 2);
+    ctx.fill();
   }
   
   ctx.restore();
@@ -1794,59 +2656,64 @@ function drawPlantObject(ctx, p) {
 
 // Equipments visuals drawer
 function drawEquipments(ctx, startX, endX, bottom, yOffset) {
-  // Canister Filter pipes
+  const dim = tankDims[state.tankSize];
+  const innerStartX = startX;
+  const innerEndX = endX;
+  const innerTop = yOffset;
+  const innerBottom = bottom;
+
+  // Canister Filter pipes (attached to inner rim)
   if (state.equipment.filter) {
     ctx.strokeStyle = 'rgba(100, 150, 100, 0.6)';
     ctx.lineWidth = 8;
     ctx.lineCap = 'round';
     
-    // Inlet pipe (left bottom)
+    // Inlet pipe (left bottom, hanging inside the inner glass)
     ctx.beginPath();
-    ctx.moveTo(startX + 20, yOffset - 10);
-    ctx.lineTo(startX + 20, bottom - 60);
+    ctx.moveTo(innerStartX + 15, innerTop - 10);
+    ctx.lineTo(innerStartX + 15, innerBottom - 40);
     ctx.stroke();
     
-    // Outlet pipe (right top)
+    // Outlet pipe (right top, blowing water inside)
     ctx.beginPath();
-    ctx.moveTo(endX - 25, yOffset - 10);
-    ctx.lineTo(endX - 25, yOffset + 25);
-    ctx.lineTo(endX - 45, yOffset + 25);
+    ctx.moveTo(innerEndX - 15, innerTop - 10);
+    ctx.lineTo(innerEndX - 15, innerTop + 20);
+    ctx.lineTo(innerEndX - 35, innerTop + 20);
     ctx.stroke();
   }
   
-  // LED Lights
+  // LED Lights (stands on the inner glass left and right rim)
   if (state.equipment.light) {
     ctx.fillStyle = '#bbb';
-    ctx.fillRect(startX + 20, yOffset - 16, endX - startX - 40, 8);
+    ctx.fillRect(innerStartX, innerTop - 16, innerEndX - innerStartX, 8);
     // Stand legs
     ctx.fillStyle = '#888';
-    ctx.fillRect(startX + 10, yOffset - 16, 10, 20);
-    ctx.fillRect(endX - 20, yOffset - 16, 10, 20);
+    ctx.fillRect(innerStartX - 4, innerTop - 16, 8, 20);
+    ctx.fillRect(innerEndX - 4, innerTop - 16, 8, 20);
   }
   
-  // CO2 Diffuser
+  // CO2 Diffuser (attached to the inner right glass)
   if (state.equipment.co2) {
-    // Draw tiny glass diffuser at bottom-right
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(endX - 45, bottom - 100);
-    ctx.lineTo(endX - 45, bottom - 30);
+    ctx.moveTo(innerEndX - 25, innerTop + 30);
+    ctx.lineTo(innerEndX - 25, innerBottom - 30);
     ctx.stroke();
     
-    // Diffuser cup
+    // Diffuser cup at bottom-right
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
     ctx.beginPath();
-    ctx.arc(endX - 45, bottom - 25, 8, 0, Math.PI, true);
+    ctx.arc(innerEndX - 25, innerBottom - 25, 8, 0, Math.PI, true);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
   }
   
-  // Cooling Fan
+  // Cooling Fan (mounted on the left rim of inner glass)
   if (state.equipment.fan) {
     ctx.save();
-    ctx.translate(startX + 60, yOffset - 12);
+    ctx.translate(innerStartX + 40, innerTop - 12);
     ctx.fillStyle = '#444';
     ctx.fillRect(-15, -15, 30, 15);
     
@@ -1867,19 +2734,28 @@ function drawEquipments(ctx, startX, endX, bottom, yOffset) {
 // Particles Drawer
 function drawParticles(ctx) {
   // 1. Water Particles (flow)
-  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  const bubImg = loadedImages['bubble_normal'] || loadedImages['bubble_food'];
   waterParticles.forEach(p => {
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-    ctx.fill();
+    if (bubImg) {
+      ctx.drawImage(bubImg, p.x - p.size, p.y - p.size, p.size * 2, p.size * 2);
+    } else {
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      ctx.fill();
+    }
   });
   
   // 2. CO2 Bubbles
-  ctx.fillStyle = 'rgba(255,255,255,0.9)';
   co2Bubbles.forEach(b => {
-    ctx.beginPath();
-    ctx.arc(b.x, b.y, b.size, 0, Math.PI*2);
-    ctx.fill();
+    if (bubImg) {
+      ctx.drawImage(bubImg, b.x - b.size, b.y - b.size, b.size * 2, b.size * 2);
+    } else {
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.size, 0, Math.PI*2);
+      ctx.fill();
+    }
   });
   
   // 3. Bacteria droplets
@@ -1891,16 +2767,57 @@ function drawParticles(ctx) {
   });
   
   // 4. Fish Food
-  ctx.fillStyle = '#b77341';
+  const foodImg = loadedImages['food'];
   fishFood.forEach(f => {
-    ctx.beginPath();
-    ctx.arc(f.x, f.y, 2.2, 0, Math.PI*2);
-    ctx.fill();
+    if (foodImg) {
+      ctx.drawImage(foodImg, f.x - 4, f.y - 4, 8, 8);
+    } else {
+      ctx.fillStyle = '#b77341';
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, 2.2, 0, Math.PI*2);
+      ctx.fill();
+    }
   });
 }
 
 // Fauna Object Drawer
 function drawFaunaObject(ctx, f) {
+  let imgKey = f.imageKey;
+  if (!imgKey) {
+    // Fallback mapping
+    if (f.type === 'neon') imgKey = 'fish_2';
+    else if (f.type === 'tamgiac') imgKey = 'fish_4';
+    else if (f.type === 'mun') imgKey = 'fish_yellow_striped';
+    else if (f.type === 'cherry') imgKey = 'fish_8';
+    else imgKey = 'fish_2';
+  }
+  
+  const fishImg = loadedImages[imgKey];
+  if (fishImg) {
+    ctx.save();
+    ctx.translate(f.x, f.y);
+    
+    // Swimming direction rotation and flipping
+    ctx.rotate(f.angle + (f.vx < 0 ? Math.PI : 0));
+    ctx.scale(f.vx < 0 ? -1 : 1, 1);
+    
+    // Add wagging rotation
+    const wag = Math.sin(time * 3 + f.x * 0.05) * 0.15;
+    ctx.rotate(wag);
+    
+    // Cherry shrimp looks better smaller/slender, standard fish standard size
+    let w = f.size * 2.2;
+    let h = f.size * 1.1;
+    if (f.type === 'cherry' || imgKey === 'fish_8') {
+      w = f.size * 1.8;
+      h = f.size * 0.9;
+    }
+    
+    ctx.drawImage(fishImg, -w/2, -h/2, w, h);
+    ctx.restore();
+    return;
+  }
+  
   ctx.save();
   ctx.translate(f.x, f.y);
   
@@ -2040,6 +2957,39 @@ function drawFaunaObject(ctx, f) {
       ctx.lineTo(-6, -6);
       ctx.lineTo(-3, 0);
       ctx.lineTo(-6, 6);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+    else {
+      // Default orange/gold generic fish for slot machine fishes when images fail to load
+      ctx.fillStyle = '#ff9100';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 12, 7, 0, 0, Math.PI*2);
+      ctx.fill();
+      
+      // Eye
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(5, -2, 1.2, 0, Math.PI*2);
+      ctx.fill();
+      
+      // Fin
+      ctx.fillStyle = '#ff3d00';
+      ctx.beginPath();
+      ctx.ellipse(-2, -4, 4, 2, -Math.PI/6, 0, Math.PI*2);
+      ctx.fill();
+      
+      // Wagging tail
+      ctx.save();
+      ctx.translate(-12, 0);
+      ctx.rotate(wag);
+      ctx.fillStyle = '#d50000';
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-6, -5);
+      ctx.lineTo(-3, 0);
+      ctx.lineTo(-6, 5);
       ctx.closePath();
       ctx.fill();
       ctx.restore();

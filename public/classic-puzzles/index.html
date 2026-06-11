@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giải Đố Cổ Điển: Phân Loại Nước & Tháp Hà Nội 🧪🗼</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300..900&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+  <!-- Re-use the stylesheet from game-iq to optimize bandwidth -->
+  <link rel="stylesheet" href="../game-iq/style.css">
+</head>
+<body>
+  <!-- Animated Background Space -->
+  <div class="space-bg">
+    <div class="nebula nebula-1"></div>
+    <div class="nebula nebula-2"></div>
+    <div class="nebula nebula-3"></div>
+    <div class="stars"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo" onclick="location.reload()">
+        <span class="logo-icon">🧪</span>
+        <span class="logo-text">CỔ ĐIỂN</span>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary btn-back" onclick="location.href='/'">
+          <span>🧸</span> Quay lại Sảnh
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="app-workspace">
+      <!-- Left Sidebar: Selection & Controls -->
+      <section class="sidebar-left card-panel">
+        <h2 class="panel-title">Trò Chơi Cổ Điển</h2>
+        <nav class="game-selector">
+          <button class="game-tab active" data-game="watersort">
+            <span class="game-icon">🧪</span>
+            <div class="game-tab-info">
+              <span class="game-tab-name">Water Sort</span>
+              <span class="game-tab-desc">Phân loại nước màu</span>
+            </div>
+          </button>
+          <button class="game-tab" data-game="hanoi">
+            <span class="game-icon">🗼</span>
+            <div class="game-tab-info">
+              <span class="game-tab-name">Tháp Hà Nội</span>
+              <span class="game-tab-desc">Xếp đĩa gỗ cổ điển</span>
+            </div>
+          </button>
+        </nav>
+
+        <hr class="separator">
+
+        <h2 class="panel-title">Thiết Lập</h2>
+        <div class="control-group">
+          <label>Độ Khó / Kích Cỡ</label>
+          <div class="difficulty-selector">
+            <button class="btn-diff active" data-difficulty="easy">Dễ</button>
+            <button class="btn-diff" data-difficulty="medium">Vừa</button>
+            <button class="btn-diff" data-difficulty="hard">Khó</button>
+          </div>
+        </div>
+
+        <div class="stats-panel">
+          <div class="stat-box">
+            <span class="stat-label">Thời gian</span>
+            <span class="stat-value" id="timer">00:00</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Nước đi</span>
+            <span class="stat-value" id="move-count">0</span>
+          </div>
+        </div>
+
+        <div class="actions-grid">
+          <button class="btn btn-primary" id="btn-new-game" title="Tạo màn chơi ngẫu nhiên mới">
+            <span>🆕</span> Màn Mới
+          </button>
+          <button class="btn btn-secondary" id="btn-restart" title="Đặt lại màn chơi hiện tại">
+            <span>🔄</span> Chơi Lại
+          </button>
+          <button class="btn btn-secondary" id="btn-hint" title="Nhận gợi ý một bước">
+            <span>💡</span> Gợi Ý
+          </button>
+          <button class="btn btn-secondary" id="btn-undo" title="Hoàn tác bước trước">
+            <span>↩️</span> Hoàn Tác
+          </button>
+          <button class="btn btn-secondary" id="btn-redo" title="Làm lại bước vừa hoàn tác">
+            <span>↪️</span> Tiến Tới
+          </button>
+          <button class="btn btn-secondary" id="btn-solve" title="Hiển thị toàn bộ đáp án">
+            <span>👁️</span> Đáp Án
+          </button>
+          <button class="btn btn-secondary" id="btn-sound" title="Bật/Tắt âm thanh">
+            <span id="sound-icon">🔊</span> Âm Thanh
+          </button>
+        </div>
+      </section>
+
+      <!-- Center Panel: The Game Board -->
+      <section class="game-area">
+        <div class="board-wrapper">
+          <div class="board-title-bar">
+            <h1 id="current-game-title">Phân Loại Nước</h1>
+            <span id="grid-size-indicator" class="size-badge">5 ống</span>
+          </div>
+          <div class="board-container" id="board-container">
+            <!-- Dynamic Grid will be injected here -->
+          </div>
+          <div class="board-tip-wrapper" style="min-height: 40px;">
+            <div class="board-footer-tip" id="board-tip">
+              Chọn một ống nghiệm chứa nước, sau đó chọn ống nghiệm đích để rót.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Sidebar: Interactive Rules & Checklist -->
+      <section class="sidebar-right card-panel">
+        <div class="tabs-header-right">
+          <h2 class="panel-title active" id="tab-rules-header">Kiểm Tra Luật Chơi</h2>
+        </div>
+        
+        <div class="rules-container">
+          <div class="rules-checklist" id="rules-checklist">
+            <!-- Dynamic checklist items will be injected here -->
+          </div>
+
+          <hr class="separator">
+
+          <div class="rules-explanation">
+            <h3>Luật chơi cơ bản</h3>
+            <div id="game-rules-text">
+              <!-- Rules text will be injected here -->
+            </div>
+            <div class="rules-visual" id="rules-visual-box">
+              <canvas id="rule-illustrator" width="220" height="120"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Victory Modal overlay -->
+  <div class="modal-overlay" id="victory-modal">
+    <div class="modal-content victory-card">
+      <div class="victory-crown">🏆</div>
+      <h2 class="victory-title">Hoàn Thành Xuất Sắc!</h2>
+      <p class="victory-message">Bạn đã giải mã thành công câu đố logic này.</p>
+      
+      <div class="victory-stats">
+        <div class="v-stat">
+          <span class="v-label">Trò chơi</span>
+          <span class="v-val" id="victory-game-name">Phân Loại Nước</span>
+        </div>
+        <div class="v-stat">
+          <span class="v-label">Độ khó</span>
+          <span class="v-val" id="victory-game-diff">Dễ</span>
+        </div>
+        <div class="v-stat">
+          <span class="v-label">Thời gian</span>
+          <span class="v-val" id="victory-time">00:45</span>
+        </div>
+        <div class="v-stat">
+          <span class="v-label">Số nước đi</span>
+          <span class="v-val" id="victory-moves">12</span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-primary btn-large" id="btn-next-level">Tiếp Tục Màn Mới 🚀</button>
+        <button class="btn btn-secondary btn-large" id="btn-close-victory">Đóng</button>
+      </div>
+      
+      <!-- Canvas for confetti fireworks -->
+      <canvas class="victory-fireworks" id="victory-canvas"></canvas>
+    </div>
+  </div>
+
+  <!-- Modular Scripts. Re-use files from game-iq to save bandwidth -->
+  <script src="classic-puzzles.js"></script>
+  <script src="../game-iq/water-sort.js"></script>
+  <script src="../game-iq/hanoi.js"></script>
+</body>
+</html>

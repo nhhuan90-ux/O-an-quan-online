@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game IQ: Thử Thách Trí Tuệ Nhật Bản 🧠</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300..900&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Animated Background Space -->
+  <div class="space-bg">
+    <div class="nebula nebula-1"></div>
+    <div class="nebula nebula-2"></div>
+    <div class="nebula nebula-3"></div>
+    <div class="stars"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo" onclick="location.reload()">
+        <span class="logo-icon">🧠</span>
+        <span class="logo-text">GAME IQ</span>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary btn-back" onclick="location.href='/'">
+          <span>🧸</span> Quay lại Sảnh
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="app-workspace">
+      <!-- Left Sidebar: Selection & Controls -->
+      <section class="sidebar-left card-panel">
+        <h2 class="panel-title">Trò Chơi Logic</h2>
+        <nav class="game-selector">
+          <button class="game-tab active" data-game="shikaku">
+            <span class="game-icon">🧠</span>
+            <div class="game-tab-info">
+              <span class="game-tab-name">Shikaku</span>
+              <span class="game-tab-desc">Chia ô diện tích</span>
+            </div>
+          </button>
+          <button class="game-tab" data-game="lits">
+            <span class="game-icon">🧩</span>
+            <div class="game-tab-info">
+              <span class="game-tab-name">LITS</span>
+              <span class="game-tab-desc">Tô màu Tetromino</span>
+            </div>
+          </button>
+          <button class="game-tab" data-game="pipes">
+            <span class="game-icon">🔗</span>
+            <div class="game-tab-info">
+              <span class="game-tab-name">Pipes</span>
+              <span class="game-tab-desc">Mạng lưới ống nước</span>
+            </div>
+          </button>
+          <button class="game-tab" data-game="lollipops">
+            <span class="game-icon">🍭</span>
+            <div class="game-tab-info">
+              <span class="game-tab-name">Lollipops</span>
+              <span class="game-tab-desc">Kẹo mút khoảng cách</span>
+            </div>
+          </button>
+          <button class="game-tab" data-game="shingoki">
+            <span class="game-icon">🚥</span>
+            <div class="game-tab-info">
+              <span class="game-tab-name">Shingoki</span>
+              <span class="game-tab-desc">Vòng lặp tín hiệu</span>
+            </div>
+          </button>
+        </nav>
+
+        <hr class="separator">
+
+        <h2 class="panel-title">Thiết Lập</h2>
+        <div class="control-group">
+          <label>Độ Khó / Kích Cỡ</label>
+          <div class="difficulty-selector">
+            <button class="btn-diff active" data-difficulty="easy">Dễ</button>
+            <button class="btn-diff" data-difficulty="medium">Vừa</button>
+            <button class="btn-diff" data-difficulty="hard">Khó</button>
+          </div>
+        </div>
+
+        <div class="stats-panel">
+          <div class="stat-box">
+            <span class="stat-label">Thời gian</span>
+            <span class="stat-value" id="timer">00:00</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Nước đi</span>
+            <span class="stat-value" id="move-count">0</span>
+          </div>
+        </div>
+
+        <div class="actions-grid">
+          <button class="btn btn-primary" id="btn-new-game" title="Tạo màn chơi ngẫu nhiên mới">
+            <span>🆕</span> Màn Mới
+          </button>
+          <button class="btn btn-secondary" id="btn-restart" title="Đặt lại màn chơi hiện tại">
+            <span>🔄</span> Chơi Lại
+          </button>
+          <button class="btn btn-secondary" id="btn-hint" title="Nhận gợi ý một bước">
+            <span>💡</span> Gợi Ý
+          </button>
+          <button class="btn btn-secondary" id="btn-undo" title="Hoàn tác bước trước">
+            <span>↩️</span> Hoàn Tác
+          </button>
+          <button class="btn btn-secondary" id="btn-redo" title="Làm lại bước vừa hoàn tác">
+            <span>↪️</span> Tiến Tới
+          </button>
+          <button class="btn btn-secondary" id="btn-solve" title="Hiển thị toàn bộ đáp án">
+            <span>👁️</span> Đáp Án
+          </button>
+          <button class="btn btn-secondary" id="btn-sound" title="Bật/Tắt âm thanh">
+            <span id="sound-icon">🔊</span> Âm Thanh
+          </button>
+        </div>
+      </section>
+
+      <!-- Center Panel: The Game Board -->
+      <section class="game-area">
+        <div class="board-wrapper">
+          <div class="board-title-bar">
+            <h1 id="current-game-title">Shikaku</h1>
+            <span id="grid-size-indicator" class="size-badge">5 × 5</span>
+          </div>
+          <div class="board-container" id="board-container">
+            <!-- Dynamic Grid or Canvas will be injected here -->
+          </div>
+          <div class="board-footer-tip" id="board-tip">
+            Nhấp và kéo để vẽ khung hình chữ nhật xung quanh các chữ số.
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Sidebar: Interactive Rules & Checklist -->
+      <section class="sidebar-right card-panel">
+        <div class="tabs-header-right">
+          <h2 class="panel-title active" id="tab-rules-header">Kiểm Tra Luật Chơi</h2>
+        </div>
+        
+        <div class="rules-container">
+          <div class="rules-checklist" id="rules-checklist">
+            <!-- Dynamic checklist items will be injected here -->
+          </div>
+
+          <hr class="separator">
+
+          <div class="rules-explanation">
+            <h3>Luật chơi cơ bản</h3>
+            <div id="game-rules-text">
+              <!-- Rules text will be injected here -->
+            </div>
+            <div class="rules-visual" id="rules-visual-box">
+              <!-- A mini canvas or stylized diagram illustrating the rule -->
+              <canvas id="rule-illustrator" width="220" height="120"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Victory Modal overlay -->
+  <div class="modal-overlay" id="victory-modal">
+    <div class="modal-content victory-card">
+      <div class="victory-crown">🏆</div>
+      <h2 class="victory-title">Hoàn Thành Xuất Sắc!</h2>
+      <p class="victory-message">Bạn đã giải mã thành công câu đố logic này.</p>
+      
+      <div class="victory-stats">
+        <div class="v-stat">
+          <span class="v-label">Trò chơi</span>
+          <span class="v-val" id="victory-game-name">Shikaku</span>
+        </div>
+        <div class="v-stat">
+          <span class="v-label">Độ khó</span>
+          <span class="v-val" id="victory-game-diff">Dễ</span>
+        </div>
+        <div class="v-stat">
+          <span class="v-label">Thời gian</span>
+          <span class="v-val" id="victory-time">00:45</span>
+        </div>
+        <div class="v-stat">
+          <span class="v-label">Số nước đi</span>
+          <span class="v-val" id="victory-moves">12</span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-primary btn-large" id="btn-next-level">Tiếp Tục Màn Mới 🚀</button>
+        <button class="btn btn-secondary btn-large" id="btn-close-victory">Đóng</button>
+      </div>
+      
+      <!-- Canvas for confetti fireworks -->
+      <canvas class="victory-fireworks" id="victory-canvas"></canvas>
+    </div>
+  </div>
+
+  <!-- Modular Scripts -->
+  <script src="game-iq.js"></script>
+  <script src="shikaku.js"></script>
+  <script src="lits.js"></script>
+  <script src="pipes.js"></script>
+  <script src="lollipops.js"></script>
+  <script src="shingoki.js"></script>
+</body>
+</html>

@@ -24,6 +24,10 @@
       --color-riddle-bg: rgba(184, 156, 255, 0.16);
       --color-aquarium: #46C2CB;
       --color-aquarium-bg: rgba(70, 194, 203, 0.16);
+      --color-iq: #9C27B0;
+      --color-iq-bg: rgba(156, 39, 176, 0.16);
+      --color-classic: #FF9800;
+      --color-classic-bg: rgba(255, 152, 0, 0.16);
     }
 
     * {
@@ -122,10 +126,10 @@
     /* Game Selection Grid */
     .game-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 24px;
       width: 100%;
-      max-width: 800px;
+      max-width: 960px;
       margin: 0 auto;
     }
 
@@ -170,6 +174,14 @@
       --card-hover-border: var(--color-aquarium);
     }
 
+    .card-iq {
+      --card-hover-border: var(--color-iq);
+    }
+
+    .card-classic {
+      --card-hover-border: var(--color-classic);
+    }
+
     .game-icon-wrapper {
       width: 100px;
       height: 100px;
@@ -205,6 +217,16 @@
     .bg-aquarium {
       background: var(--color-aquarium-bg);
       color: #00A6B4;
+    }
+
+    .bg-iq {
+      background: var(--color-iq-bg);
+      color: var(--color-iq);
+    }
+
+    .bg-classic {
+      background: var(--color-classic-bg);
+      color: var(--color-classic);
     }
 
     .game-name {
@@ -243,6 +265,16 @@
     .tag-aquarium {
       background: rgba(70, 194, 203, 0.25);
       color: #008793;
+    }
+
+    .tag-iq {
+      background: rgba(156, 39, 176, 0.22);
+      color: #8E24AA;
+    }
+
+    .tag-classic {
+      background: rgba(255, 152, 0, 0.22);
+      color: #E65100;
     }
 
     .game-desc {
@@ -303,6 +335,24 @@
     .btn-aquarium:hover {
       background: #00B2BE;
       box-shadow: 0 6px 20px rgba(70, 194, 203, 0.4);
+    }
+
+    .btn-iq {
+      background: var(--color-iq);
+      color: white;
+    }
+    .btn-iq:hover {
+      background: #8E24AA;
+      box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4);
+    }
+
+    .btn-classic {
+      background: var(--color-classic);
+      color: white;
+    }
+    .btn-classic:hover {
+      background: #E65100;
+      box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
     }
 
     /* Footer */
@@ -383,6 +433,24 @@
         <span class="game-tag tag-aquarium">Giả Lập Thư Giãn</span>
         <p class="game-desc">Tự thiết lập một bể cá thủy sinh tuyệt đẹp từ A đến Z, nuôi dưỡng đàn cá nhỏ và tận hưởng âm thanh êm dịu!</p>
         <button class="btn-play btn-aquarium">Chơi Ngay 🎮</button>
+      </div>
+
+      <!-- Game Card 5: Thử Thách Game IQ -->
+      <div class="game-card card-iq" onclick="location.href='/game-iq/'">
+        <div class="game-icon-wrapper bg-iq">🧠</div>
+        <h2 class="game-name">Thử Thách Game IQ</h2>
+        <span class="game-tag tag-iq">Giải Đố Nikoli</span>
+        <p class="game-desc">Trải nghiệm bộ sưu tập game trí tuệ đỉnh cao: Shikaku, LITS, Pipes, Lollipops và Shingoki với kiểm soát thông minh!</p>
+        <button class="btn-play btn-iq">Chơi Ngay 🧠</button>
+      </div>
+
+      <!-- Game Card 6: Giải Đố Cổ Điển -->
+      <div class="game-card card-classic" onclick="location.href='/classic-puzzles/'">
+        <div class="game-icon-wrapper bg-classic">🧪</div>
+        <h2 class="game-name">Giải Đố Cổ Điển</h2>
+        <span class="game-tag tag-classic">Sắp Xếp & Di Chuyển</span>
+        <p class="game-desc">Thử thách trí óc với hai trò chơi kinh điển: Phân loại nước màu trong ống nghiệm và di chuyển đĩa Tháp Hà Nội!</p>
+        <button class="btn-play btn-classic">Chơi Ngay 🎮</button>
       </div>
     </div>
 

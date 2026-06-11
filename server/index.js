@@ -1,4 +1,5 @@
 import express from 'express';
+import compression from 'compression';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import path from 'path';
@@ -12,6 +13,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+app.use(compression());
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
@@ -23,8 +25,26 @@ const io = new Server(httpServer, {
 // Parse JSON request bodies
 app.use(express.json());
 
-// Serve static files from the public directory
-app.use(express.static(path.join(__dirname, '../public')));
+// Serve static files from the public directory with caching
+app.use(express.static(path.join(__dirname, '../public'), {
+  maxAge: '1d',
+  setHeaders: (res, filepath) => {
+    // Check if file is inside the assets directory
+    if (filepath.replace(/\\/g, '/').includes('be-ca-thuy-sinh/assets/')) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    } else if (filepath.endsWith('.js') || filepath.endsWith('.css')) {
+      if (process.env.NODE_ENV === 'production') {
+        // Cache JS and CSS for 1 day in production to optimize bandwidth
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+      } else {
+        // Prevent caching of JS and CSS scripts/styles in development to ensure updates are served immediately
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+      }
+    }
+  }
+}));
 
 // Database file path for aquarium saves
 const DB_FILE = path.join(__dirname, 'aquariums.json');

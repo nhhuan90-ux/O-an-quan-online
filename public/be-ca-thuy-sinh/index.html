@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300..900&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
   <!-- CSS Styling -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2.2.5">
 </head>
 <body class="theme-auto">
   <!-- Background Blobs -->
@@ -27,7 +27,7 @@
         <span class="theme-icon">☀️</span> <span id="theme-text">Đang nhận diện...</span>
       </div>
       <div class="sync-panel">
-        <span class="sync-label">Mã Bể Cá:</span>
+        <span class="sync-label">Mã Bể Cá (Tự động lưu):</span>
         <span id="sync-code-display" class="sync-code">------</span>
         <button id="btn-copy-code" class="btn-icon" title="Sao chép mã">📋</button>
         <button id="btn-sync-dialog" class="btn-secondary">Đồng Bộ Thiết Bị 🔄</button>
@@ -159,7 +159,7 @@
       <p class="modal-desc">Nhập mã bể cá gồm 6 chữ số để tải tiến trình thiết kế bể của bạn từ thiết bị khác.</p>
       
       <div class="input-group">
-        <input type="text" id="sync-input-code" placeholder="Ví dụ: 385921" maxlength="6" pattern="\d{6}">
+        <input type="text" id="sync-input-code" inputmode="numeric" pattern="[0-9]*" placeholder="Ví dụ: 385921" maxlength="6">
       </div>
       
       <div class="modal-actions">
@@ -173,6 +173,6 @@
   <div class="toast-message" id="toast-notif">Sao chép mã thành công!</div>
 
   <!-- Audio synthesizers + Canvas logic -->
-  <script src="aquarium.js"></script>
+  <script src="aquarium.js?v=2.2.5"></script>
 </body>
 </html>

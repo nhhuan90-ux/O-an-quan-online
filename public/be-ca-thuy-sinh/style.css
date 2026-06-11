@@ -444,7 +444,7 @@ body {
 /* Aquarium Canvas Box wrapper */
 .aquarium-wrapper {
   position: relative;
-  border: 12px solid var(--aquarium-border);
+  border: none;
   border-radius: 12px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
   background: transparent;
@@ -481,6 +481,7 @@ body {
 
 /* Liquid/water rise filling overlay */
 .water-overlay {
+  display: none !important;
   position: absolute;
   bottom: 0;
   left: 0;
@@ -492,6 +493,7 @@ body {
   mix-blend-mode: multiply;
 }
 .theme-dark .water-overlay {
+  display: none !important;
   background: rgba(90, 141, 243, 0.12);
 }
 
@@ -859,3 +861,257 @@ body.relax-mode .tip-banner {
     justify-content: space-between;
   }
 }
+
+/* Slot Machine Styling */
+.slot-machine-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.slot-frame {
+  position: relative;
+  width: 240px;
+  height: 200px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  image-rendering: pixelated;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.slot-display {
+  width: 130px;
+  height: 120px;
+  background: #1b1107;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+  border: 3px solid #483420;
+}
+
+.slot-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+  transition: transform 0.1s linear;
+}
+
+.slot-fish-preview {
+  position: absolute;
+  width: 70px;
+  height: 35px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  z-index: 5;
+  animation: swim-idle 2s infinite alternate ease-in-out;
+}
+
+@keyframes swim-idle {
+  0% { transform: translateY(-4px) scaleX(1); }
+  50% { transform: translateY(4px) scaleX(1.05); }
+  100% { transform: translateY(-4px) scaleX(1); }
+}
+
+.spin-btn-container {
+  margin-top: 5px;
+}
+
+.spin-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  transition: transform 0.1s;
+}
+
+.spin-btn:hover {
+  transform: scale(1.05);
+}
+
+.spin-btn:active {
+  transform: scale(0.95) translateY(2px);
+}
+
+.spin-btn-img {
+  width: 160px;
+  height: auto;
+  image-rendering: pixelated;
+}
+
+.spin-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Congrats popup inside sidebar */
+.slot-result-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 2px dashed var(--glass-border);
+  padding: 16px;
+  border-radius: var(--border-radius-md);
+  width: 100%;
+  text-align: center;
+  animation: popup-bounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popup-bounce {
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.result-badge {
+  height: 28px;
+  width: auto;
+  image-rendering: pixelated;
+}
+
+.result-title {
+  font-family: var(--font-title);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-top: 4px;
+}
+
+.result-rarity {
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-top: -2px;
+}
+
+.result-rarity.common { background: #4a5d6e; color: #fff; }
+.result-rarity.rare { background: #1f618d; color: #fff; }
+.result-rarity.epic { background: #7d3c98; color: #fff; }
+.result-rarity.legendary { background: #d35400; color: #fff; }
+
+/* Template Selection Cards */
+.template-section-title {
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.template-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.template-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--border-radius-md);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.template-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: currentColor;
+  opacity: 0.8;
+}
+
+.template-card:hover {
+  transform: translateX(4px);
+  border-color: var(--color-primary);
+  background: var(--card-bg-active);
+  box-shadow: var(--panel-shadow);
+}
+
+.template-card.selected {
+  border-color: var(--color-primary);
+  background: var(--card-bg-active);
+  box-shadow: 0 0 12px rgba(90, 141, 243, 0.15);
+}
+
+.template-card.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--color-success);
+}
+
+.template-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 18px; /* Avoid overlapping checkmark */
+}
+
+.template-name {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.template-badge {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 4px;
+  font-weight: bold;
+  opacity: 0.8;
+  color: var(--text-main);
+}
+
+.theme-dark .template-badge {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.template-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+/* Fish Selection Grid */
+.fish-selection-card:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  transform: translateY(-2px);
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 4px 10px rgba(90, 141, 243, 0.15);
+}
+
+.rarity-badge-text.common { color: #a6acaf; }
+.rarity-badge-text.rare { color: #5dade2; }
+.rarity-badge-text.epic { color: #bb8fce; }
+.rarity-badge-text.legendary { color: #f4d03f; }
