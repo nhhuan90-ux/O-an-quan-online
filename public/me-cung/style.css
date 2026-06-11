@@ -363,6 +363,7 @@ body {
   height: 100%;
   z-index: 1;
   cursor: crosshair;
+  touch-action: none;
 }
 
 #confetti-canvas {
@@ -620,9 +621,14 @@ body {
 /* Responsive Media Queries */
 @media (max-width: 860px) {
   .game-layout {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+  }
+  .game-area {
+    order: -1; /* Place game board at the very top */
   }
   .sidebar-card {
+    order: 1; /* Place sidebar below the game board */
     max-height: none;
   }
   .app-container {

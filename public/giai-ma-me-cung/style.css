@@ -227,6 +227,7 @@ body {
   width: 100%;
   height: 100%;
   z-index: 1;
+  touch-action: none;
 }
 
 /* Overlays system */
@@ -560,9 +561,40 @@ body {
   100% { transform: translateY(-10px); }
 }
 
-/* Responsive layout */
 @media (max-width: 860px) {
   .game-layout {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+  }
+  .game-area {
+    order: -1; /* Place game board at the very top */
+  }
+  .sidebar-card {
+    order: 1; /* Place sidebar below the game board */
+  }
+}
+
+@media (max-width: 600px) {
+  .riddle-box {
+    padding: 14px 18px !important;
+    max-width: 95% !important;
+    border-radius: 18px !important;
+  }
+  .riddle-header h3 {
+    font-size: 1.1rem !important;
+  }
+  .riddle-question {
+    font-size: 0.9rem !important;
+    padding: 8px 10px !important;
+    margin-bottom: 12px !important;
+  }
+  .btn-option {
+    padding: 8px 12px !important;
+    font-size: 0.82rem !important;
+    border-radius: 10px !important;
+  }
+  .feedback-msg {
+    font-size: 0.8rem !important;
+    margin-top: 8px !important;
   }
 }
