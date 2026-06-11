@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giả lập Bể Cá Thủy Sinh - Setup từ A đến Z 🌿</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300..900&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+  <!-- CSS Styling -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-auto">
+  <!-- Background Blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <button class="btn-home" onclick="location.href='/'">🏠 Trang Chủ</button>
+      <h1 class="app-title">Giả Lập Bể Cá Thủy Sinh 🌿</h1>
+    </div>
+    <div class="header-right">
+      <div id="theme-status" class="status-pill">
+        <span class="theme-icon">☀️</span> <span id="theme-text">Đang nhận diện...</span>
+      </div>
+      <div class="sync-panel">
+        <span class="sync-label">Mã Bể Cá:</span>
+        <span id="sync-code-display" class="sync-code">------</span>
+        <button id="btn-copy-code" class="btn-icon" title="Sao chép mã">📋</button>
+        <button id="btn-sync-dialog" class="btn-secondary">Đồng Bộ Thiết Bị 🔄</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Grid -->
+  <div class="main-container">
+    <!-- Left Sidebar: Progress & Water Stats -->
+    <aside class="sidebar-left glass">
+      <section class="section-steps">
+        <h3 class="section-title">Tiến Trình Thiết Lập</h3>
+        <ul class="setup-steps" id="setup-steps-list">
+          <li class="step-item active" data-step="1">
+            <span class="step-num">1</span>
+            <span class="step-text">Chọn kích thước bể</span>
+            <span class="step-check">✓</span>
+          </li>
+          <li class="step-item" data-step="2">
+            <span class="step-num">2</span>
+            <span class="step-text">Rải phân nền & cốt nền</span>
+            <span class="step-check">✓</span>
+          </li>
+          <li class="step-item" data-step="3">
+            <span class="step-num">3</span>
+            <span class="step-text">Sắp xếp đá & lũa</span>
+            <span class="step-check">✓</span>
+          </li>
+          <li class="step-item" data-step="4">
+            <span class="step-num">4</span>
+            <span class="step-text">Cắm cây thủy sinh</span>
+            <span class="step-check">✓</span>
+          </li>
+          <li class="step-item" data-step="5">
+            <span class="step-num">5</span>
+            <span class="step-text">Lắp ráp thiết bị</span>
+            <span class="step-check">✓</span>
+          </li>
+          <li class="step-item" data-step="6">
+            <span class="step-num">6</span>
+            <span class="step-text">Vào nước & Vi sinh</span>
+            <span class="step-check">✓</span>
+          </li>
+          <li class="step-item" data-step="7">
+            <span class="step-num">7</span>
+            <span class="step-text">Thả cá & Tép cảnh</span>
+            <span class="step-check">✓</span>
+          </li>
+          <li class="step-item" data-step="8">
+            <span class="step-num">8</span>
+            <span class="step-text">Chăm sóc & Thư giãn</span>
+            <span class="step-check">✓</span>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Technical parameters of water -->
+      <section class="section-stats">
+        <h3 class="section-title">Thông Số Bể Cá</h3>
+        <div class="water-stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">Nhiệt độ</span>
+            <span class="stat-value" id="val-temp">-- °C</span>
+            <span class="stat-indicator" id="ind-temp"></span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Độ pH</span>
+            <span class="stat-value" id="val-ph">--</span>
+            <span class="stat-indicator" id="ind-ph"></span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Hệ Vi sinh</span>
+            <span class="stat-value" id="val-bio">--</span>
+            <span class="stat-indicator" id="ind-bio"></span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Rêu hại</span>
+            <span class="stat-value" id="val-algae">--</span>
+            <span class="stat-indicator" id="ind-algae"></span>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <!-- Center: Interactive Canvas Board -->
+    <main class="canvas-area">
+      <!-- Ambient overlay buttons -->
+      <div class="canvas-controls">
+        <button id="btn-sound" class="control-btn" title="Bật/Tắt tiếng nước chảy">🔊 Tắt tiếng</button>
+        <button id="btn-daynight" class="control-btn" title="Chuyển chế độ ngày/đêm">🌗 Tự động</button>
+        <button id="btn-photo" class="control-btn" title="Chụp ảnh bể cá">📸 Chụp ảnh</button>
+        <button id="btn-relax" class="control-btn btn-accent" title="Ẩn thanh điều khiển để thư giãn">🧘‍♂️ Thư giãn</button>
+      </div>
+
+      <div class="aquarium-wrapper">
+        <canvas id="aquarium-canvas" width="800" height="500"></canvas>
+        <div id="water-filling-overlay" class="water-overlay"></div>
+        <div id="tank-light-glow" class="tank-light"></div>
+      </div>
+
+      <!-- Quick status/tip banner -->
+      <div class="tip-banner glass" id="tip-banner-text">
+        Chào mừng bạn đến với mô phỏng nuôi bể cá thủy sinh. Hãy chọn kích thước bể phù hợp ở cột bên phải để bắt đầu hành trình.
+      </div>
+    </main>
+
+    <!-- Right Sidebar: Interactive Toolbox -->
+    <aside class="sidebar-right glass" id="toolbox-sidebar">
+      <h3 class="section-title" id="toolbox-title">Hộp Công Cụ</h3>
+      
+      <!-- Toolbox Dynamic Options Area -->
+      <div class="toolbox-content" id="toolbox-options-container">
+        <!-- Content will be injected by JS based on current step -->
+      </div>
+
+      <!-- Navigation Footer -->
+      <footer class="toolbox-footer">
+        <button id="btn-prev-step" class="btn-nav" disabled>⬅ Quay Lại</button>
+        <button id="btn-next-step" class="btn-nav btn-primary">Tiếp Theo ➔</button>
+      </footer>
+    </aside>
+  </div>
+
+  <!-- Sync Code Dialog Modal -->
+  <div class="modal-overlay" id="sync-modal">
+    <div class="modal-content glass">
+      <h2 class="modal-title">Đồng bộ thiết bị khác 🔄</h2>
+      <p class="modal-desc">Nhập mã bể cá gồm 6 chữ số để tải tiến trình thiết kế bể của bạn từ thiết bị khác.</p>
+      
+      <div class="input-group">
+        <input type="text" id="sync-input-code" placeholder="Ví dụ: 385921" maxlength="6" pattern="\d{6}">
+      </div>
+      
+      <div class="modal-actions">
+        <button id="btn-sync-cancel" class="btn-secondary">Hủy</button>
+        <button id="btn-sync-confirm" class="btn-primary">Tải bể cá 📥</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sound Toggle Prompt / Ambient sound setup -->
+  <div class="toast-message" id="toast-notif">Sao chép mã thành công!</div>
+
+  <!-- Audio synthesizers + Canvas logic -->
+  <script src="aquarium.js"></script>
+</body>
+</html>

@@ -5,6 +5,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import GameManager from './game/GameManager.js';
 import Matchmaker from './matchmaking/Matchmaker.js';
+import fs from 'fs/promises';
+import { existsSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,8 +20,84 @@ const io = new Server(httpServer, {
   }
 });
 
+// Parse JSON request bodies
+app.use(express.json());
+
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, '../public')));
+
+// Database file path for aquarium saves
+const DB_FILE = path.join(__dirname, 'aquariums.json');
+
+async function readAquariums() {
+  try {
+    if (!existsSync(DB_FILE)) {
+      return {};
+    }
+    const data = await fs.readFile(DB_FILE, 'utf8');
+    return JSON.parse(data || '{}');
+  } catch (err) {
+    console.error("Error reading aquariums db:", err);
+    return {};
+  }
+}
+
+async function writeAquariums(data) {
+  try {
+    await fs.writeFile(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
+  } catch (err) {
+    console.error("Error writing aquariums db:", err);
+  }
+}
+
+function generateCode(existingCodes) {
+  let code;
+  do {
+    code = Math.floor(100000 + Math.random() * 900000).toString();
+  } while (existingCodes.has(code));
+  return code;
+}
+
+// Save aquarium state
+app.post('/api/aquarium/save', async (req, res) => {
+  try {
+    let { code, state } = req.body;
+    const db = await readAquariums();
+    
+    if (!code || !db[code]) {
+      // Generate a new 6-digit code
+      code = generateCode(new Set(Object.keys(db)));
+    }
+    
+    db[code] = {
+      state,
+      updatedAt: new Date().toISOString()
+    };
+    
+    await writeAquariums(db);
+    res.json({ success: true, code, state });
+  } catch (err) {
+    console.error("Error saving aquarium:", err);
+    res.status(500).json({ success: false, message: "Lỗi hệ thống khi lưu bể cá" });
+  }
+});
+
+// Load aquarium state
+app.get('/api/aquarium/load/:code', async (req, res) => {
+  try {
+    const { code } = req.params;
+    const db = await readAquariums();
+    
+    if (db[code]) {
+      res.json({ success: true, code, state: db[code].state });
+    } else {
+      res.status(404).json({ success: false, message: "Không tìm thấy bể cá với mã này" });
+    }
+  } catch (err) {
+    console.error("Error loading aquarium:", err);
+    res.status(500).json({ success: false, message: "Lỗi hệ thống khi tải bể cá" });
+  }
+});
 
 const PORT = process.env.PORT || 3000;
 

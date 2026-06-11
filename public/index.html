@@ -22,6 +22,8 @@
       --color-oanquan-bg: rgba(149, 218, 193, 0.18);
       --color-riddle: #B89CFF;
       --color-riddle-bg: rgba(184, 156, 255, 0.16);
+      --color-aquarium: #46C2CB;
+      --color-aquarium-bg: rgba(70, 194, 203, 0.16);
     }
 
     * {
@@ -120,9 +122,11 @@
     /* Game Selection Grid */
     .game-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 24px;
       width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
     }
 
     /* Game Cards */
@@ -162,6 +166,10 @@
       --card-hover-border: var(--color-riddle);
     }
 
+    .card-aquarium {
+      --card-hover-border: var(--color-aquarium);
+    }
+
     .game-icon-wrapper {
       width: 100px;
       height: 100px;
@@ -192,6 +200,11 @@
     .bg-riddle {
       background: var(--color-riddle-bg);
       color: #8C52FF;
+    }
+
+    .bg-aquarium {
+      background: var(--color-aquarium-bg);
+      color: #00A6B4;
     }
 
     .game-name {
@@ -225,6 +238,11 @@
     .tag-riddle {
       background: rgba(184, 156, 255, 0.22);
       color: #6C22F2;
+    }
+
+    .tag-aquarium {
+      background: rgba(70, 194, 203, 0.25);
+      color: #008793;
     }
 
     .game-desc {
@@ -276,6 +294,15 @@
     .btn-riddle:hover {
       background: #814CFA;
       box-shadow: 0 6px 20px rgba(152, 107, 255, 0.4);
+    }
+
+    .btn-aquarium {
+      background: #46C2CB;
+      color: white;
+    }
+    .btn-aquarium:hover {
+      background: #00B2BE;
+      box-shadow: 0 6px 20px rgba(70, 194, 203, 0.4);
     }
 
     /* Footer */
@@ -347,6 +374,15 @@
         <span class="game-tag tag-riddle">Thử Thách Giải Đố</span>
         <p class="game-desc">Vượt qua mê cung đa hình dáng, trả lời các câu hỏi hóc búa tại cửa ải và thử vận may với kho báu cuối game!</p>
         <button class="btn-play btn-riddle">Chơi Ngay 🎮</button>
+      </div>
+
+      <!-- Game Card 4: Giả Lập Bể Cá Thủy Sinh -->
+      <div class="game-card card-aquarium" onclick="location.href='/be-ca-thuy-sinh/'">
+        <div class="game-icon-wrapper bg-aquarium">🌿</div>
+        <h2 class="game-name">Bể Cá Thủy Sinh</h2>
+        <span class="game-tag tag-aquarium">Giả Lập Thư Giãn</span>
+        <p class="game-desc">Tự thiết lập một bể cá thủy sinh tuyệt đẹp từ A đến Z, nuôi dưỡng đàn cá nhỏ và tận hưởng âm thanh êm dịu!</p>
+        <button class="btn-play btn-aquarium">Chơi Ngay 🎮</button>
       </div>
     </div>
 
