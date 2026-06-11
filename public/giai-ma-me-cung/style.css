@@ -598,3 +598,64 @@ body {
     margin-top: 8px !important;
   }
 }
+
+/* Mobile Virtual D-Pad Styles */
+.mobile-controls {
+  display: none; /* Hidden by default on desktop */
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 15px auto 5px auto;
+  width: 180px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@media (max-width: 860px) {
+  .mobile-controls {
+    display: flex; /* Shown on mobile/tablet */
+  }
+  .controls-bar {
+    display: none; /* Hide the desktop tip on mobile to save vertical space */
+  }
+}
+
+.dpad-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(74, 63, 53, 0.08);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dpad-btn:active {
+  transform: scale(0.9);
+  background: rgba(152, 107, 255, 0.4); /* Pastel purple highlight */
+  border-color: rgba(152, 107, 255, 0.6);
+  box-shadow: 0 2px 6px rgba(152, 107, 255, 0.2);
+}
+
+.dpad-middle-row {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.dpad-center-spacer {
+  width: 44px;
+  height: 44px;
+}
+

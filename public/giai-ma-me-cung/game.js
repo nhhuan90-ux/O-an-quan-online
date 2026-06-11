@@ -640,15 +640,59 @@ function getRandomRiddle() {
 // --- Player Movement & Control handlers (Manual Drawing & Keyboard) ---
 function movePlayer(dr, dc) {
   if (lives <= 0 || activeGate) return;
+  getAudioContext();
 
-  const lastNode = playerPath[playerPath.length - 1];
-  const nr = lastNode.r + dr;
-  const nc = lastNode.c + dc;
+  let steps = 0;
+  const maxSteps = 100; // safety limit to prevent lockup
+  let lastNode = playerPath[playerPath.length - 1];
 
-  if (nr >= 0 && nr < gridSize && nc >= 0 && nc < gridSize) {
-    if (grid[nr][nc] === 'O') {
-      executeMove(nr, nc);
+  while (steps < maxSteps) {
+    const nr = lastNode.r + dr;
+    const nc = lastNode.c + dc;
+
+    // Out of bounds
+    if (nr < 0 || nr >= gridSize || nc < 0 || nc >= gridSize) break;
+    // Wall or blank
+    if (grid[nr][nc] !== 'O') break;
+
+    // Step cell-by-cell silently
+    executeMove(nr, nc, true);
+    steps++;
+
+    // Check if we hit a gate or game is over/won, stop immediately
+    if (activeGate || lives <= 0) break;
+
+    const currentTip = playerPath[playerPath.length - 1];
+    // Reached exit
+    if (currentTip.r === endCell.r + 1 && currentTip.c === endCell.c) {
+      break;
     }
+
+    // Update pointer for next check
+    lastNode = currentTip;
+
+    // Check if the current position is a decision point (intersection)
+    // If moving horizontally (dr === 0, dc !== 0): can we turn vertically (Up or Down)?
+    if (dr === 0 && dc !== 0) {
+      const canGoUp = (nr - 1 >= 0 && grid[nr - 1][nc] === 'O');
+      const canGoDown = (nr + 1 < gridSize && grid[nr + 1][nc] === 'O');
+      if (canGoUp || canGoDown) {
+        break; // Stop at the intersection to let user decide
+      }
+    }
+    // If moving vertically (dr !== 0, dc === 0): can we turn horizontally (Left or Right)?
+    if (dr !== 0 && dc === 0) {
+      const canGoLeft = (nc - 1 >= 0 && grid[nr][nc - 1] === 'O');
+      const canGoRight = (nc + 1 < gridSize && grid[nr][nc + 1] === 'O');
+      if (canGoLeft || canGoRight) {
+        break; // Stop at the intersection to let user decide
+      }
+    }
+  }
+
+  // Play a single move sound if we successfully traversed any cells
+  if (steps > 0) {
+    playMoveSound();
   }
 }
 
@@ -727,7 +771,7 @@ function findPathBFS(start, target) {
   return [];
 }
 
-function executeMove(r, c) {
+function executeMove(r, c, silent = false) {
   if (lives <= 0 || activeGate) return;
 
   // Only walkable on path cells 'O'
@@ -740,7 +784,7 @@ function executeMove(r, c) {
     
     // Truncate path
     playerPath = playerPath.slice(0, indexInPath + 1);
-    playMoveSound();
+    if (!silent) playMoveSound();
     drawBoard();
     return;
   }
@@ -753,7 +797,7 @@ function executeMove(r, c) {
     for (let i = 1; i < segment.length; i++) {
       const cell = segment[i];
       playerPath.push(cell);
-      playMoveSound();
+      if (!silent) playMoveSound();
 
       // Check if player stepped on a gate
       const gate = gates.find(g => g.r === cell.r && g.c === cell.c);
@@ -1326,6 +1370,59 @@ window.addEventListener('load', () => {
         break;
     }
   });
+
+  // Wire up Mobile D-Pad
+  const btnUp = document.getElementById('dpad-up');
+  const btnDown = document.getElementById('dpad-down');
+  const btnLeft = document.getElementById('dpad-left');
+  const btnRight = document.getElementById('dpad-right');
+
+  if (btnUp) btnUp.addEventListener('pointerdown', (e) => { e.preventDefault(); movePlayer(-1, 0); });
+  if (btnDown) btnDown.addEventListener('pointerdown', (e) => { e.preventDefault(); movePlayer(1, 0); });
+  if (btnLeft) btnLeft.addEventListener('pointerdown', (e) => { e.preventDefault(); movePlayer(0, -1); });
+  if (btnRight) btnRight.addEventListener('pointerdown', (e) => { e.preventDefault(); movePlayer(0, 1); });
+
+  // Swipe gesture support on canvas
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  canvas.addEventListener('touchstart', (e) => {
+    if (lives <= 0 || activeGate) return;
+    touchStartX = e.changedTouches[0].clientX;
+    touchStartY = e.changedTouches[0].clientY;
+  }, { passive: true });
+
+  canvas.addEventListener('touchend', (e) => {
+    if (lives <= 0 || activeGate) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    
+    const dx = touchEndX - touchStartX;
+    const dy = touchEndY - touchStartY;
+    
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+    
+    const threshold = 30; // pixels minimum swipe distance
+    
+    if (Math.max(absX, absY) > threshold) {
+      if (absX > absY) {
+        // Horizontal swipe
+        if (dx > 0) {
+          movePlayer(0, 1); // Right
+        } else {
+          movePlayer(0, -1); // Left
+        }
+      } else {
+        // Vertical swipe
+        if (dy > 0) {
+          movePlayer(1, 0); // Down
+        } else {
+          movePlayer(-1, 0); // Up
+        }
+      }
+    }
+  }, { passive: true });
 
   initGame();
 });
