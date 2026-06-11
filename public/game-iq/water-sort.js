@@ -133,14 +133,16 @@ class WaterSortGame {
 
   render(container) {
     container.style.display = 'flex';
-    container.style.flexWrap = 'wrap';
+    container.style.flexDirection = 'column';
     container.style.justifyContent = 'center';
     container.style.alignItems = 'center';
-    container.style.gap = '20px';
+    container.style.gap = '0px';
     
-    const boardSize = Math.min(420, container.parentElement.clientWidth - 48);
     container.style.width = '100%';
-    container.style.height = `${boardSize}px`;
+    container.style.maxWidth = '420px';
+    container.style.height = 'auto';
+    container.style.padding = '24px 12px';
+    container.style.boxSizing = 'border-box';
 
     this.renderTubes(container);
   }
@@ -159,16 +161,44 @@ class WaterSortGame {
       'linear-gradient(180deg, #33ffff, #009999)'  // 7: Cyan
     ];
 
+    // Determine row distribution
+    let row1TubesCount = this.tubes.length;
+    if (this.tubes.length === 7) {
+      row1TubesCount = 4;
+    } else if (this.tubes.length === 9) {
+      row1TubesCount = 5;
+    }
+
+    const row1Div = document.createElement('div');
+    row1Div.className = 'tube-row';
+    row1Div.style.display = 'flex';
+    row1Div.style.justifyContent = 'center';
+    row1Div.style.gap = '16px';
+    row1Div.style.width = '100%';
+    container.appendChild(row1Div);
+
+    let row2Div = null;
+    if (this.tubes.length > row1TubesCount) {
+      row2Div = document.createElement('div');
+      row2Div.className = 'tube-row';
+      row2Div.style.display = 'flex';
+      row2Div.style.justifyContent = 'center';
+      row2Div.style.gap = '16px';
+      row2Div.style.width = '100%';
+      row2Div.style.marginTop = '24px'; // Spacing to allow top row tube selections without overlap
+      container.appendChild(row2Div);
+    }
+
     this.tubes.forEach((tube, idx) => {
       const tubeDiv = document.createElement('div');
       tubeDiv.className = 'tube';
       tubeDiv.dataset.index = idx;
       
       // Inline styles for glass tube look
-      tubeDiv.style.width = '48px';
-      tubeDiv.style.height = '150px';
+      tubeDiv.style.width = '42px';
+      tubeDiv.style.height = '140px';
       tubeDiv.style.border = '3px solid rgba(255, 255, 255, 0.2)';
-      tubeDiv.style.borderRadius = '0 0 24px 24px';
+      tubeDiv.style.borderRadius = '0 0 20px 20px';
       tubeDiv.style.position = 'relative';
       tubeDiv.style.display = 'flex';
       tubeDiv.style.flexDirection = 'column-reverse';
@@ -190,8 +220,8 @@ class WaterSortGame {
         const seg = document.createElement('div');
         seg.className = 'liquid-segment';
         seg.style.width = '100%';
-        seg.style.height = '31px';
-        seg.style.borderRadius = '6px';
+        seg.style.height = '29px';
+        seg.style.borderRadius = '5px';
         seg.style.background = colorGradients[colorVal];
         seg.style.boxShadow = 'inset 0 2px 4px rgba(255, 255, 255, 0.2), 0 2px 5px rgba(0, 0, 0, 0.3)';
         
@@ -202,15 +232,20 @@ class WaterSortGame {
         bubble.style.height = '4px';
         bubble.style.borderRadius = '50%';
         bubble.style.background = 'rgba(255, 255, 255, 0.3)';
-        bubble.style.left = `${Math.random() * 30 + 5}px`;
-        bubble.style.top = `${Math.random() * 20 + 5}px`;
+        bubble.style.left = `${Math.random() * 26 + 5}px`;
+        bubble.style.top = `${Math.random() * 18 + 5}px`;
         seg.appendChild(bubble);
 
         tubeDiv.appendChild(seg);
       });
 
       this.bindTubeEvents(tubeDiv);
-      container.appendChild(tubeDiv);
+
+      if (idx < row1TubesCount) {
+        row1Div.appendChild(tubeDiv);
+      } else {
+        row2Div.appendChild(tubeDiv);
+      }
     });
   }
 
