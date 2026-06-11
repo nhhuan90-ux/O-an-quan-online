@@ -48,6 +48,7 @@ class HanoiGame {
   }
 
   render(container) {
+    container.innerHTML = '';
     container.style.display = 'flex';
     container.style.flexDirection = 'column';
     container.style.justifyContent = 'center';
