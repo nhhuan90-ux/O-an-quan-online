@@ -94,14 +94,38 @@ class WaterSortGame {
     }
 
     if (!success) {
-      // Fallback 3 colors
-      this.tubes = [
-        [1, 2, 3, 1],
-        [2, 3, 1, 2],
-        [3, 1, 2, 3],
-        [],
-        []
-      ];
+      // Fallback based on difficulty
+      if (this.colorCount === 3) {
+        this.tubes = [
+          [1, 2, 3, 1],
+          [2, 3, 1, 2],
+          [3, 1, 2, 3],
+          [],
+          []
+        ];
+      } else if (this.colorCount === 5) {
+        this.tubes = [
+          [1, 2, 3, 4],
+          [2, 3, 4, 5],
+          [3, 4, 5, 1],
+          [4, 5, 1, 2],
+          [5, 1, 2, 3],
+          [],
+          []
+        ];
+      } else {
+        this.tubes = [
+          [1, 2, 3, 4],
+          [2, 3, 4, 5],
+          [3, 4, 5, 6],
+          [4, 5, 6, 7],
+          [5, 6, 7, 1],
+          [6, 7, 1, 2],
+          [7, 1, 2, 3],
+          [],
+          []
+        ];
+      }
       this.initialTubes = JSON.parse(JSON.stringify(this.tubes));
       this.solutionPath = this.solveBFS(this.tubes) || [];
     }
@@ -280,7 +304,7 @@ class WaterSortGame {
 
   solveBFS(startTubes) {
     const getHash = (tubesState) => {
-      return tubesState.map(t => t.join(',')).join('|');
+      return [...tubesState].map(t => t.join(',')).sort().join('|');
     };
 
     const isSolved = (tubesState) => {
@@ -296,7 +320,7 @@ class WaterSortGame {
     const queue = [{ state: startTubes, path: [] }];
     const visited = new Set([startHash]);
     
-    let maxSteps = 1500; // Cap to keep search fast
+    let maxSteps = 25000; // Cap to keep search fast with symmetry reduction
     
     while (queue.length > 0 && maxSteps > 0) {
       maxSteps--;
