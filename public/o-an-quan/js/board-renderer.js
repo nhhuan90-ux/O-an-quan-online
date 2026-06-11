@@ -192,8 +192,8 @@ export default class BoardRenderer {
                  if (window.soundManager) window.soundManager.play('eat');
                  
                  // Fireworks!
-                 if (typeof confetti === 'function') {
-                    confetti({
+                 if (typeof window.showConfetti === 'function') {
+                    window.showConfetti({
                         particleCount: 100,
                         spread: 70,
                         origin: { y: 0.6 }

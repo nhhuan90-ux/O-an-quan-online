@@ -172,7 +172,8 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    background: url('https://cdn.jsdelivr.net/gh/nhhuan90-ux/O-an-quan-online@master/public/o-an-quan/assets/images/board-wood.webp') no-repeat center center;
+    background: #5D4037;
+    border: 4px solid #4E342E;
     background-size: 94% 109%;
     border-radius: 40px;
     padding: 0 60px;
@@ -185,6 +186,12 @@
     gap: 80px;
     transform: rotate(var(--board-rot)) scale(var(--board-scale));
     transition: transform 0.5s ease;
+}
+
+.board.bg-loaded {
+    background: url('https://cdn.jsdelivr.net/gh/nhhuan90-ux/O-an-quan-online@master/public/o-an-quan/assets/images/board-wood.webp') no-repeat center center;
+    background-size: 94% 109%;
+    border: none;
 }
 
 .board.rotated {

@@ -1,7 +1,5 @@
 import SocketClient from './socket-client.js';
 import GameController from './game-controller.js';
-import TutorialController from './tutorial-controller.js';
-import ChatController from './chat-controller.js';
 import SoundManager from './sound-manager.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -18,8 +16,52 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sub-systems
     const socketClient = new SocketClient();
     const gameController = new GameController(socketClient);
-    const tutorialController = new TutorialController();
-    const chatController = new ChatController(socketClient);
+    let tutorialController = null;
+    let chatController = null;
+
+    // Lazy load main menu background to avoid blocking initial render
+    setTimeout(() => {
+        const bgHomeImg = new Image();
+        bgHomeImg.src = 'https://cdn.jsdelivr.net/gh/nhhuan90-ux/O-an-quan-online@master/public/o-an-quan/assets/images/bg-home.webp';
+        bgHomeImg.onload = () => {
+            if (mainMenu) mainMenu.classList.add('bg-loaded');
+        };
+    }, 100);
+
+    // Dynamic loading helper for canvas-confetti
+    window.showConfetti = async function(options) {
+        if (!window.confetti) {
+            await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+        if (typeof window.confetti === 'function') {
+            window.confetti(options);
+        }
+    };
+
+    // Lazy load game view assets
+    function lazyLoadGameAssets() {
+        if (gameView && !gameView.classList.contains('bg-loaded')) {
+            const bgGameImg = new Image();
+            bgGameImg.src = 'https://cdn.jsdelivr.net/gh/nhhuan90-ux/O-an-quan-online@master/public/o-an-quan/assets/images/bg-game.webp';
+            bgGameImg.onload = () => {
+                gameView.classList.add('bg-loaded');
+            };
+        }
+        const board = document.querySelector('.board');
+        if (board && !board.classList.contains('bg-loaded')) {
+            const bgBoardImg = new Image();
+            bgBoardImg.src = 'https://cdn.jsdelivr.net/gh/nhhuan90-ux/O-an-quan-online@master/public/o-an-quan/assets/images/board-wood.webp';
+            bgBoardImg.onload = () => {
+                board.classList.add('bg-loaded');
+            };
+        }
+    }
 
     // Load stats
     function loadStats() {
@@ -223,11 +265,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 resultDiv.classList.remove('hidden');
                 
                 // Show confetti
-                confetti({
-                    particleCount: 150,
-                    spread: 70,
-                    origin: { y: 0.6 }
-                });
+                if (typeof window.showConfetti === 'function') {
+                    window.showConfetti({
+                        particleCount: 150,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    });
+                }
 
                 setTimeout(() => {
                     overlay.classList.add('hidden');
@@ -277,7 +321,11 @@ document.addEventListener('DOMContentLoaded', () => {
         rulesModal.classList.add('hidden');
     });
 
-    document.getElementById('btn-tutorial').addEventListener('click', () => {
+    document.getElementById('btn-tutorial').addEventListener('click', async () => {
+        if (!tutorialController) {
+            const { default: TutorialController } = await import('./tutorial-controller.js');
+            tutorialController = new TutorialController();
+        }
         tutorialController.startTutorial();
     });
 
@@ -291,11 +339,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Listen to socket events
-    socketClient.on('game-start', (data) => {
+    socketClient.on('game-start', async (data) => {
         matchOverlay.classList.add('hidden');
         
+        // Lazy load backgrounds when game starts
+        lazyLoadGameAssets();
+
         const isBot = data.state.players[1].isBot;
         const isLocal = data.state.isLocalMatch;
+
+        // Lazy load ChatController only when entering match
+        if (!chatController) {
+            const { default: ChatController } = await import('./chat-controller.js');
+            chatController = new ChatController(socketClient);
+        }
 
         if (!isBot && !isLocal) {
             // Online PvP
@@ -322,8 +379,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     resultDiv.innerText = `${winnerName} đi trước!`;
                     resultDiv.classList.remove('hidden');
                     
-                    if (typeof confetti === 'function') {
-                        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                    if (typeof window.showConfetti === 'function') {
+                        window.showConfetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                     }
 
                     setTimeout(() => {
