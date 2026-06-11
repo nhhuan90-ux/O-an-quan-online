@@ -53,7 +53,7 @@ body {
 }
 
 #main-menu {
-    background: url('../assets/images/bg-home.png') no-repeat center center;
+    background: url('https://cdn.jsdelivr.net/gh/nhhuan90-ux/O-an-quan-online@master/public/o-an-quan/assets/images/bg-home.webp') no-repeat center center;
     background-size: cover;
     display: flex;
     justify-content: center;
@@ -62,7 +62,7 @@ body {
 }
 
 #game-view {
-    background: url('../assets/images/bg-game.png') no-repeat center center fixed;
+    background: url('https://cdn.jsdelivr.net/gh/nhhuan90-ux/O-an-quan-online@master/public/o-an-quan/assets/images/bg-game.webp') no-repeat center center fixed;
     background-size: cover;
 }
 

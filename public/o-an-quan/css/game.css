@@ -172,7 +172,7 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    background: url('../assets/images/board-wood.png') no-repeat center center;
+    background: url('https://cdn.jsdelivr.net/gh/nhhuan90-ux/O-an-quan-online@master/public/o-an-quan/assets/images/board-wood.webp') no-repeat center center;
     background-size: 94% 109%;
     border-radius: 40px;
     padding: 0 60px;
