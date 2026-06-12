@@ -247,7 +247,8 @@ class GameManager {
       const container = document.getElementById('board-container');
       container.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100%;font-size:1.2rem;color:rgba(255,255,255,0.7);">Đang tải trò chơi... ⏳</div>';
       
-      const scriptUrl = gameId === 'hanoi' ? '../game-iq/hanoi.js' : '../game-iq/water-sort.js';
+      const scriptUrl = gameId === 'hanoi' ? '../game-iq/hanoi.js' : 
+                        (gameId === 'watersort' ? '../game-iq/water-sort.js' : `../game-iq/${gameId}.js`);
       
       this.loadScript(scriptUrl, () => {
         const LoadedGameClass = window.IQGames[gameId];
