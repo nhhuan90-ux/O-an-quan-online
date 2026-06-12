@@ -1025,6 +1025,8 @@ body {
   
   .board-wrapper {
     padding: 12px;
+    width: 100%;
+    box-sizing: border-box;
   }
   
   .board-title-bar h1 {

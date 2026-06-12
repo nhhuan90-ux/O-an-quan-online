@@ -452,14 +452,18 @@ body {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  width: 100%;
+  max-width: 800px;
+  aspect-ratio: 8 / 5;
 }
 
 #aquarium-canvas {
   display: block;
   background: transparent;
   cursor: crosshair;
-  max-width: 100%;
-  height: auto;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 /* LED Light rays animation overlay */

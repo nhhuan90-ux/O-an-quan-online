@@ -180,6 +180,7 @@ let state = {
     bacteria: 0.0,
     nitrate: 0.0,
     cycled: false
+  },
   fishes: [], // { type, x, y, vx, vy, size, targetX, targetY, angle, hunger, sizeScale }
   themeOverride: 'auto', // auto, light, dark
   selectedTemplateId: null,

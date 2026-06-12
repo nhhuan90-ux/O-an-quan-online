@@ -139,6 +139,14 @@ class GameManager {
           document.querySelectorAll('.game-tab').forEach(t => t.classList.remove('active'));
           tab.classList.add('active');
           this.loadGame(gameId);
+          
+          // Auto scroll to board on mobile viewports
+          if (window.innerWidth <= 768) {
+            const boardWrapper = document.querySelector('.board-wrapper');
+            if (boardWrapper) {
+              boardWrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }
         }
       });
     });
@@ -261,6 +269,19 @@ class GameManager {
     
     const container = document.getElementById('board-container');
     container.innerHTML = '';
+    
+    // Ensure parent clientWidth is never 0 on mobile/timing issues
+    const parent = container.parentElement;
+    if (parent && parent.clientWidth < 100) {
+      Object.defineProperty(parent, 'clientWidth', {
+        get: () => {
+          const rect = parent.getBoundingClientRect();
+          if (rect.width > 100) return rect.width;
+          return Math.max(280, Math.min(600, window.innerWidth - 32));
+        },
+        configurable: true
+      });
+    }
     
     this.gameInstance.init(container, this.difficulty);
     this.updateChecklist();
