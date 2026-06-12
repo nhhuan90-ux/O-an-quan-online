@@ -23,6 +23,10 @@
       <h1 class="app-title">Giả Lập Bể Cá Thủy Sinh 🌿</h1>
     </div>
     <div class="header-right">
+      <div class="pearl-display status-pill" title="Ngọc trai thu thập được từ cá" style="font-weight: 700; color: #9A00D6; border-color: rgba(184, 156, 255, 0.4);">
+        🔮 <span id="pearl-count" style="margin-left: 4px;">0</span>
+      </div>
+      <button id="btn-gacha-open" class="btn-home" style="background: linear-gradient(135deg, #FF8E53 0%, #FF6B8B 100%); color: white; border: none; font-weight: 700;" title="Quay gacha nhận cá hiếm">🎰 Gacha</button>
       <div id="theme-status" class="status-pill">
         <span class="theme-icon">☀️</span> <span id="theme-text">Đang nhận diện...</span>
       </div>
@@ -165,6 +169,27 @@
       <div class="modal-actions">
         <button id="btn-sync-cancel" class="btn-secondary">Hủy</button>
         <button id="btn-sync-confirm" class="btn-primary">Tải bể cá 📥</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gacha Slot Machine Modal -->
+  <div class="modal-overlay" id="gacha-modal">
+    <div class="modal-content glass" style="max-width: 400px; padding: 28px;">
+      <h2 class="modal-title">Vòng Quay Gacha 🎰</h2>
+      <p class="modal-desc">Dùng 10 🔮 Ngọc Trai để quay. Trúng 3 hình trùng nhau để nhận cá hiếm siêu cấp!</p>
+      
+      <div class="slot-container" style="display: flex; justify-content: center; gap: 15px; margin: 20px 0; background: rgba(0,0,0,0.05); padding: 15px; border-radius: var(--border-radius-md); border: 1px solid var(--glass-border);">
+        <div class="slot-reel" id="reel-1" style="font-size: 3rem; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--border-radius-sm); user-select: none;">🐠</div>
+        <div class="slot-reel" id="reel-2" style="font-size: 3rem; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--border-radius-sm); user-select: none;">🐠</div>
+        <div class="slot-reel" id="reel-3" style="font-size: 3rem; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--border-radius-sm); user-select: none;">🐠</div>
+      </div>
+      
+      <div id="gacha-result-text" style="font-size: 1rem; font-weight: 700; color: var(--color-primary); margin-bottom: 20px; min-height: 24px;">Chúc bạn may mắn!</div>
+      
+      <div class="modal-actions">
+        <button id="btn-gacha-close" class="btn-secondary">Đóng</button>
+        <button id="btn-spin-slot" class="btn-primary" style="background: linear-gradient(135deg, #FF8E53 0%, #FF6B8B 100%); border: none;">QUAY (10 🔮)</button>
       </div>
     </div>
   </div>

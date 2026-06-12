@@ -180,10 +180,12 @@ let state = {
     bacteria: 0.0,
     nitrate: 0.0,
     cycled: false
-  },
-  fishes: [], // { type, x, y, vx, vy, size, targetX, targetY, angle }
+  fishes: [], // { type, x, y, vx, vy, size, targetX, targetY, angle, hunger, sizeScale }
   themeOverride: 'auto', // auto, light, dark
-  selectedTemplateId: null
+  selectedTemplateId: null,
+  pearls: 0,
+  unlockedThemes: ['river'],
+  activeTheme: 'river'
 };
 
 // Sync Code variables
@@ -206,6 +208,9 @@ let fishFood = []; // { x, y, speed }
 let waterParticles = []; // For filter flow / bubbles
 let co2Bubbles = []; // For CO2 diffuser
 let waterDroplets = []; // For bacteria drops
+let droppedPearls = []; // For pearls produced by fish: { x, y, vy, size, angle, value }
+let floatingTexts = []; // For popups like +1 🔮 or yum!: { x, y, text, life, color }
+let cherryBlossoms = []; // For Zen Pond theme floating petals: { x, y, vx, vy, size, angle, rotSpeed }
 let activeTool = null; // 'brush-base', 'brush-soil', 'brush-sand', 'place-plant', 'prune', 'scrape', 'drag-hardscape'
 let selectedToolOption = null; // specific stone/wood/plant type
 let selectedHardscapeIndex = -1;
@@ -214,6 +219,7 @@ let isDragging = false;
 let isFillingWater = false;
 let dragOffset = { x: 0, y: 0 };
 let algaeLevel = 0.0; // 0 to 1, increases if lights on without filter/CO2
+let isSpinningGacha = false;
 
 // Base scale factors to keep assets properly proportioned in the tank
 const HARDSCAPE_BASE_SCALE = 0.55;
@@ -423,7 +429,14 @@ const faunaItems = {
   neon: { label: 'Cá Neon Xanh 🐟', icon: '🐟', desc: 'Bơi theo đàn phát sáng' },
   tamgiac: { label: 'Cá Tam Giác 🐠', icon: '🐠', desc: 'Nhanh nhẹn, thân cam rực' },
   cherry: { label: 'Tép Cherry Đỏ 🦐', icon: '🦐', desc: 'Bò đáy bể dọn rêu hại' },
-  mun: { label: 'Cá Mún Vàng 🐡', icon: '🐡', desc: 'Cá vàng tinh nghịch diệt váng' }
+  mun: { label: 'Cá Mún Vàng 🐡', icon: '🐡', desc: 'Cá vàng tinh nghịch diệt váng' },
+  
+  // Rare breeds from Gacha
+  goldfish: { label: 'Cá Chép Koi 🎏', icon: '🎏', desc: 'Cá Koi vẩy rồng may mắn (Hiếm)' },
+  jellyfish: { label: 'Sứa Neon 👾', icon: '👾', desc: 'Sứa phát sáng kỳ ảo (Cực Hiếm)' },
+  discus: { label: 'Cá Đĩa Đỏ 🐙', icon: '🐙', desc: 'Cá đĩa đỏ hoàng gia (Hiếm)' },
+  angler: { label: 'Cá Lồng Đèn 🦑', icon: '🦑', desc: 'Cá lồng đèn phát sáng (Hiếm)' },
+  whale: { label: 'Cá Voi Xanh 🐋', icon: '🐋', desc: 'Cá voi xanh mini khổng lồ (Siêu Cấp)' }
 };
 
 // Initialize
@@ -1009,8 +1022,30 @@ function loadToolbox() {
       
     case 8:
       title.textContent = 'Chăm Sóc & Thư Giãn';
+      let themeHTML = `
+        <div style="margin-top:15px; border-top:1px solid var(--glass-border); padding-top:15px;">
+          <h4 style="font-size:0.9rem; font-weight:700; margin-bottom:8px;">Chủ Đề Bể Cá</h4>
+          <div class="tool-grid">
+            <div class="tool-card ${state.activeTheme === 'river' ? 'selected' : ''}" onclick="switchTheme('river')">
+              <span class="tool-icon">🌿</span>
+              <span class="tool-name">Sông</span>
+              <span class="tool-desc">Mở khóa</span>
+            </div>
+            <div class="tool-card ${state.activeTheme === 'reef' ? 'selected' : ''}" onclick="switchTheme('reef')">
+              <span class="tool-icon">🪸</span>
+              <span class="tool-name">Coral Reef</span>
+              <span class="tool-desc">${state.unlockedThemes.includes('reef') ? 'Mở khóa' : 'Khóa (50 🔮)'}</span>
+            </div>
+            <div class="tool-card ${state.activeTheme === 'zen' ? 'selected' : ''}" onclick="switchTheme('zen')">
+              <span class="tool-icon">🌸</span>
+              <span class="tool-name">Ao Zen</span>
+              <span class="tool-desc">${state.unlockedThemes.includes('zen') ? 'Mở khóa' : 'Khóa (100 🔮)'}</span>
+            </div>
+          </div>
+        </div>
+      `;
       container.innerHTML = `
-        <p class="tool-desc" style="margin-bottom:10px;">Bể cá của bạn đã đi vào hoạt động ổn định. Hãy chăm sóc thường xuyên nhé:</p>
+        <p class="tool-desc" style="margin-bottom:10px;">Bể cá đã hoạt động ổn định. Hãy chăm sóc bể cá và đổi chủ đề bể:</p>
         <div class="btn-action-block">
           <button class="btn-action" id="tool-feed" onclick="selectMaintenanceTool('feed')">🍂 Rải thức ăn cho cá</button>
           <button class="btn-action" id="tool-prune" onclick="selectMaintenanceTool('prune')">✂️ Kéo cắt tỉa cây mọc cao</button>
@@ -1018,6 +1053,7 @@ function loadToolbox() {
           <button class="btn-action" onclick="performWaterChange()">🪣 Thay nước 30% định kỳ</button>
           <button class="btn-action" onclick="doseLiquidFertilizer()">🧪 Châm phân nước vi lượng</button>
         </div>
+        ${themeHTML}
       `;
       break;
   }
@@ -1463,7 +1499,9 @@ function spawnFauna(type) {
     size: type === 'cherry' ? 12 : 16 + Math.random() * 6,
     angle: 0,
     targetX: canvas.width / 2,
-    targetY: canvas.height / 2
+    targetY: canvas.height / 2,
+    hunger: 100,
+    sizeScale: 1.0
   });
   
   updateUI();
@@ -1762,6 +1800,20 @@ function setupEventListeners() {
     }
   });
   
+  // Gacha Modal handlers
+  const gachaModal = document.getElementById('gacha-modal');
+  document.getElementById('btn-gacha-open').addEventListener('click', () => {
+    gachaModal.classList.add('open');
+    document.getElementById('gacha-result-text').textContent = 'Chúc bạn may mắn!';
+    document.getElementById('gacha-result-text').style.color = 'var(--text-main)';
+  });
+  
+  document.getElementById('btn-gacha-close').addEventListener('click', () => {
+    gachaModal.classList.remove('open');
+  });
+  
+  document.getElementById('btn-spin-slot').addEventListener('click', spinGacha);
+
   // Canvas pointer events for drawing/dragging
   canvas.addEventListener('pointerdown', handlePointerDown);
   canvas.addEventListener('pointermove', handlePointerMove);
@@ -1806,6 +1858,42 @@ function handlePointerDown(e) {
   }
   
   isDragging = true;
+  
+  // 0. Check if clicked on a pearl
+  for (let i = droppedPearls.length - 1; i >= 0; i--) {
+    const p = droppedPearls[i];
+    if (Math.hypot(p.x - x, p.y - y) < 22) {
+      // Collect pearl
+      state.pearls = (state.pearls || 0) + p.value;
+      droppedPearls.splice(i, 1);
+      
+      floatingTexts.push({
+        x: p.x,
+        y: p.y,
+        text: `+${p.value} 🔮`,
+        life: 1.0,
+        color: '#9D00FF'
+      });
+      
+      // Play high-pitched bubble collection sound
+      if (audioCtx && soundActive) {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.08);
+        gainNode.gain.setValueAtTime(0.03, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.08);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.09);
+      }
+      
+      updateUI();
+      saveStateToServer();
+      return; // Stop further interaction on this click
+    }
+  }
   
   // Check Step-specific action
   if (state.step === 2 && activeTool && activeTool.startsWith('brush-')) {
@@ -1976,7 +2064,9 @@ function spawnFaunaObject(type, x, y) {
     size: type === 'cherry' ? 12 : 16 + Math.random() * 6,
     angle: 0,
     targetX: x,
-    targetY: y
+    targetY: y,
+    hunger: 100,
+    sizeScale: 1.0
   });
 }
 
@@ -2016,6 +2106,10 @@ function showToast(text) {
 // Updating General UI state
 function updateUI() {
   updateStepUI();
+  
+  if (document.getElementById('pearl-count')) {
+    document.getElementById('pearl-count').textContent = state.pearls || 0;
+  }
   
   // Update water statistics card readings
   const valTemp = document.getElementById('val-temp');
@@ -2214,6 +2308,66 @@ function simulateParticles() {
       fishFood.splice(idx, 1);
     }
   });
+  
+  // 5. Cherry Blossoms (Zen Pond theme)
+  if (state.activeTheme === 'zen' && state.waterLevel > 0.1 && Math.random() < 0.015) {
+    cherryBlossoms.push({
+      x: startX + Math.random() * dim.width,
+      y: dim.yOffset,
+      vx: -0.5 - Math.random() * 0.5,
+      vy: 0.4 + Math.random() * 0.4,
+      size: 4 + Math.random() * 4,
+      angle: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.05
+    });
+  }
+  
+  cherryBlossoms.forEach((c, idx) => {
+    c.x += c.vx;
+    c.y += c.vy;
+    c.angle += c.rotSpeed;
+    c.vx += Math.sin(time * 0.5 + idx) * 0.02;
+    
+    const segmentWidth = dim.width / 40;
+    const segIdx = Math.floor((c.x - startX) / segmentWidth);
+    let substrateY = bottom;
+    if (segIdx >= 0 && segIdx < 40) {
+      substrateY = bottom - (state.substrate.base[segIdx] || 0) - (state.substrate.soil[segIdx] || 0) - (state.substrate.sand[segIdx] || 0);
+    }
+    
+    if (c.y >= substrateY || c.x < startX || c.x > endX) {
+      cherryBlossoms.splice(idx, 1);
+    }
+  });
+
+  // 6. Dropped Pearls
+  droppedPearls.forEach(p => {
+    if (p.vy > 0) {
+      p.y += p.vy;
+      p.angle += 0.05;
+      
+      const segmentWidth = dim.width / 40;
+      const segIdx = Math.floor((p.x - startX) / segmentWidth);
+      let substrateY = bottom;
+      if (segIdx >= 0 && segIdx < 40) {
+        substrateY = bottom - (state.substrate.base[segIdx] || 0) - (state.substrate.soil[segIdx] || 0) - (state.substrate.sand[segIdx] || 0);
+      }
+      
+      if (p.y >= substrateY - 4) {
+        p.y = substrateY - 4;
+        p.vy = 0; // stop falling
+      }
+    }
+  });
+  
+  // 7. Floating Texts
+  floatingTexts.forEach((t, idx) => {
+    t.y -= 0.5; // Float up
+    t.life -= 0.015; // Fade out
+    if (t.life <= 0) {
+      floatingTexts.splice(idx, 1);
+    }
+  });
 }
 
 // AI Fish & Tép logic
@@ -2234,6 +2388,28 @@ function simulateFauna() {
   const waterTop = innerTop + (1.0 - state.waterLevel) * (innerHeight - 10);
   
   state.fishes.forEach(fish => {
+    // Deplete hunger
+    fish.hunger = Math.max(0, (fish.hunger || 100) - 0.006);
+    
+    // Spawning pearls from happy fish
+    if (fish.type !== 'cherry' && fish.hunger > 50 && Math.random() < 0.0003) {
+      droppedPearls.push({
+        x: fish.x,
+        y: fish.y,
+        vy: 0.6 + Math.random() * 0.4,
+        size: 5,
+        angle: 0,
+        value: 1
+      });
+      floatingTexts.push({
+        x: fish.x,
+        y: fish.y - 12,
+        text: '🔮',
+        life: 1.0,
+        color: '#9A00D6'
+      });
+    }
+
     if (fish.type === 'cherry') {
       // Shrimp behavior: crawl on bottom substrate, crawl on wood, rocks
       // Look for a close hardscape or crawl bottom
@@ -2345,9 +2521,35 @@ function simulateFauna() {
           ay += (closest.y - fish.y) * 0.025;
           
           // Eat food
-          if (minDist < 15) {
+          if (minDist < 18) {
             const fIdx = fishFood.indexOf(closest);
             if (fIdx >= 0) fishFood.splice(fIdx, 1);
+            
+            // Satisfy hunger & grow size
+            fish.hunger = Math.min(100, (fish.hunger || 100) + 40);
+            fish.sizeScale = Math.min(2.0, (fish.sizeScale || 1.0) + 0.05);
+            
+            floatingTexts.push({
+              x: fish.x,
+              y: fish.y - 12,
+              text: 'Ngon! 😋',
+              life: 1.0,
+              color: 'var(--color-success)'
+            });
+            
+            // Play a small eating sound
+            if (audioCtx && soundActive) {
+              const osc = audioCtx.createOscillator();
+              const gainNode = audioCtx.createGain();
+              osc.connect(gainNode);
+              gainNode.connect(audioCtx.destination);
+              osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+              osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.06);
+              gainNode.gain.setValueAtTime(0.02, audioCtx.currentTime);
+              gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.06);
+              osc.start();
+              osc.stop(audioCtx.currentTime + 0.07);
+            }
           }
         }
       }
@@ -2485,10 +2687,13 @@ function render() {
   ctx.fillRect(startX - 20, bottom + 5, dim.width + 40, 20);
   ctx.fillStyle = '#2c221a';
   ctx.fillRect(startX - 30, bottom + 12, dim.width + 60, 4);
-
-  // 2. Draw glass background tint (pixel-art image: Background_Mavi is used for a premium look)
+  // 2. Draw glass background tint (pixel-art image matching active theme)
   const isNight = document.body.classList.contains('theme-dark');
-  const bgImg = loadedImages['bg_mavi'] || loadedImages['bg_default'];
+  let bgKey = 'bg_default';
+  if (state.activeTheme === 'reef') bgKey = 'bg_mavi';
+  else if (state.activeTheme === 'zen') bgKey = 'bg_purple';
+  
+  const bgImg = loadedImages[bgKey] || loadedImages['bg_default'];
   if (bgImg) {
     ctx.save();
     ctx.imageSmoothingEnabled = false; // Prevent blurring of pixel art
@@ -2528,6 +2733,9 @@ function render() {
   drawSubstrateCurve(ctx, innerStartX, innerBottom, innerWidth, 'ground_blue', materials.ground_blue.color);
   drawSubstrateCurve(ctx, innerStartX, innerBottom, innerWidth, 'ground_green', materials.ground_green.color);
   
+  // Draw Theme Decors (like Coral Reef neon corals)
+  drawThemeDecors(ctx, startX, endX, bottom, dim);
+  
   // 4. Draw Hardscape (Stones and Driftwoods)
   state.hardscapes.forEach((hs, idx) => {
     const isSelected = idx === selectedHardscapeIndex && state.step === 3;
@@ -2558,13 +2766,18 @@ function render() {
     ctx.stroke();
   }
   
-  // 8. Particles (Bubbles, Drops, Food)
+  // 8. Particles (Bubbles, Drops, Food, Cherry Blossoms)
   drawParticles(ctx);
+  
+  // Draw dropped pearls lying on the substrate
+  drawDroppedPearls(ctx);
   
   // 9. Draw Fishes
   state.fishes.forEach(fish => {
     drawFaunaObject(ctx, fish);
   });
+  // Draw floating texts (score notifications, fish thought text) on top of fish
+  drawFloatingTexts(ctx);
   
   // 10. Algae glass blur overlay (restricted to inner glass)
   if (algaeLevel > 0.05) {
@@ -3108,7 +3321,8 @@ function drawFaunaObject(ctx, f) {
   else {
     // Fishes swimming
     ctx.rotate(f.angle + (f.vx < 0 ? Math.PI : 0));
-    ctx.scale(f.vx < 0 ? -1 : 1, 1); // Flip facing direction
+    const sizeScale = f.sizeScale || 1.0;
+    ctx.scale((f.vx < 0 ? -1 : 1) * sizeScale, sizeScale); // Flip facing direction and apply growth scale
     
     if (f.type === 'neon') {
       // Neon tetra: glowing blue stripe + red tail
@@ -3207,6 +3421,203 @@ function drawFaunaObject(ctx, f) {
       ctx.fill();
       ctx.restore();
     }
+    else if (f.type === 'goldfish') {
+      // Goldfish / Koi: Orange-white flowy body
+      ctx.fillStyle = '#f5f5f5'; // White base
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 14, 6.5, 0, 0, Math.PI*2);
+      ctx.fill();
+      
+      // Orange patches
+      ctx.fillStyle = '#ff6d00';
+      ctx.beginPath();
+      ctx.ellipse(3, -2, 4, 3, Math.PI/6, 0, Math.PI*2);
+      ctx.ellipse(-4, 1, 5, 2.5, -Math.PI/4, 0, Math.PI*2);
+      ctx.fill();
+      
+      // Eye
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(9, -2, 1.8, 0, Math.PI*2);
+      ctx.fill();
+      
+      // Flowing tail fins
+      ctx.save();
+      ctx.translate(-14, 0);
+      ctx.rotate(wag);
+      ctx.fillStyle = 'rgba(255, 109, 0, 0.8)';
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(-8, -8, -12, -4, -16, -6);
+      ctx.bezierCurveTo(-12, 0, -12, 0, -16, 6);
+      ctx.bezierCurveTo(-12, 4, -8, 8, 0, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+    else if (f.type === 'jellyfish') {
+      // Jellyfish: neon purple pulsing dome, trailing tentacles
+      ctx.fillStyle = 'rgba(186, 85, 211, 0.6)';
+      ctx.strokeStyle = '#DA70D6';
+      ctx.lineWidth = 1.5;
+      
+      // Pulse animation
+      const pulse = 1.0 + Math.sin(time * 3) * 0.15;
+      
+      ctx.save();
+      ctx.scale(pulse, 2 - pulse);
+      ctx.beginPath();
+      ctx.arc(0, -2, 10, Math.PI, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+      
+      // Wavy tentacles
+      ctx.strokeStyle = '#BA55D3';
+      ctx.lineWidth = 1.2;
+      const tentacleSway = Math.sin(time * 2) * 3;
+      for (let i = -6; i <= 6; i += 4) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.quadraticCurveTo(i + tentacleSway, 8, i, 16);
+        ctx.stroke();
+      }
+    }
+    else if (f.type === 'discus') {
+      // Discus: vertical flat disk, bright stripes
+      ctx.fillStyle = '#e74c3c';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 12, 14, 0, 0, Math.PI*2);
+      ctx.fill();
+      
+      // Bright blue neon stripes
+      ctx.strokeStyle = '#3498db';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-5, -11); ctx.lineTo(-5, 11);
+      ctx.moveTo(0, -12); ctx.lineTo(0, 12);
+      ctx.moveTo(5, -11); ctx.lineTo(5, 11);
+      ctx.stroke();
+      
+      // Big eye
+      ctx.fillStyle = '#f1c40f';
+      ctx.beginPath();
+      ctx.arc(6, -4, 2.5, 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(6.5, -4, 1.2, 0, Math.PI*2);
+      ctx.fill();
+      
+      // Tiny tail
+      ctx.save();
+      ctx.translate(-12, 0);
+      ctx.rotate(wag);
+      ctx.fillStyle = 'rgba(231, 76, 60, 0.7)';
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-4, -4);
+      ctx.lineTo(-4, 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+    else if (f.type === 'angler') {
+      // Angler: deep-sea round monster, sharp teeth, glowing rod
+      ctx.fillStyle = '#34495e';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 14, 11, 0, 0, Math.PI*2);
+      ctx.fill();
+      
+      // Big jaw outline
+      ctx.strokeStyle = '#2c3e50';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(4, 3);
+      ctx.lineTo(12, 1);
+      ctx.stroke();
+      
+      // Sharp teeth (white triangles)
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(5, 2); ctx.lineTo(7, -1); ctx.lineTo(9, 2);
+      ctx.moveTo(8, 2); ctx.lineTo(10, 5); ctx.lineTo(12, 2);
+      ctx.fill();
+      
+      // Eye
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(4, -4, 2.2, 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(4, -4, 1.0, 0, Math.PI*2);
+      ctx.fill();
+      
+      // Glowing rod
+      ctx.strokeStyle = '#95a5a6';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(1, -9);
+      ctx.quadraticCurveTo(8, -18, 14, -13);
+      ctx.stroke();
+      
+      // Light bulb
+      ctx.fillStyle = '#f1c40f';
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = '#f1c40f';
+      ctx.beginPath();
+      ctx.arc(14, -13, 3.5, 0, Math.PI*2);
+      ctx.fill();
+      ctx.shadowBlur = 0; // Reset
+      
+      // Small wagging tail
+      ctx.save();
+      ctx.translate(-14, 0);
+      ctx.rotate(wag);
+      ctx.fillStyle = '#34495e';
+      ctx.beginPath();
+      ctx.moveTo(0,0);
+      ctx.lineTo(-4, -4);
+      ctx.lineTo(-4, 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+    else if (f.type === 'whale') {
+      // Whale: large dark blue leviathan, white belly, tiny eye
+      ctx.fillStyle = '#2c3e50';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 24, 13, 0, 0, Math.PI*2);
+      ctx.fill();
+      
+      // White belly
+      ctx.fillStyle = '#ecf0f1';
+      ctx.beginPath();
+      ctx.ellipse(1, 4, 18, 6.5, 0, 0, Math.PI);
+      ctx.fill();
+      
+      // Tiny eye
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(16, -3, 1.2, 0, Math.PI*2);
+      ctx.fill();
+      
+      // Tail fin
+      ctx.save();
+      ctx.translate(-24, 0);
+      ctx.rotate(wag * 0.6);
+      ctx.fillStyle = '#2c3e50';
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-7, -8);
+      ctx.lineTo(-5, 0);
+      ctx.lineTo(-7, 8);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
     else {
       // Default orange/gold generic fish for slot machine fishes when images fail to load
       ctx.fillStyle = '#ff9100';
@@ -3242,5 +3653,418 @@ function drawFaunaObject(ctx, f) {
     }
   }
   
+  // Hunger bubble (Leaf 🍂 bubble drawn above the fish if it is starving)
+  if (f.hunger < 30 && f.type !== 'cherry') {
+    ctx.save();
+    // Neutralize parent rotation and flips so the thought bubble stays upright
+    ctx.rotate(-f.angle - (f.vx < 0 ? Math.PI : 0));
+    ctx.scale(f.vx < 0 ? -1 : 1, 1);
+    
+    // Draw bubble
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+    ctx.lineWidth = 1;
+    
+    const bx = 0;
+    const by = -f.size - 18;
+    ctx.beginPath();
+    ctx.arc(bx, by, 10, 0, Math.PI*2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Tiny thought bubble dots
+    ctx.beginPath();
+    ctx.arc(bx - 5, by + 12, 3, 0, Math.PI*2);
+    ctx.arc(bx - 2, by + 16, 2, 0, Math.PI*2);
+    ctx.fill();
+    ctx.stroke();
+    
+    ctx.font = '10px var(--font-body)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🍂', bx, by);
+    ctx.restore();
+  }
+  
   ctx.restore();
 }
+
+// -------------------------------------------------------------
+// ADVANCED GAME PLAY & THEME DRAWING HELPERS
+// -------------------------------------------------------------
+
+// Draw neon corals on substrate for Reef theme
+function drawThemeDecors(ctx, startX, endX, bottom, dim) {
+  if (state.activeTheme === 'reef') {
+    ctx.save();
+    // Coral 1 (Left)
+    const cx1 = startX + dim.width * 0.25;
+    const cy1 = bottom - (state.substrate.sand[10] + state.substrate.soil[10] + state.substrate.base[10] || 20);
+    ctx.translate(cx1, cy1);
+    drawNeonCoral(ctx, -15, 0.8, '#FF007F'); // Hot pink coral
+    ctx.restore();
+    
+    ctx.save();
+    // Coral 2 (Right)
+    const cx2 = startX + dim.width * 0.75;
+    const cy2 = bottom - (state.substrate.sand[30] + state.substrate.soil[30] + state.substrate.base[30] || 20);
+    ctx.translate(cx2, cy2);
+    drawNeonCoral(ctx, 15, 1.0, '#00F0FF'); // Cyan coral
+    ctx.restore();
+  }
+}
+
+// Draw a single branching neon coral
+function drawNeonCoral(ctx, angleDeg, scale, color) {
+  ctx.save();
+  ctx.scale(scale, scale);
+  ctx.rotate(angleDeg * Math.PI / 180);
+  
+  // Neon glow shadows
+  ctx.shadowBlur = 15;
+  ctx.shadowColor = color;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 6;
+  ctx.lineCap = 'round';
+  
+  // Main stem
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.quadraticCurveTo(-10, -25, -5, -45);
+  ctx.stroke();
+  
+  // Left branch
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(-7, -20);
+  ctx.quadraticCurveTo(-25, -35, -20, -50);
+  ctx.stroke();
+  
+  // Right branch
+  ctx.beginPath();
+  ctx.moveTo(-3, -32);
+  ctx.quadraticCurveTo(15, -42, 12, -55);
+  ctx.stroke();
+  
+  ctx.restore();
+}
+
+// Render dropped pearls on the bottom substrate
+function drawDroppedPearls(ctx) {
+  droppedPearls.forEach(p => {
+    ctx.save();
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = '#D4AF37'; // Golden glow
+    ctx.fillStyle = '#E0B0FF';   // Purple pearl body
+    ctx.strokeStyle = '#D4AF37'; // Golden border
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size || 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  });
+}
+
+// Render floating notification text labels
+function drawFloatingTexts(ctx) {
+  floatingTexts.forEach(t => {
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, t.life);
+    ctx.font = 'bold 12px var(--font-body)';
+    ctx.fillStyle = t.color || 'var(--color-primary)';
+    ctx.textAlign = 'center';
+    ctx.fillText(t.text, t.x, t.y);
+    ctx.restore();
+  });
+}
+
+// Switch themes & handle pearl unlock mechanics
+function switchTheme(theme) {
+  if (theme === 'river') {
+    state.activeTheme = 'river';
+    showToast("🌿 Đã chuyển sang chủ đề Sông nhiệt đới");
+  } else if (theme === 'reef') {
+    if (state.unlockedThemes.includes('reef')) {
+      state.activeTheme = 'reef';
+      showToast("🪸 Đã chuyển sang chủ đề Coral Reef");
+    } else {
+      // Try to unlock with 50 pearls
+      if ((state.pearls || 0) >= 50) {
+        state.pearls -= 50;
+        state.unlockedThemes.push('reef');
+        state.activeTheme = 'reef';
+        showToast("🔓 Đã mở khóa Coral Reef (50 🔮)!");
+        playSmallWinChime();
+      } else {
+        showToast("❌ Không đủ ngọc trai! Cần 50 🔮");
+        playSadBuzzSound();
+        return;
+      }
+    }
+  } else if (theme === 'zen') {
+    if (state.unlockedThemes.includes('zen')) {
+      state.activeTheme = 'zen';
+      showToast("🌸 Đã chuyển sang chủ đề Ao Zen");
+    } else {
+      // Try to unlock with 100 pearls
+      if ((state.pearls || 0) >= 100) {
+        state.pearls -= 100;
+        state.unlockedThemes.push('zen');
+        state.activeTheme = 'zen';
+        showToast("🔓 Đã mở khóa Ao Zen (100 🔮)!");
+        playSmallWinChime();
+      } else {
+        showToast("❌ Không đủ ngọc trai! Cần 100 🔮");
+        playSadBuzzSound();
+        return;
+      }
+    }
+  }
+  
+  // Re-render Step 8 HTML to update selected state and lock/unlock labels
+  if (state.step === 8) {
+    loadToolbox();
+  }
+  
+  updateUI();
+  saveStateToServer();
+}
+
+// -------------------------------------------------------------
+// GACHA / SLOT MACHINE CONTROLLER
+// -------------------------------------------------------------
+
+function spinGacha() {
+  if (isSpinningGacha) return;
+  
+  if ((state.pearls || 0) < 10) {
+    showToast("❌ Không đủ ngọc trai! Cần 10 🔮");
+    playSadBuzzSound();
+    return;
+  }
+  
+  // Deduct 10 pearls
+  state.pearls -= 10;
+  updateUI();
+  saveStateToServer();
+  
+  isSpinningGacha = true;
+  const btnSpin = document.getElementById('btn-spin-slot');
+  btnSpin.disabled = true;
+  
+  const resultText = document.getElementById('gacha-result-text');
+  resultText.textContent = "🎰 Đang quay...";
+  resultText.style.color = "var(--text-main)";
+  
+  // Pre-determine outcome
+  const roll = Math.random();
+  let winType = 0; // 0: no match, 1: 2-match (refund 5), 2: 3-match (win rare fish)
+  let wonBreed = null;
+  let finalReels = [];
+  
+  const allReelsPool = ['🐟', '🐠', '🦐', '🐡', '🎏', '👾', '🐙', '🦑', '🐋'];
+  const rareBreeds = [
+    { type: 'goldfish', emoji: '🎏', label: 'Cá Chép Koi 🎏', weight: 0.40 },
+    { type: 'discus', emoji: '🐙', label: 'Cá Đĩa Đỏ 🐙', weight: 0.30 },
+    { type: 'angler', emoji: '🦑', label: 'Cá Lồng Đèn 🦑', weight: 0.18 },
+    { type: 'jellyfish', emoji: '👾', label: 'Sứa Neon 👾', weight: 0.10 },
+    { type: 'whale', emoji: '🐋', label: 'Cá Voi Xanh 🐋', weight: 0.02 }
+  ];
+  
+  if (roll < 0.15) {
+    // 3-match win (15% chance)
+    winType = 2;
+    // Roll rare breed based on weights
+    const breedRoll = Math.random();
+    let cumulative = 0;
+    wonBreed = rareBreeds[0];
+    for (let rb of rareBreeds) {
+      cumulative += rb.weight;
+      if (breedRoll < cumulative) {
+        wonBreed = rb;
+        break;
+      }
+    }
+    finalReels = [wonBreed.emoji, wonBreed.emoji, wonBreed.emoji];
+  } else if (roll < 0.50) {
+    // 2-match win (35% chance)
+    winType = 1;
+    // Pick an emoji to match
+    const matchEmoji = allReelsPool[Math.floor(Math.random() * allReelsPool.length)];
+    // Pick a different emoji for the third
+    let diffEmoji = matchEmoji;
+    while (diffEmoji === matchEmoji) {
+      diffEmoji = allReelsPool[Math.floor(Math.random() * allReelsPool.length)];
+    }
+    // Randomize position of diffEmoji
+    const pos = Math.floor(Math.random() * 3);
+    if (pos === 0) finalReels = [diffEmoji, matchEmoji, matchEmoji];
+    else if (pos === 1) finalReels = [matchEmoji, diffEmoji, matchEmoji];
+    else finalReels = [matchEmoji, matchEmoji, diffEmoji];
+  } else {
+    // Lose / No matches (50% chance)
+    winType = 0;
+    // Pick 3 unique random emojis
+    const shuffled = [...allReelsPool].sort(() => 0.5 - Math.random());
+    finalReels = [shuffled[0], shuffled[1], shuffled[2]];
+  }
+  
+  // Animation loop
+  let reel1Stopped = false;
+  let reel2Stopped = false;
+  let reel3Stopped = false;
+  
+  const r1 = document.getElementById('reel-1');
+  const r2 = document.getElementById('reel-2');
+  const r3 = document.getElementById('reel-3');
+  
+  initAudio();
+  
+  let spinCounter = 0;
+  const spinInterval = setInterval(() => {
+    spinCounter++;
+    
+    if (!reel1Stopped) r1.textContent = allReelsPool[Math.floor(Math.random() * allReelsPool.length)];
+    if (!reel2Stopped) r2.textContent = allReelsPool[Math.floor(Math.random() * allReelsPool.length)];
+    if (!reel3Stopped) r3.textContent = allReelsPool[Math.floor(Math.random() * allReelsPool.length)];
+    
+    playTickSound();
+    
+    // Stop reels one by one
+    if (spinCounter === 6) {
+      reel1Stopped = true;
+      r1.textContent = finalReels[0];
+    }
+    if (spinCounter === 12) {
+      reel2Stopped = true;
+      r2.textContent = finalReels[1];
+    }
+    if (spinCounter === 18) {
+      reel3Stopped = true;
+      r3.textContent = finalReels[2];
+      clearInterval(spinInterval);
+      
+      // Handle result after a tiny delay
+      setTimeout(() => {
+        if (winType === 2) {
+          resultText.textContent = `🎉 Bạn trúng 3 hình! Nhận cá hiếm: ${wonBreed.label}!`;
+          resultText.style.color = "var(--color-success)";
+          playVictoryChime();
+          spawnFauna(wonBreed.type);
+        } else if (winType === 1) {
+          resultText.textContent = "⚖️ Trúng 2 hình! Hoàn lại 5 🔮";
+          resultText.style.color = "var(--color-warning)";
+          playSmallWinChime();
+          state.pearls = (state.pearls || 0) + 5;
+        } else {
+          resultText.textContent = "😢 Tiếc quá! Chúc bạn may mắn lần sau.";
+          resultText.style.color = "var(--color-danger)";
+          playSadBuzzSound();
+        }
+        
+        isSpinningGacha = false;
+        btnSpin.disabled = false;
+        
+        updateUI();
+        saveStateToServer();
+      }, 100);
+    }
+  }, 80);
+}
+
+// -------------------------------------------------------------
+// SYNTHESIZER SOUND GENERATORS (Web Audio API)
+// -------------------------------------------------------------
+
+function playTickSound() {
+  if (!audioCtx || !soundActive) return;
+  try {
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+    osc.frequency.setValueAtTime(45, audioCtx.currentTime + 0.02);
+    
+    gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.03);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.04);
+  } catch (e) {
+    console.error("Tick synth error:", e);
+  }
+}
+
+function playSadBuzzSound() {
+  if (!audioCtx || !soundActive) return;
+  try {
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(110, audioCtx.currentTime);
+    osc.frequency.linearRampToValueAtTime(65, audioCtx.currentTime + 0.35);
+    
+    gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.38);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.4);
+  } catch (e) {
+    console.error("Sad buzz error:", e);
+  }
+}
+
+function playSmallWinChime() {
+  if (!audioCtx || !soundActive) return;
+  try {
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+    osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+    
+    gainNode.gain.setValueAtTime(0.03, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.25);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.3);
+  } catch (e) {
+    console.error("Small win chime error:", e);
+  }
+}
+
+function playVictoryChime() {
+  if (!audioCtx || !soundActive) return;
+  try {
+    const now = audioCtx.currentTime;
+    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+    notes.forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      osc.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + i * 0.12);
+      
+      gainNode.gain.setValueAtTime(0.03, now + i * 0.12);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.12 + 0.3);
+      
+      osc.start(now + i * 0.12);
+      osc.stop(now + i * 0.12 + 0.32);
+    });
+  } catch (e) {
+    console.error("Victory chime error:", e);
+  }
+}
+
