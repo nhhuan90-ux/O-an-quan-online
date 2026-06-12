@@ -1126,28 +1126,33 @@ body {
 .binairo-relation-marker {
   position: absolute;
   transform: translate(-50%, -50%);
-  width: 18px;
-  height: 18px;
-  line-height: 16px;
+  width: 20px;
+  height: 20px;
+  line-height: 18px;
   text-align: center;
   border-radius: 50%;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   font-family: monospace;
   z-index: 10;
   color: #ffffff;
   pointer-events: none;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(4px);
 }
 
 .binairo-relation-marker.eq {
   background: rgba(52, 199, 89, 0.9);
-  box-shadow: 0 0 8px rgba(52, 199, 89, 0.8);
+  box-shadow: 0 0 10px rgba(52, 199, 89, 0.8);
 }
 
 .binairo-relation-marker.neq {
   background: rgba(255, 159, 10, 0.9);
-  box-shadow: 0 0 8px rgba(255, 159, 10, 0.8);
+  box-shadow: 0 0 10px rgba(255, 159, 10, 0.8);
+}
+
+.binairo-relation-marker.vert.eq {
+  transform: translate(-50%, -50%) rotate(90deg);
 }
 
 /* ==========================================================================

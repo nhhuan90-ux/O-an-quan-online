@@ -260,7 +260,7 @@ class ThermometersGame {
       }
     } else if (dir === 'D') {
       if (isBulb) {
-        pathStr = 'M 36 50 L 36 100 L 64 100 L 64 50 A 20 20 0 1 1 36 50 Z';
+        pathStr = 'M 36 50 L 36 100 L 64 100 L 64 50 A 20 20 0 1 0 36 50 Z';
       } else if (isEnd) {
         pathStr = 'M 36 0 L 36 70 A 14 14 0 0 0 64 70 L 64 0 Z';
       } else {
@@ -268,7 +268,7 @@ class ThermometersGame {
       }
     } else if (dir === 'U') {
       if (isBulb) {
-        pathStr = 'M 36 50 L 36 0 L 64 0 L 64 50 A 20 20 0 1 0 36 50 Z';
+        pathStr = 'M 36 50 L 36 0 L 64 0 L 64 50 A 20 20 0 1 1 36 50 Z';
       } else if (isEnd) {
         pathStr = 'M 36 100 L 36 30 A 14 14 0 0 1 64 30 L 64 100 Z';
       } else {
