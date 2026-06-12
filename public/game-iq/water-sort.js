@@ -129,6 +129,18 @@ class WaterSortGame {
       this.initialTubes = JSON.parse(JSON.stringify(this.tubes));
       this.solutionPath = this.solveBFS(this.tubes) || [];
     }
+    this.initHiddenState();
+  }
+
+  initHiddenState() {
+    this.hiddenState = this.tubes.map(tube => {
+      // Hide the bottom 2 segments for all filled tubes only on hard level (colorCount === 7)
+      if (tube.length === 4 && this.colorCount === 7) {
+        return [true, true, false, false];
+      } else {
+        return Array(tube.length).fill(false);
+      }
+    });
   }
 
   render(container) {
@@ -216,25 +228,50 @@ class WaterSortGame {
       }
 
       // Render liquid segments
-      tube.forEach(colorVal => {
+      tube.forEach((colorVal, segIdx) => {
         const seg = document.createElement('div');
         seg.className = 'liquid-segment';
         seg.style.width = '100%';
         seg.style.height = '29px';
         seg.style.borderRadius = '5px';
-        seg.style.background = colorGradients[colorVal];
-        seg.style.boxShadow = 'inset 0 2px 4px rgba(255, 255, 255, 0.2), 0 2px 5px rgba(0, 0, 0, 0.3)';
+        seg.style.position = 'relative'; // Ensure relative layout for absolute center positioning
         
-        // Add subtle water bubble texture
-        const bubble = document.createElement('div');
-        bubble.style.position = 'absolute';
-        bubble.style.width = '4px';
-        bubble.style.height = '4px';
-        bubble.style.borderRadius = '50%';
-        bubble.style.background = 'rgba(255, 255, 255, 0.3)';
-        bubble.style.left = `${Math.random() * 26 + 5}px`;
-        bubble.style.top = `${Math.random() * 18 + 5}px`;
-        seg.appendChild(bubble);
+        const isHidden = this.hiddenState && this.hiddenState[idx] && this.hiddenState[idx][segIdx];
+        if (isHidden) {
+          seg.style.background = 'linear-gradient(180deg, #2c2c2e, #1c1c1e)';
+          seg.style.boxShadow = 'inset 0 0 5px rgba(0, 0, 0, 0.8), 0 1px 3px rgba(0, 0, 0, 0.4)';
+          seg.style.border = '1px dashed rgba(255, 255, 255, 0.15)';
+          
+          const questionMark = document.createElement('div');
+          questionMark.innerText = '?';
+          questionMark.style.position = 'absolute';
+          questionMark.style.top = '0';
+          questionMark.style.left = '0';
+          questionMark.style.width = '100%';
+          questionMark.style.height = '100%';
+          questionMark.style.display = 'flex';
+          questionMark.style.justifyContent = 'center';
+          questionMark.style.alignItems = 'center';
+          questionMark.style.color = 'rgba(255, 255, 255, 0.5)';
+          questionMark.style.fontWeight = 'bold';
+          questionMark.style.fontSize = '14px';
+          questionMark.style.fontFamily = 'var(--font-body)';
+          seg.appendChild(questionMark);
+        } else {
+          seg.style.background = colorGradients[colorVal];
+          seg.style.boxShadow = 'inset 0 2px 4px rgba(255, 255, 255, 0.2), 0 2px 5px rgba(0, 0, 0, 0.3)';
+          
+          // Add subtle water bubble texture
+          const bubble = document.createElement('div');
+          bubble.style.position = 'absolute';
+          bubble.style.width = '4px';
+          bubble.style.height = '4px';
+          bubble.style.borderRadius = '50%';
+          bubble.style.background = 'rgba(255, 255, 255, 0.3)';
+          bubble.style.left = `${Math.random() * 26 + 5}px`;
+          bubble.style.top = `${Math.random() * 18 + 5}px`;
+          seg.appendChild(bubble);
+        }
 
         tubeDiv.appendChild(seg);
       });
@@ -315,11 +352,15 @@ class WaterSortGame {
     
     const colorVal = src[src.length - 1];
     
-    // Count how many consecutive same-color layers at the top of src
+    // Count how many consecutive same-color layers at the top of src (only visible/revealed ones)
     let count = 0;
     for (let i = src.length - 1; i >= 0; i--) {
-      if (src[i] === colorVal) count++;
-      else break;
+      const isSegHidden = this.hiddenState && this.hiddenState[srcIdx] && this.hiddenState[srcIdx][i];
+      if (src[i] === colorVal && !isSegHidden) {
+        count++;
+      } else {
+        break;
+      }
     }
 
     // Limit by destination capacity
@@ -330,6 +371,17 @@ class WaterSortGame {
     for (let i = 0; i < pourAmount; i++) {
       src.pop();
       dest.push(colorVal);
+      
+      // Update hidden states
+      if (this.hiddenState) {
+        this.hiddenState[srcIdx].pop();
+        this.hiddenState[destIdx].push(false); // Poured color is always visible
+      }
+    }
+
+    // Reveal new top segment of the source tube if it was hidden
+    if (this.hiddenState && src.length > 0) {
+      this.hiddenState[srcIdx][src.length - 1] = false;
     }
 
     this.renderTubes(document.getElementById('board-container'));
@@ -416,13 +468,15 @@ class WaterSortGame {
 
   serialize() {
     return JSON.stringify({
-      tubes: this.tubes
+      tubes: this.tubes,
+      hiddenState: this.hiddenState
     });
   }
 
   deserialize(stateString) {
     const state = JSON.parse(stateString);
     this.tubes = state.tubes;
+    this.hiddenState = state.hiddenState;
     this.renderTubes(document.getElementById('board-container'));
   }
 
