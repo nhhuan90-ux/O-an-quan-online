@@ -4,13 +4,7 @@
  */
 
 // Base path for assets - Use jsDelivr CDN in production (Render.com), local path in local development
-const isDev = window.location.hostname === 'localhost' || 
-              window.location.hostname === '127.0.0.1' || 
-              window.location.hostname.startsWith('192.168.') || 
-              window.location.hostname.startsWith('10.') || 
-              window.location.protocol === 'file:' || 
-              window.location.port !== '';
-const ASSETS_BASE = isDev ? './assets/' : 'https://cdn.jsdelivr.net/gh/nhhuan90-ux/O-an-quan-online@master/public/be-ca-thuy-sinh/assets/';
+const ASSETS_BASE = './assets/';
 
 // Assets files definitions
 const assetFiles = {
