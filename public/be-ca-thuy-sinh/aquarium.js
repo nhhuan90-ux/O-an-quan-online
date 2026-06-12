@@ -2682,13 +2682,29 @@ function render() {
   ctx.fillRect(startX - 20, bottom + 5, dim.width + 40, 20);
   ctx.fillStyle = '#2c221a';
   ctx.fillRect(startX - 30, bottom + 12, dim.width + 60, 4);
-  // 2. Draw glass background tint (pixel-art image matching active theme)
+  // 2. Draw glass background tint (gradient fallback + pixel-art image matching active theme)
   const isNight = document.body.classList.contains('theme-dark');
-  let bgKey = 'bg_default';
-  if (state.activeTheme === 'reef') bgKey = 'bg_mavi';
-  else if (state.activeTheme === 'zen') bgKey = 'bg_purple';
   
-  const bgImg = loadedImages[bgKey] || loadedImages['bg_default'];
+  // Draw premium gradient background matching the active theme first
+  let bgGrad = ctx.createLinearGradient(innerStartX, innerTop, innerStartX, innerBottom);
+  if (state.activeTheme === 'reef') {
+    bgGrad.addColorStop(0, '#240f47');
+    bgGrad.addColorStop(1, '#080315');
+  } else if (state.activeTheme === 'zen') {
+    bgGrad.addColorStop(0, '#6e4352');
+    bgGrad.addColorStop(1, '#1a0a10');
+  } else { // 'river' default
+    bgGrad.addColorStop(0, '#104e73');
+    bgGrad.addColorStop(1, '#051a2e');
+  }
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(innerStartX, innerTop, innerWidth, innerHeight);
+
+  // Layer the pixel-art background image if available (avoid using transparent checkerboard 'bg_default')
+  let bgKey = 'bg_mavi';
+  if (state.activeTheme === 'zen') bgKey = 'bg_purple';
+  
+  const bgImg = loadedImages[bgKey];
   if (bgImg) {
     ctx.save();
     ctx.imageSmoothingEnabled = false; // Prevent blurring of pixel art
@@ -2696,7 +2712,7 @@ function render() {
     const bbox = getImageBBox(bgImg);
     
     if (bbox.w <= 64 && bbox.h <= 64) {
-      // Tile small patterns (like bg_default which is 32x32)
+      // Tile small patterns
       const pattern = ctx.createPattern(bgImg, 'repeat');
       ctx.fillStyle = pattern;
       ctx.translate(innerStartX, innerTop);
@@ -2710,9 +2726,6 @@ function render() {
       );
     }
     ctx.restore();
-  } else {
-    ctx.fillStyle = 'rgba(128, 208, 235, 0.05)';
-    ctx.fillRect(innerStartX, innerTop, innerWidth, innerHeight);
   }
   
   // If night mode, draw a dark blue ambient overlay over the background
