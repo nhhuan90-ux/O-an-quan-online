@@ -443,12 +443,12 @@ class PipesGame {
     // 1. Trace powered flow (already computed)
     const powered = Array(this.height).fill(null).map(() => Array(this.width).fill(false));
     const visited = Array(this.height).fill(null).map(() => Array(this.width).fill(false));
-    const queue = [this.powerSource];
+    // Each queue element stores: { r, c, parentR, parentC }
+    const queue = [{ r: this.powerSource.r, c: this.powerSource.c, pr: -1, pc: -1 }];
     powered[this.powerSource.r][this.powerSource.c] = true;
     visited[this.powerSource.r][this.powerSource.c] = true;
 
     let totalPowered = 1;
-    let connectionsCount = 0;
     let hasLoops = false;
 
     while (queue.length > 0) {
@@ -470,15 +470,19 @@ class PipesGame {
           const nr = r + dir.dr;
           const nc = c + dir.dc;
 
+          // Skip the parent node we just came from
+          if (nr === curr.pr && nc === curr.pc) {
+            continue;
+          }
+
           if (nr >= 0 && nr < this.height && nc >= 0 && nc < this.width) {
             const neighborConns = this.getConnections(nr, nc);
             if (neighborConns[dir.opp]) {
-              connectionsCount++;
               if (!visited[nr][nc]) {
                 visited[nr][nc] = true;
                 powered[nr][nc] = true;
                 totalPowered++;
-                queue.push({ r: nr, c: nc });
+                queue.push({ r: nr, c: nc, pr: r, pc: c });
               } else {
                 // Already visited neighbor via another path -> closed loop!
                 hasLoops = true;
@@ -488,9 +492,6 @@ class PipesGame {
         }
       }
     }
-
-    // Since each edge is counted twice (A->B and B->A), divide by 2
-    connectionsCount = connectionsCount / 2;
 
     const allConnected = totalPowered === this.width * this.height;
     

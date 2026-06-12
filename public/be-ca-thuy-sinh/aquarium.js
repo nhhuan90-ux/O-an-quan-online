@@ -64,7 +64,8 @@ const assetFiles = {
   'akvaryumkapali': 'akvaryumkapali.png',
   'akvaryum_pembe': 'akvaryum_pembe.png',
   'decor_skull': 'skull.png',
-  'decor_kask': 'kask.png'
+  'decor_kask': 'kask.png',
+  'decor_bonsai_bay': 'bonsai_bay.png'
 };
 
 // Add fish2 to fish22 dynamically (skip non-existent fish7)
@@ -160,7 +161,9 @@ let state = {
   substrate: {
     base: Array(40).fill(15), // Height values across 40 segments
     soil: Array(40).fill(30),
-    sand: Array(40).fill(0)
+    sand: Array(40).fill(0),
+    ground_blue: Array(40).fill(0),
+    ground_green: Array(40).fill(0)
   },
   hardscapes: [], // { type, x, y, scale, rotation }
   plants: [], // { type, x, y, size }
@@ -227,7 +230,9 @@ const tankDims = {
 const materials = {
   base: { color: '#8d6d53', label: 'Cốt nền JBL', desc: 'Dinh dưỡng lót đáy bể' },
   soil: { color: '#2b241e', label: 'Phân nền ADA', desc: 'Đất công nghiệp hạt đen' },
-  sand: { color: '#e5c185', label: 'Cát nắng vàng', desc: 'Cát trang trí thẩm mỹ' }
+  sand: { color: '#e5c185', label: 'Cát nắng vàng', desc: 'Cát trang trí thẩm mỹ' },
+  ground_blue: { color: '#1a73e8', label: 'Cát xanh biển 🌊', desc: 'Cát màu xanh nước biển rực rỡ' },
+  ground_green: { color: '#2e7d32', label: 'Đất rong rêu 🟢', desc: 'Nền rêu xanh tươi mát' }
 };
 
 const hardscapeItems = {
@@ -242,7 +247,8 @@ const hardscapeItems = {
   castle: { label: 'Lâu Đài Cổ 🏰', imageKey: 'plant_22', desc: 'Phế tích lâu đài bí ẩn', bbox: { x: 132, y: 72, w: 132, h: 168 }, icon: '🏰' },
   helmet: { label: 'Mũ Giáp Cổ ⛑️', imageKey: 'decor_kask', desc: 'Mũ hiệp sĩ chìm đáy', bbox: { x: 140, y: 100, w: 120, h: 100 }, icon: '⛑️' },
   ship: { label: 'Tàu Đắm Cổ 🚢', imageKey: 'plant_15', desc: 'Xác tàu gỗ đắm chìm', bbox: { x: 108, y: 92, w: 184, h: 112 }, icon: '🚢' },
-  mushroom_house: { label: 'Nhà Nấm 🍄', imageKey: 'plant_19', desc: 'Nhà nấm trang trí dễ thương', bbox: { x: 104, y: 52, w: 184, h: 200 }, icon: '🍄' }
+  mushroom_house: { label: 'Nhà Nấm 🍄', imageKey: 'plant_19', desc: 'Nhà nấm trang trí dễ thương', bbox: { x: 104, y: 52, w: 184, h: 200 }, icon: '🍄' },
+  leaning_bonsai: { label: 'Bonsai Dáng Bay 🌿', imageKey: 'decor_bonsai_bay', desc: 'Bonsai thế bay bám đá rêu phong', bbox: { x: 0, y: 0, w: 320, h: 240 }, icon: '🌿' }
 };
 
 // Substrate profile generator helper
@@ -580,7 +586,9 @@ function sanitizeState(loadedState) {
     substrate: {
       base: Array(40).fill(15),
       soil: Array(40).fill(30),
-      sand: Array(40).fill(0)
+      sand: Array(40).fill(0),
+      ground_blue: Array(40).fill(0),
+      ground_green: Array(40).fill(0)
     },
     hardscapes: [],
     plants: [],
@@ -607,7 +615,7 @@ function sanitizeState(loadedState) {
   const merged = { ...defaultState, ...loadedState };
   
   merged.substrate = { ...defaultState.substrate, ...(loadedState.substrate || {}) };
-  ['base', 'soil', 'sand'].forEach(k => {
+  ['base', 'soil', 'sand', 'ground_blue', 'ground_green'].forEach(k => {
     if (!Array.isArray(merged.substrate[k]) || merged.substrate[k].length !== 40) {
       merged.substrate[k] = Array(40).fill(k === 'base' ? 15 : (k === 'soil' ? 30 : 0));
     }
@@ -675,6 +683,8 @@ async function saveStateToServer(immediate = false) {
 
 // Navigation Steps
 function updateStepUI() {
+  selectedHardscapeIndex = -1;
+  selectedPlantIndex = -1;
   const stepsList = document.querySelectorAll('#setup-steps-list .step-item');
   stepsList.forEach((item, idx) => {
     const stepNum = idx + 1;
@@ -722,6 +732,9 @@ function updateStepUI() {
 
 // Generate Toolbox Content
 function loadToolbox() {
+  const grid = document.querySelector('.fish-selection-grid');
+  const fishScrollTop = grid ? grid.scrollTop : 0;
+
   const container = document.getElementById('toolbox-options-container');
   const title = document.getElementById('toolbox-title');
   container.innerHTML = '';
@@ -774,21 +787,26 @@ function loadToolbox() {
       title.textContent = 'Rải Phân Nền & Đất';
       container.innerHTML = `
         <p class="tool-desc" style="margin-bottom:10px;">Chọn vật liệu bên dưới, sau đó nhấn giữ kéo trên mặt đáy bể cá để đắp đất nền:</p>
-        <div class="tool-grid">
+        <div class="tool-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px;">
           <div class="tool-card" id="card-brush-base" onclick="selectSubstrateBrush('base')">
             <span class="tool-icon" style="color:${materials.base.color}">🟫</span>
             <span class="tool-name">${materials.base.label}</span>
-            <span class="tool-desc">${materials.base.desc}</span>
           </div>
           <div class="tool-card" id="card-brush-soil" onclick="selectSubstrateBrush('soil')">
             <span class="tool-icon" style="color:${materials.soil.color}">⬛</span>
             <span class="tool-name">${materials.soil.label}</span>
-            <span class="tool-desc">${materials.soil.desc}</span>
           </div>
           <div class="tool-card" id="card-brush-sand" onclick="selectSubstrateBrush('sand')">
             <span class="tool-icon" style="color:${materials.sand.color}">🟨</span>
             <span class="tool-name">${materials.sand.label}</span>
-            <span class="tool-desc">${materials.sand.desc}</span>
+          </div>
+          <div class="tool-card" id="card-brush-ground_blue" onclick="selectSubstrateBrush('ground_blue')">
+            <span class="tool-icon" style="color:${materials.ground_blue.color}">🔵</span>
+            <span class="tool-name">${materials.ground_blue.label}</span>
+          </div>
+          <div class="tool-card" id="card-brush-ground_green" onclick="selectSubstrateBrush('ground_green')">
+            <span class="tool-icon" style="color:${materials.ground_green.color}">🟢</span>
+            <span class="tool-name">${materials.ground_green.label}</span>
           </div>
         </div>
         <div class="btn-action-block" style="margin-top: 15px;">
@@ -820,7 +838,7 @@ function loadToolbox() {
               <span>Phóng to/Thu nhỏ</span>
               <span id="txt-hs-scale">1.0x</span>
             </div>
-            <input type="range" id="slide-hs-scale" class="custom-range" min="0.4" max="2.0" step="0.05" value="1.0" oninput="adjustSelectedHardscape('scale', this.value)">
+            <input type="range" id="slide-hs-scale" class="custom-range" min="0.4" max="4.5" step="0.05" value="1.0" oninput="adjustSelectedHardscape('scale', this.value)">
           </div>
           <div class="control-slider-group">
             <div class="slider-header">
@@ -829,7 +847,11 @@ function loadToolbox() {
             </div>
             <input type="range" id="slide-hs-rotate" class="custom-range" min="-180" max="180" step="5" value="0" oninput="adjustSelectedHardscape('rotation', this.value)">
           </div>
-          <button class="btn-action" style="background:var(--color-danger); color:white; border:none;" onclick="removeSelectedHardscape()">🗑️ Xóa vật thể chọn</button>
+          <div style="display: flex; gap: 8px; margin-top: 5px;">
+            <button class="btn-action" style="flex: 1; margin: 0; font-size: 0.8rem; background: var(--color-secondary, #6c757d);" onclick="moveSelectedHardscapeZ('back')">⏬ Gửi ra sau</button>
+            <button class="btn-action" style="flex: 1; margin: 0; font-size: 0.8rem; background: var(--color-secondary, #6c757d);" onclick="moveSelectedHardscapeZ('front')">⏫ Đưa lên trước</button>
+          </div>
+          <button class="btn-action" style="background:var(--color-danger); color:white; border:none; margin-top: 5px;" onclick="removeSelectedHardscape()">🗑️ Xóa vật thể chọn</button>
         </div>
       `;
       container.innerHTML = html;
@@ -876,6 +898,22 @@ function loadToolbox() {
         </div>
         <div class="btn-action-block" style="margin-top: 15px;">
           <button class="btn-action" onclick="clearPlants()">🧹 Bứng hết cây</button>
+        </div>
+        
+        <div class="plant-controls" id="plant-sliders" style="display:none; margin-top: 15px; display:flex; flex-direction:column; gap:12px;">
+          <h4 style="font-size:0.9rem; font-weight:700;">Điều chỉnh Cây Đang Chọn:</h4>
+          <div class="control-slider-group">
+            <div class="slider-header">
+              <span>Phóng to/Thu nhỏ</span>
+              <span id="txt-plant-size">1.0x</span>
+            </div>
+            <input type="range" id="slide-plant-size" class="custom-range" min="0.4" max="4.5" step="0.05" value="1.0" oninput="adjustSelectedPlant('size', this.value)">
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 5px;">
+            <button class="btn-action" style="flex: 1; margin: 0; font-size: 0.8rem; background: var(--color-secondary, #6c757d);" onclick="moveSelectedPlantZ('back')">⏬ Gửi ra sau</button>
+            <button class="btn-action" style="flex: 1; margin: 0; font-size: 0.8rem; background: var(--color-secondary, #6c757d);" onclick="moveSelectedPlantZ('front')">⏫ Đưa lên trước</button>
+          </div>
+          <button class="btn-action" style="background:var(--color-danger); color:white; border:none; margin-top: 5px;" onclick="removeSelectedPlant()">🗑️ Nhổ cây đang chọn</button>
         </div>
       `;
       break;
@@ -942,11 +980,11 @@ function loadToolbox() {
         'legendary': 'Huyền thoại'
       };
       
-      let fishGridHtml = `<p class="tool-desc" style="margin-bottom:12px;">Nhấp vào sinh vật bất kỳ dưới đây để thả vào bể (Tối đa 25 con):</p>
+      let fishGridHtml = `<p class="tool-desc" style="margin-bottom:12px;">Nhấp vào sinh vật bất kỳ dưới đây để thả vào bể (Tối đa 150 con):</p>
         <div class="fish-selection-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-height: 280px; overflow-y: auto; padding-right: 5px;">`;
       
       fishCollection.forEach(fish => {
-        const fishImg = ASSETS_BASE + (fish.id === 'fish_yellow_striped' ? 'saricizgilibalik.png' : `${fish.id}.png`);
+        const fishImg = ASSETS_BASE + (fish.id === 'fish_yellow_striped' ? 'saricizgilibalik.png' : `${fish.id.replace('_', '')}.png`);
         fishGridHtml += `
           <div class="fish-selection-card" onclick="addFishDirectly('${fish.id}')" style="display: flex; align-items: center; gap: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); padding: 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s ease;">
             <div style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 4px; overflow: hidden; position: relative;">
@@ -982,6 +1020,22 @@ function loadToolbox() {
         </div>
       `;
       break;
+  }
+  
+  // Restore sliders states
+  if (state.step === 3) {
+    updateHardscapeSliders();
+  }
+  if (state.step === 4) {
+    updatePlantSliders();
+  }
+  
+  // Restore fish scroll position if we are in Step 7
+  if (state.step === 7 && fishScrollTop > 0) {
+    const newGrid = document.querySelector('.fish-selection-grid');
+    if (newGrid) {
+      newGrid.scrollTop = fishScrollTop;
+    }
   }
 }
 
@@ -1038,6 +1092,8 @@ function applyTemplate(templateId) {
   state.substrate.base = [...template.substrate.base];
   state.substrate.soil = [...template.substrate.soil];
   state.substrate.sand = [...template.substrate.sand];
+  state.substrate.ground_blue = template.substrate.ground_blue ? [...template.substrate.ground_blue] : Array(40).fill(0);
+  state.substrate.ground_green = template.substrate.ground_green ? [...template.substrate.ground_green] : Array(40).fill(0);
   
   // Clear existing items
   state.hardscapes = [];
@@ -1058,7 +1114,7 @@ function applyTemplate(templateId) {
     state.hardscapes = template.hardscapesDef.map(def => {
       const x = innerStartX + def.col * colWidth;
       const colIdx = Math.max(0, Math.min(39, Math.round(def.col)));
-      const h_below = (state.substrate.base[colIdx] || 0) + (state.substrate.soil[colIdx] || 0) + (state.substrate.sand[colIdx] || 0);
+      const h_below = (state.substrate.base[colIdx] || 0) + (state.substrate.soil[colIdx] || 0) + (state.substrate.sand[colIdx] || 0) + ((state.substrate.ground_blue && state.substrate.ground_blue[colIdx]) || 0) + ((state.substrate.ground_green && state.substrate.ground_green[colIdx]) || 0);
       const y = bottom - h_below;
       return {
         type: def.type,
@@ -1075,7 +1131,7 @@ function applyTemplate(templateId) {
     state.plants = template.plantsDef.map(def => {
       const x = innerStartX + def.col * colWidth;
       const colIdx = Math.max(0, Math.min(39, Math.round(def.col)));
-      const h_below = (state.substrate.base[colIdx] || 0) + (state.substrate.soil[colIdx] || 0) + (state.substrate.sand[colIdx] || 0);
+      const h_below = (state.substrate.base[colIdx] || 0) + (state.substrate.soil[colIdx] || 0) + (state.substrate.sand[colIdx] || 0) + ((state.substrate.ground_blue && state.substrate.ground_blue[colIdx]) || 0) + ((state.substrate.ground_green && state.substrate.ground_green[colIdx]) || 0);
       const y = bottom - h_below;
       return {
         type: def.type,
@@ -1126,6 +1182,8 @@ function clearSubstrate() {
   state.substrate.base = Array(40).fill(0);
   state.substrate.soil = Array(40).fill(0);
   state.substrate.sand = Array(40).fill(0);
+  state.substrate.ground_blue = Array(40).fill(0);
+  state.substrate.ground_green = Array(40).fill(0);
   state.selectedTemplateId = null; // Clear template selection
   updateUI();
   saveStateToServer();
@@ -1191,6 +1249,82 @@ function removeSelectedHardscape() {
     updateUI();
     saveStateToServer();
   }
+}
+
+function moveSelectedHardscapeZ(direction) {
+  if (selectedHardscapeIndex < 0 || selectedHardscapeIndex >= state.hardscapes.length) return;
+  
+  const hs = state.hardscapes[selectedHardscapeIndex];
+  
+  if (direction === 'back') {
+    // Move to the beginning of the array so it draws first (behind everything)
+    state.hardscapes.splice(selectedHardscapeIndex, 1);
+    state.hardscapes.unshift(hs);
+    selectedHardscapeIndex = 0;
+  } else if (direction === 'front') {
+    // Move to the end of the array so it draws last (in front of everything)
+    state.hardscapes.splice(selectedHardscapeIndex, 1);
+    state.hardscapes.push(hs);
+    selectedHardscapeIndex = state.hardscapes.length - 1;
+  }
+  
+  updateHardscapeSliders();
+  updateUI();
+  saveStateToServer();
+}
+
+function updatePlantSliders() {
+  const panel = document.getElementById('plant-sliders');
+  if (!panel) return;
+  if (selectedPlantIndex >= 0 && selectedPlantIndex < state.plants.length) {
+    const item = state.plants[selectedPlantIndex];
+    panel.style.display = 'flex';
+    document.getElementById('slide-plant-size').value = item.size || 1.0;
+    document.getElementById('txt-plant-size').textContent = (item.size || 1.0).toFixed(1) + 'x';
+  } else {
+    panel.style.display = 'none';
+  }
+}
+
+function adjustSelectedPlant(prop, val) {
+  if (selectedPlantIndex >= 0 && selectedPlantIndex < state.plants.length) {
+    const item = state.plants[selectedPlantIndex];
+    if (prop === 'size') {
+      item.size = parseFloat(val);
+      document.getElementById('txt-plant-size').textContent = parseFloat(val).toFixed(1) + 'x';
+    }
+    saveStateToServer();
+  }
+}
+
+function removeSelectedPlant() {
+  if (selectedPlantIndex >= 0 && selectedPlantIndex < state.plants.length) {
+    state.plants.splice(selectedPlantIndex, 1);
+    selectedPlantIndex = -1;
+    updatePlantSliders();
+    updateUI();
+    saveStateToServer();
+  }
+}
+
+function moveSelectedPlantZ(direction) {
+  if (selectedPlantIndex < 0 || selectedPlantIndex >= state.plants.length) return;
+  
+  const p = state.plants[selectedPlantIndex];
+  
+  if (direction === 'back') {
+    state.plants.splice(selectedPlantIndex, 1);
+    state.plants.unshift(p);
+    selectedPlantIndex = 0;
+  } else if (direction === 'front') {
+    state.plants.splice(selectedPlantIndex, 1);
+    state.plants.push(p);
+    selectedPlantIndex = state.plants.length - 1;
+  }
+  
+  updatePlantSliders();
+  updateUI();
+  saveStateToServer();
 }
 
 // Planting plants
@@ -1311,7 +1445,7 @@ function updateCyclingBars() {
 
 // Fauna Introduction
 function spawnFauna(type) {
-  if (state.fishes.length >= 25) {
+  if (state.fishes.length >= 150) {
     showToast("Bể cá đã chật, không nên thả thêm!");
     return;
   }
@@ -1345,7 +1479,7 @@ function clearFauna() {
 }
 
 function spawnSlotFish(fish) {
-  if (state.fishes.length >= 25) {
+  if (state.fishes.length >= 150) {
     showToast("Bể cá đã chật, không nên thả thêm!");
     return;
   }
@@ -1407,7 +1541,7 @@ function animateSlotFrame() {
 
 function spinSlotMachine() {
   if (isSpinning) return;
-  if (state.fishes.length >= 25) {
+  if (state.fishes.length >= 150) {
     showToast("Bể cá đã chật, không nên thả thêm!");
     return;
   }
@@ -1435,7 +1569,7 @@ function spinSlotMachine() {
     
     if (cardImg && fishPrev) {
       cardImg.src = ASSETS_BASE + `fishcard${randFish.rarity}.png`;
-      fishPrev.src = ASSETS_BASE + (randFish.id === 'fish_yellow_striped' ? 'saricizgilibalik.png' : `${randFish.id}.png`);
+      fishPrev.src = ASSETS_BASE + (randFish.id === 'fish_yellow_striped' ? 'saricizgilibalik.png' : `${randFish.id.replace('_', '')}.png`);
     }
     
     if (audioCtx && soundActive && Math.random() < 0.3) {
@@ -1718,9 +1852,11 @@ function handlePointerDown(e) {
         selectedPlantIndex = i;
         dragOffset.x = p.x - x;
         dragOffset.y = p.y - y;
+        updatePlantSliders();
         break;
       }
     }
+    updatePlantSliders();
     
     // If no existing plant was clicked and a plant tool is selected, place a new plant
     if (selectedPlantIndex < 0 && activeTool === 'place-plant' && selectedToolOption) {
@@ -1801,7 +1937,9 @@ function handlePointerMove(e) {
 
 function handlePointerUp() {
   isDragging = false;
-  selectedPlantIndex = -1;
+  if (state.step === 4) {
+    updatePlantSliders();
+  }
 }
 
 // Substrate brush logic
@@ -2066,7 +2204,9 @@ function simulateParticles() {
       const hBase = state.substrate.base[segIdx] || 0;
       const hSoil = state.substrate.soil[segIdx] || 0;
       const hSand = state.substrate.sand[segIdx] || 0;
-      substrateY = bottom - hBase - hSoil - hSand;
+      const hBlue = (state.substrate.ground_blue && state.substrate.ground_blue[segIdx]) || 0;
+      const hGreen = (state.substrate.ground_green && state.substrate.ground_green[segIdx]) || 0;
+      substrateY = bottom - hBase - hSoil - hSand - hBlue - hGreen;
     }
     
     if (f.y >= substrateY) {
@@ -2106,7 +2246,9 @@ function simulateFauna() {
         const hBase = state.substrate.base[segIdx] || 0;
         const hSoil = state.substrate.soil[segIdx] || 0;
         const hSand = state.substrate.sand[segIdx] || 0;
-        targetY = innerBottom - hBase - hSoil - hSand - 6;
+        const hBlue = (state.substrate.ground_blue && state.substrate.ground_blue[segIdx]) || 0;
+        const hGreen = (state.substrate.ground_green && state.substrate.ground_green[segIdx]) || 0;
+        targetY = innerBottom - hBase - hSoil - hSand - hBlue - hGreen - 6;
       }
       
       // Crawling movement
@@ -2123,31 +2265,69 @@ function simulateFauna() {
     } 
     else {
       // Fish behavior
-      // 1. Schooling behavior for Neon and Tam Giac
+      let ax = 0, ay = 0;
+      
+      // 1. Schooling behavior (Cohesion & Alignment) - by exact species/imageKey
       let schoolX = 0, schoolY = 0;
+      let alignVx = 0, alignVy = 0;
       let schoolCount = 0;
       
+      // 2. Separation behavior - avoid clumping with ANY other fish
+      let sepX = 0, sepY = 0;
+      let sepCount = 0;
+      
       state.fishes.forEach(other => {
-        if (other.type === fish.type && other !== fish) {
-          const d = Math.hypot(other.x - fish.x, other.y - fish.y);
-          if (d < 120) {
+        if (other === fish) return;
+        
+        const d = Math.hypot(other.x - fish.x, other.y - fish.y);
+        
+        // Separation (prevent overlap for all fishes)
+        const minDistance = (fish.type === 'cherry' || other.type === 'cherry') ? 22 : 45;
+        if (d < minDistance && d > 0) {
+          sepX += (fish.x - other.x) / d;
+          sepY += (fish.y - other.y) / d;
+          sepCount++;
+        }
+        
+        // Schooling (Cohesion & Alignment) - only same species
+        const fishImgKey = fish.imageKey || (fish.type === 'neon' ? 'fish_2' : (fish.type === 'tamgiac' ? 'fish_4' : (fish.type === 'mun' ? 'fish_yellow_striped' : 'fish_2')));
+        const otherImgKey = other.imageKey || (other.type === 'neon' ? 'fish_2' : (other.type === 'tamgiac' ? 'fish_4' : (other.type === 'mun' ? 'fish_yellow_striped' : 'fish_2')));
+        if (fishImgKey === otherImgKey && fish.type !== 'cherry') {
+          if (d < 140) {
             schoolX += other.x;
             schoolY += other.y;
+            alignVx += other.vx;
+            alignVy += other.vy;
             schoolCount++;
           }
         }
       });
       
-      // Move towards school center
-      let ax = 0, ay = 0;
+      // Apply Cohesion & Alignment
       if (schoolCount > 0) {
         schoolX /= schoolCount;
         schoolY /= schoolCount;
-        ax += (schoolX - fish.x) * 0.005;
-        ay += (schoolY - fish.y) * 0.005;
+        alignVx /= schoolCount;
+        alignVy /= schoolCount;
+        
+        // Cohesion force
+        ax += (schoolX - fish.x) * 0.003;
+        ay += (schoolY - fish.y) * 0.003;
+        
+        // Alignment force
+        ax += (alignVx - fish.vx) * 0.02;
+        ay += (alignVy - fish.vy) * 0.02;
       }
       
-      // 2. Head to Food if available
+      // Apply Separation
+      if (sepCount > 0) {
+        sepX /= sepCount;
+        sepY /= sepCount;
+        ax += sepX * 0.14;
+        ay += sepY * 0.14;
+      }
+      
+      // 3. Head to Food if available
       if (fishFood.length > 0) {
         // Find closest food
         let closest = null;
@@ -2172,10 +2352,10 @@ function simulateFauna() {
         }
       }
       
-      // 3. Random swimming force (momentum)
+      // 4. Random swimming force (momentum)
       if (Math.random() < 0.03) {
-        ax += (Math.random() - 0.5) * 0.2;
-        ay += (Math.random() - 0.5) * 0.1;
+        ax += (Math.random() - 0.5) * 0.18;
+        ay += (Math.random() - 0.5) * 0.09;
       }
       
       // Apply acceleration
@@ -2184,7 +2364,8 @@ function simulateFauna() {
       
       // Max speed clamp
       const speed = Math.hypot(fish.vx, fish.vy);
-      const maxSpeed = fish.type === 'neon' ? 1.5 : 2.0;
+      const isNeon = fish.imageKey && (fish.imageKey === 'fish_2' || fish.imageKey === 'fish_3' || fish.imageKey === 'fish_17');
+      const maxSpeed = (isNeon || fish.type === 'neon') ? 1.3 : 1.7;
       if (speed > maxSpeed) {
         fish.vx = (fish.vx / speed) * maxSpeed;
         fish.vy = (fish.vy / speed) * maxSpeed;
@@ -2206,11 +2387,29 @@ function simulateFauna() {
       const segIdx = Math.floor((fish.x - innerStartX) / segmentWidth);
       let substrateY = innerBottom - 20;
       if (segIdx >= 0 && segIdx < 40) {
-        substrateY = innerBottom - (state.substrate.base[segIdx] || 0) - (state.substrate.soil[segIdx] || 0) - (state.substrate.sand[segIdx] || 0);
+        substrateY = innerBottom - (state.substrate.base[segIdx] || 0) - (state.substrate.soil[segIdx] || 0) - (state.substrate.sand[segIdx] || 0) - ((state.substrate.ground_blue && state.substrate.ground_blue[segIdx]) || 0) - ((state.substrate.ground_green && state.substrate.ground_green[segIdx]) || 0);
       }
       
       if (fish.y < waterTop + 20) fish.vy += borderForce;
       if (fish.y > substrateY - 15) fish.vy -= borderForce;
+
+      // Hard clamp positions to keep them strictly inside the water bounds
+      if (fish.x < innerStartX + 15) {
+        fish.x = innerStartX + 15;
+        if (fish.vx < 0) fish.vx = 0.2;
+      }
+      if (fish.x > innerEndX - 15) {
+        fish.x = innerEndX - 15;
+        if (fish.vx > 0) fish.vx = -0.2;
+      }
+      if (fish.y < waterTop + 15) {
+        fish.y = waterTop + 15;
+        if (fish.vy < 0) fish.vy = 0.2; // bounce back down
+      }
+      if (fish.y > substrateY - 12) {
+        fish.y = substrateY - 12;
+        if (fish.vy > 0) fish.vy = -0.2; // bounce back up
+      }
     }
   });
 }
@@ -2326,6 +2525,8 @@ function render() {
   drawSubstrateCurve(ctx, innerStartX, innerBottom, innerWidth, 'base', materials.base.color);
   drawSubstrateCurve(ctx, innerStartX, innerBottom, innerWidth, 'soil', materials.soil.color);
   drawSubstrateCurve(ctx, innerStartX, innerBottom, innerWidth, 'sand', materials.sand.color);
+  drawSubstrateCurve(ctx, innerStartX, innerBottom, innerWidth, 'ground_blue', materials.ground_blue.color);
+  drawSubstrateCurve(ctx, innerStartX, innerBottom, innerWidth, 'ground_green', materials.ground_green.color);
   
   // 4. Draw Hardscape (Stones and Driftwoods)
   state.hardscapes.forEach((hs, idx) => {
@@ -2334,8 +2535,9 @@ function render() {
   });
   
   // 5. Draw Plants (Flora)
-  state.plants.forEach(p => {
-    drawPlantObject(ctx, p);
+  state.plants.forEach((p, idx) => {
+    const isSelected = idx === selectedPlantIndex && state.step === 4;
+    drawPlantObject(ctx, p, isSelected);
   });
   
   // 6. Draw Equipments
@@ -2396,18 +2598,26 @@ function drawSubstrateCurve(ctx, startX, bottom, width, type, color) {
   if (type === 'base') patternImg = loadedImages['ground_mushroom'];
   else if (type === 'soil') patternImg = loadedImages['ground_green'];
   else if (type === 'sand') patternImg = loadedImages['ground_orange'] || loadedImages['ground_blue'] || loadedImages['ground_pink'];
+  else if (type === 'ground_blue') patternImg = loadedImages['ground_blue'];
+  else if (type === 'ground_green') patternImg = loadedImages['ground_green'];
   
   if (patternImg && patternImg.complete && patternImg.naturalWidth > 0) {
     ctx.save();
     ctx.imageSmoothingEnabled = false;
     
-    // Apply soft, natural color filters to tone down the harsh neon Unity colors
+    // Apply soft, natural color filters to tone down the harsh neon colors
     if (type === 'base') {
       ctx.filter = 'saturate(0.5) brightness(0.6) sepia(0.2)';
     } else if (type === 'soil') {
       ctx.filter = 'saturate(0.1) brightness(0.35) contrast(1.1)';
     } else if (type === 'sand') {
       ctx.filter = 'saturate(0.4) brightness(0.95) sepia(0.35) contrast(0.95)';
+    } else if (type === 'ground_blue') {
+      // Keep blue sand cheerful and vibrant
+      ctx.filter = 'saturate(0.85) brightness(0.85) contrast(1.05)';
+    } else if (type === 'ground_green') {
+      // Keep green mossy soil vibrant and algae-like
+      ctx.filter = 'saturate(0.8) brightness(0.8) contrast(1.1)';
     }
     
     // Bounding box of the active ground region in the 400x300 sprite:
@@ -2427,6 +2637,10 @@ function drawSubstrateCurve(ctx, startX, bottom, width, type, color) {
         h_below = state.substrate.base[i] || 0;
       } else if (type === 'sand') {
         h_below = (state.substrate.base[i] || 0) + (state.substrate.soil[i] || 0);
+      } else if (type === 'ground_blue') {
+        h_below = (state.substrate.base[i] || 0) + (state.substrate.soil[i] || 0) + (state.substrate.sand[i] || 0);
+      } else if (type === 'ground_green') {
+        h_below = (state.substrate.base[i] || 0) + (state.substrate.soil[i] || 0) + (state.substrate.sand[i] || 0) + ((state.substrate.ground_blue && state.substrate.ground_blue[i]) || 0);
       }
       
       const x1 = Math.floor(startX + i * colWidth);
@@ -2480,6 +2694,10 @@ function drawSubstrateCurve(ctx, startX, bottom, width, type, color) {
         yHeight = (state.substrate.base[Math.min(39, i)] || 0) + (heights[Math.min(39, i)] || 0);
       } else if (type === 'sand') {
         yHeight = (state.substrate.base[Math.min(39, i)] || 0) + (state.substrate.soil[Math.min(39, i)] || 0) + (heights[Math.min(39, i)] || 0);
+      } else if (type === 'ground_blue') {
+        yHeight = (state.substrate.base[Math.min(39, i)] || 0) + (state.substrate.soil[Math.min(39, i)] || 0) + (state.substrate.sand[Math.min(39, i)] || 0) + (heights[Math.min(39, i)] || 0);
+      } else if (type === 'ground_green') {
+        yHeight = (state.substrate.base[Math.min(39, i)] || 0) + (state.substrate.soil[Math.min(39, i)] || 0) + (state.substrate.sand[Math.min(39, i)] || 0) + ((state.substrate.ground_blue && state.substrate.ground_blue[Math.min(39, i)]) || 0) + (heights[Math.min(39, i)] || 0);
       }
       ctx.lineTo(x, bottom - yHeight);
     }
@@ -2488,12 +2706,14 @@ function drawSubstrateCurve(ctx, startX, bottom, width, type, color) {
     ctx.fill();
     
     // Draw granule textures (little dots)
-    ctx.fillStyle = type === 'sand' ? '#d8ae62' : (type === 'base' ? '#6e513d' : '#1a1512');
+    ctx.fillStyle = type === 'sand' ? '#d8ae62' : (type === 'base' ? '#6e513d' : (type === 'ground_blue' ? '#0d47a1' : (type === 'ground_green' ? '#1b5e20' : '#1a1512')));
     for (let i = 0; i < 40; i += 2) {
       const x = startX + i * colWidth + Math.random() * 5;
-      let yHeight = state.substrate.base[i];
-      if (type === 'soil') yHeight += state.substrate.soil[i];
-      if (type === 'sand') yHeight += state.substrate.soil[i] + state.substrate.sand[i];
+      let yHeight = state.substrate.base[i] || 0;
+      if (type === 'soil') yHeight += state.substrate.soil[i] || 0;
+      if (type === 'sand') yHeight += (state.substrate.soil[i] || 0) + (state.substrate.sand[i] || 0);
+      if (type === 'ground_blue') yHeight += (state.substrate.soil[i] || 0) + (state.substrate.sand[i] || 0) + ((state.substrate.ground_blue && state.substrate.ground_blue[i]) || 0);
+      if (type === 'ground_green') yHeight += (state.substrate.soil[i] || 0) + (state.substrate.sand[i] || 0) + ((state.substrate.ground_blue && state.substrate.ground_blue[i]) || 0) + ((state.substrate.ground_green && state.substrate.ground_green[i]) || 0);
       
       ctx.beginPath();
       ctx.arc(x, bottom - yHeight + 4, 1.5, 0, Math.PI*2);
@@ -2518,13 +2738,23 @@ function drawHardscapeObject(ctx, hs, isSelected) {
   
   ctx.imageSmoothingEnabled = false;
   
-  const bbox = item.bbox;
+  const bbox = (hs.type === 'helmet' || hs.type === 'leaning_bonsai') ? getImageBBox(img) : item.bbox;
+  
+  let drawW = bbox.w;
+  let drawH = bbox.h;
+  if (hs.type === 'helmet' || hs.type === 'leaning_bonsai') {
+    const targetW = item.bbox.w;
+    const targetH = item.bbox.h;
+    const ratio = Math.min(targetW / bbox.w, targetH / bbox.h);
+    drawW = bbox.w * ratio;
+    drawH = bbox.h * ratio;
+  }
   
   // Draw the cropped pixel-art sprite centered horizontally, sitting exactly on the baseline
   ctx.drawImage(
     img,
     bbox.x, bbox.y, bbox.w, bbox.h,
-    -bbox.w / 2, -bbox.h, bbox.w, bbox.h
+    -drawW / 2, -drawH, drawW, drawH
   );
   
   // Selection box outline if active tool is hardscape and clicked
@@ -2532,7 +2762,7 @@ function drawHardscapeObject(ctx, hs, isSelected) {
     ctx.strokeStyle = 'var(--color-primary, #5a8df3)';
     ctx.lineWidth = 2;
     ctx.setLineDash([4, 4]);
-    ctx.strokeRect(-bbox.w / 2, -bbox.h, bbox.w, bbox.h);
+    ctx.strokeRect(-drawW / 2, -drawH, drawW, drawH);
     ctx.setLineDash([]);
     
     // Draw small anchor ring
@@ -2546,7 +2776,7 @@ function drawHardscapeObject(ctx, hs, isSelected) {
 }
 
 // Flora Plant Drawer
-function drawPlantObject(ctx, p) {
+function drawPlantObject(ctx, p, isSelected) {
   const item = floraItems[p.type];
   if (!item) return;
   
@@ -2575,6 +2805,22 @@ function drawPlantObject(ctx, p) {
       bbox.x, bbox.y, bbox.w, bbox.h,
       -w / 2, -h, w, h
     );
+    
+    // Draw selection box outline if active tool is plant and clicked
+    if (isSelected) {
+      ctx.strokeStyle = 'var(--color-primary, #5a8df3)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.strokeRect(-w / 2, -h, w, h);
+      ctx.setLineDash([]);
+      
+      // Draw small anchor ring
+      ctx.fillStyle = 'var(--color-primary)';
+      ctx.beginPath();
+      ctx.arc(0, 0, 5, 0, Math.PI*2);
+      ctx.fill();
+    }
+    
     ctx.restore();
     return;
   }

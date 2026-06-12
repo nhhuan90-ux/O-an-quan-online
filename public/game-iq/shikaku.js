@@ -119,6 +119,7 @@ class ShikakuGame {
   }
 
   render(container) {
+    container.classList.add('shikaku-board');
     container.style.display = 'grid';
     container.style.gridTemplateColumns = `repeat(${this.width}, 1fr)`;
     container.style.gridTemplateRows = `repeat(${this.height}, 1fr)`;
@@ -243,6 +244,12 @@ class ShikakuGame {
     this.drawStart = { r, c };
     this.drawEnd = { r, c };
     this.updatePreview();
+
+    // Attach global mouseup listener to end drawing even if released outside the board
+    this.handleGlobalMouseUp = () => {
+      this.endDraw();
+    };
+    window.addEventListener('mouseup', this.handleGlobalMouseUp);
   }
 
   moveDraw(r, c) {
@@ -254,6 +261,12 @@ class ShikakuGame {
   endDraw() {
     if (!this.isDrawing) return;
     this.isDrawing = false;
+    
+    // Remove global mouseup listener
+    if (this.handleGlobalMouseUp) {
+      window.removeEventListener('mouseup', this.handleGlobalMouseUp);
+      this.handleGlobalMouseUp = null;
+    }
     
     // Create new rect
     const x = Math.min(this.drawStart.c, this.drawEnd.c);

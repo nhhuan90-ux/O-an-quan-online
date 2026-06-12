@@ -31,7 +31,13 @@ app.use(express.static(path.join(__dirname, '../public'), {
   setHeaders: (res, filepath) => {
     // Check if file is inside the assets directory
     if (filepath.replace(/\\/g, '/').includes('be-ca-thuy-sinh/assets/')) {
-      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      if (process.env.NODE_ENV === 'production') {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      } else {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+      }
     } else if (filepath.endsWith('.js') || filepath.endsWith('.css')) {
       if (process.env.NODE_ENV === 'production') {
         // Cache JS and CSS for 1 day in production to optimize bandwidth

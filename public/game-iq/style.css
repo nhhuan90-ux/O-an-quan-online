@@ -551,6 +551,16 @@ body {
 }
 
 /* 1. Shikaku Specific Styles */
+.shikaku-board .cell {
+  border-right: 1px solid rgba(255, 255, 255, 0.22);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.shikaku-board .cell:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.1);
+}
+
 .cell-number {
   font-size: 1.4rem;
   color: var(--text-bright);
@@ -716,6 +726,9 @@ body {
   background: #ff80ab;
   z-index: 1;
   box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .lollipop-stick-v {
@@ -730,15 +743,23 @@ body {
 
 .lollipop-dot::after {
   content: "";
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.25);
+  background-color: rgba(255, 255, 255, 0.4);
 }
 
 /* 5. Shingoki Specific Styles */
 .shingoki-board-container {
   position: relative;
+}
+
+.shingoki-board {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  right: 24px;
+  bottom: 24px;
 }
 
 /* Dots layer */
@@ -1039,6 +1060,13 @@ body {
   background: rgba(175, 82, 222, 0.4);
 }
 
+/* ==========================================================================
+   7. Tower of Hanoi Specific Styles
+   ========================================================================== */
+.hanoi-peg-col:hover .hanoi-peg-shaft {
+  background: rgba(175, 82, 222, 0.4);
+}
+
 .hanoi-disc {
   transition: transform 0.2s, box-shadow 0.2s;
 }
@@ -1046,3 +1074,457 @@ body {
 .hanoi-disc:hover {
   filter: brightness(1.15);
 }
+
+/* ==========================================================================
+   8. Binairo Plus Specific Styles
+   ========================================================================== */
+.binairo-board .cell-binairo {
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.01);
+  transition: background 0.2s;
+}
+
+.binairo-board .cell-binairo:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.binairo-board .cell-binairo.clue {
+  cursor: default;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.binairo-circle {
+  width: 0;
+  height: 0;
+  opacity: 0;
+  border-radius: 50%;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.binairo-board .cell-binairo.val-1 .binairo-circle {
+  width: 65%;
+  height: 65%;
+  opacity: 1;
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #d8d8d8 70%, #909090 100%);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.85), inset 0 0 4px rgba(255, 255, 255, 1);
+}
+
+.binairo-board .cell-binairo.val-2 .binairo-circle {
+  width: 65%;
+  height: 65%;
+  opacity: 1;
+  background: radial-gradient(circle at 35% 35%, #2c2045 0%, #120925 60%, #05010a 100%);
+  border: 1.5px solid #bf5af2;
+  box-shadow: 0 0 12px rgba(191, 90, 242, 0.6), inset 0 0 6px rgba(191, 90, 242, 0.3);
+}
+
+.binairo-relation-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 18px;
+  height: 18px;
+  line-height: 16px;
+  text-align: center;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 800;
+  font-family: monospace;
+  z-index: 10;
+  color: #ffffff;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.binairo-relation-marker.eq {
+  background: rgba(52, 199, 89, 0.9);
+  box-shadow: 0 0 8px rgba(52, 199, 89, 0.8);
+}
+
+.binairo-relation-marker.neq {
+  background: rgba(255, 159, 10, 0.9);
+  box-shadow: 0 0 8px rgba(255, 159, 10, 0.8);
+}
+
+/* ==========================================================================
+   9. Thermometers Specific Styles
+   ========================================================================== */
+.thermometers-board .cell-thermo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.01);
+  transition: background 0.2s;
+}
+
+.thermometers-board .cell-thermo:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.thermo-spacer {
+  background: transparent;
+  border: none !important;
+}
+
+.thermo-clue {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-title);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  transition: all 0.25s ease;
+}
+
+.thermo-clue.col-clue {
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.thermo-clue.row-clue {
+  border-right: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.thermo-clue.satisfied {
+  color: #34c759;
+  text-shadow: 0 0 10px rgba(52, 199, 89, 0.8);
+  background: rgba(52, 199, 89, 0.08);
+  border-color: rgba(52, 199, 89, 0.3);
+}
+
+.thermo-clue.exceeded {
+  color: #ff3b30;
+  text-shadow: 0 0 10px rgba(255, 59, 48, 0.8);
+  background: rgba(255, 59, 48, 0.08);
+  border-color: rgba(255, 59, 48, 0.3);
+}
+
+.thermo-tube-bg {
+  fill: rgba(255, 255, 255, 0.06);
+  stroke: rgba(255, 255, 255, 0.25);
+  stroke-width: 3.5px;
+  stroke-linejoin: round;
+}
+
+.thermo-tube-fill {
+  fill: none;
+  stroke: none;
+  transition: fill 0.2s ease;
+}
+
+.cell-thermo.filled .thermo-tube-fill {
+  fill: #ff5722;
+  filter: drop-shadow(0 0 3px rgba(255, 87, 34, 0.8));
+}
+
+.thermo-x-mark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.8rem;
+  font-weight: 300;
+  color: rgba(255, 59, 48, 0.85);
+  display: none;
+  pointer-events: none;
+  user-select: none;
+  text-shadow: 0 0 6px rgba(255, 59, 48, 0.6);
+}
+
+.cell-thermo.marked-x .thermo-x-mark {
+  display: block;
+}
+
+/* ==========================================================================
+   10. Hitori Specific Styles
+   ========================================================================== */
+.hitori-board .cell-hitori {
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.01);
+  transition: all 0.2s ease;
+}
+
+.hitori-board .cell-hitori:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.hitori-board .cell-number {
+  font-size: 1.45rem;
+  font-weight: 700;
+  font-family: var(--font-title);
+  color: var(--text-bright);
+  transition: color 0.2s;
+  z-index: 2;
+  user-select: none;
+}
+
+.hitori-board .cell-hitori.shaded {
+  background: rgba(10, 5, 22, 0.95);
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.9);
+  border-color: rgba(255, 255, 255, 0.02);
+}
+
+.hitori-board .cell-hitori.shaded .cell-number {
+  color: rgba(255, 255, 255, 0.15);
+}
+
+.hitori-ring {
+  position: absolute;
+  top: 15%;
+  left: 15%;
+  width: 70%;
+  height: 70%;
+  border-radius: 50%;
+  border: 2px solid #34c759;
+  box-shadow: 0 0 8px rgba(52, 199, 89, 0.6);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hitori-board .cell-hitori.marked .hitori-ring {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ==========================================================================
+   11. Bridges Specific Styles
+   ========================================================================== */
+.bridges-board-wrapper {
+  background: rgba(18, 9, 36, 0.4);
+  border-radius: 24px;
+  border: 1px solid var(--border-glass);
+  padding: 16px;
+  overflow: hidden;
+}
+
+.bridges-grid-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.bridges-grid-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bridges-grid-cell::after {
+  content: '';
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  display: block;
+}
+
+.bridges-svg {
+  filter: drop-shadow(0 0 1px rgba(0, 240, 255, 0.4));
+}
+
+.bridge-line {
+  stroke: #00f0ff;
+  stroke-linecap: round;
+  transition: stroke 0.2s, stroke-width 0.2s;
+}
+
+.bridge-line.single {
+  stroke-width: 1.2;
+  filter: drop-shadow(0 0 3px rgba(0, 240, 255, 0.9)) drop-shadow(0 0 8px rgba(0, 240, 255, 0.4));
+}
+
+.bridge-line.double {
+  stroke-width: 0.9;
+  filter: drop-shadow(0 0 2px rgba(0, 240, 255, 0.8)) drop-shadow(0 0 5px rgba(0, 240, 255, 0.3));
+}
+
+.bridges-island {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(18, 9, 36, 0.9);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 0 6px rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.bridges-island:hover {
+  transform: translate(-50%, -50%) scale(1.1) !important;
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(30, 15, 60, 0.9);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.6);
+}
+
+.bridges-island.selected {
+  border-color: #ffcc00;
+  box-shadow: 0 0 15px rgba(255, 204, 0, 0.8), inset 0 0 8px rgba(255, 204, 0, 0.3);
+  transform: translate(-50%, -50%) scale(1.15) !important;
+}
+
+.bridges-island.satisfied {
+  border-color: #34c759;
+  box-shadow: 0 0 14px rgba(52, 199, 89, 0.6), inset 0 0 6px rgba(52, 199, 89, 0.2);
+}
+
+.bridges-island.satisfied .island-number {
+  color: #34c759;
+  text-shadow: 0 0 6px rgba(52, 199, 89, 0.5);
+}
+
+.bridges-island.exceeded {
+  border-color: #ff3b30;
+  box-shadow: 0 0 14px rgba(255, 59, 48, 0.6), inset 0 0 6px rgba(255, 59, 48, 0.2);
+  animation: shakeIsland 0.4s ease;
+}
+
+.bridges-island.exceeded .island-number {
+  color: #ff3b30;
+  text-shadow: 0 0 6px rgba(255, 59, 48, 0.5);
+}
+
+.bridges-island.marked-completed {
+  opacity: 0.45;
+  filter: grayscale(0.5);
+}
+
+.island-number {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: var(--text-bright);
+  transition: color 0.2s;
+  pointer-events: none;
+}
+
+@keyframes shakeIsland {
+  0%, 100% { transform: translate(-50%, -50%); }
+  20%, 60% { transform: translate(-54%, -50%); }
+  40%, 80% { transform: translate(-46%, -50%); }
+}
+
+/* ==========================================================================
+   12. Masyu Specific Styles
+   ========================================================================== */
+.masyu-board-container {
+  background: rgba(18, 9, 36, 0.4);
+  border-radius: 24px;
+  border: 1px solid var(--border-glass);
+  padding: 16px;
+  overflow: hidden;
+}
+
+.masyu-cells-grid {
+  width: 100%;
+  height: 100%;
+}
+
+.masyu-cell {
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.005);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.masyu-circle {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  z-index: 10;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  transition: box-shadow 0.25s, border-color 0.25s;
+}
+
+.masyu-circle.white {
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #eeeeee 55%, #cccccc 100%);
+  border: 1.5px solid #a82cff;
+  box-shadow: 0 0 6px rgba(168, 44, 255, 0.2), 0 3px 6px rgba(0,0,0,0.3);
+}
+
+.masyu-circle.black {
+  background: radial-gradient(circle at 35% 35%, #303030 0%, #171717 65%, #050505 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5);
+}
+
+.masyu-circle.white.satisfied {
+  box-shadow: 0 0 10px #34c759, 0 3px 6px rgba(0,0,0,0.3);
+  border-color: #34c759;
+}
+
+.masyu-circle.black.satisfied {
+  box-shadow: 0 0 10px #34c759, 0 3px 6px rgba(0,0,0,0.5);
+  border-color: #34c759;
+}
+
+.masyu-circle.white.error {
+  box-shadow: 0 0 10px #ff3b30, 0 3px 6px rgba(0,0,0,0.3);
+  border-color: #ff3b30;
+}
+
+.masyu-circle.black.error {
+  box-shadow: 0 0 10px #ff3b30, 0 3px 6px rgba(0,0,0,0.5);
+  border-color: #ff3b30;
+}
+
+.masyu-edge-hitbox {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.masyu-edge-visual {
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.masyu-edge-visual.empty {
+  background-color: transparent;
+}
+
+.masyu-edge-visual.line {
+  background-color: #a82cff;
+  box-shadow: 0 0 8px rgba(168, 44, 255, 0.9), 0 0 15px rgba(168, 44, 255, 0.4);
+}
+
+.masyu-edge-visual.cross::after {
+  content: '×';
+  color: #ff3b30;
+  font-family: var(--font-title);
+  font-size: 1.4rem;
+  font-weight: 300;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-shadow: 0 0 5px rgba(255, 59, 48, 0.8);
+}
+
+

@@ -205,13 +205,34 @@ class LollipopsGame {
   }
 
   loadFallbackLevel() {
-    this.clues = [
-      [1, 0, 0, 0, 0],
-      [0, 0, 0, 2, 0],
-      [0, 0, 0, 0, 0],
-      [0, 3, 0, 0, 0],
-      [0, 0, 0, 0, 1]
-    ];
+    if (this.width === 5) {
+      this.clues = [
+        [1, 0, 0, 0, 0],
+        [0, 0, 0, 2, 0],
+        [0, 0, 0, 0, 0],
+        [0, 3, 0, 0, 0],
+        [0, 0, 0, 0, 1]
+      ];
+    } else if (this.width === 6) {
+      this.clues = [
+        [1, 2, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 3, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0]
+      ];
+    } else {
+      this.clues = [
+        [1, 2, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 3, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1, 2],
+        [0, 0, 0, 0, 0, 0, 0]
+      ];
+    }
     this.grid = JSON.parse(JSON.stringify(this.clues));
   }
 
@@ -281,6 +302,11 @@ class LollipopsGame {
     cell.addEventListener('mousedown', (e) => {
       if (e.button === 0) {
         this.dragStart = { r, c };
+        const onGlobalMouseUp = () => {
+          this.dragStart = null;
+          window.removeEventListener('mouseup', onGlobalMouseUp);
+        };
+        window.addEventListener('mouseup', onGlobalMouseUp);
       } else if (e.button === 2) {
         toggleDot();
       }
@@ -427,8 +453,8 @@ class LollipopsGame {
         const l2 = lollipops[j];
         
         // Check if any element of l1 is orthogonally adjacent to any element of l2
-        const pts1 = [l1.circle, l1.stick];
-        const pts2 = [l2.circle, l2.stick];
+        const pts1 = [l1.circle, l1.stick].filter(p => p !== null && p.r !== -1);
+        const pts2 = [l2.circle, l2.stick].filter(p => p !== null && p.r !== -1);
         
         let touch = false;
         pts1.forEach(p1 => {
@@ -439,10 +465,10 @@ class LollipopsGame {
         });
 
         if (touch) {
-          errors[l1.circle.r][l1.circle.c] = true;
-          errors[l1.stick.r][l1.stick.c] = true;
-          errors[l2.circle.r][l2.circle.c] = true;
-          errors[l2.stick.r][l2.stick.c] = true;
+          if (l1.circle && l1.circle.r !== -1) errors[l1.circle.r][l1.circle.c] = true;
+          if (l1.stick && l1.stick.r !== -1) errors[l1.stick.r][l1.stick.c] = true;
+          if (l2.circle && l2.circle.r !== -1) errors[l2.circle.r][l2.circle.c] = true;
+          if (l2.stick && l2.stick.r !== -1) errors[l2.stick.r][l2.stick.c] = true;
         }
       }
     }

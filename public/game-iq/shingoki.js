@@ -145,9 +145,11 @@ class ShingokiGame {
         const isStraight = (inDir.dr === outDir.dr && inDir.dc === outDir.dc);
         const type = isStraight ? 'white' : 'black';
 
-        // Calculate lengths in both directions
-        const L1 = this.traceSolutionSegmentLength(curr.r, curr.c, inDir.dr, inDir.dc);
-        const L2 = this.traceSolutionSegmentLength(curr.r, curr.c, -outDir.dr, -outDir.dc);
+        // Calculate lengths in both directions (pointing away from curr)
+        const dir1 = { dr: prev.r - curr.r, dc: prev.c - curr.c };
+        const dir2 = { dr: next.r - curr.r, dc: next.c - curr.c };
+        const L1 = this.traceSolutionSegmentLength(curr.r, curr.c, dir1.dr, dir1.dc);
+        const L2 = this.traceSolutionSegmentLength(curr.r, curr.c, dir2.dr, dir2.dc);
         
         loopDots.push({
           r: curr.r,
@@ -243,6 +245,11 @@ class ShingokiGame {
     container.style.width = `${boardSize}px`;
     container.style.height = `${boardSize}px`;
     
+    // Create inner board for inset padding to prevent clipping
+    const board = document.createElement('div');
+    board.className = 'shingoki-board';
+    container.appendChild(board);
+    
     // Draw dots
     for (let r = 0; r < this.height; r++) {
       for (let c = 0; c < this.width; c++) {
@@ -257,13 +264,13 @@ class ShingokiGame {
           circle.style.top = `${(r / (this.height - 1)) * 100}%`;
           circle.innerText = clue.num;
           
-          container.appendChild(circle);
+          board.appendChild(circle);
         } else {
           const dot = document.createElement('div');
           dot.className = 'shingoki-dot';
           dot.style.left = `${(c / (this.width - 1)) * 100}%`;
           dot.style.top = `${(r / (this.height - 1)) * 100}%`;
-          container.appendChild(dot);
+          board.appendChild(dot);
         }
       }
     }
@@ -289,7 +296,7 @@ class ShingokiGame {
         edge.appendChild(line);
 
         this.bindEdgeEvents(edge);
-        container.appendChild(edge);
+        board.appendChild(edge);
       }
     }
 
@@ -314,7 +321,7 @@ class ShingokiGame {
         edge.appendChild(line);
 
         this.bindEdgeEvents(edge);
-        container.appendChild(edge);
+        board.appendChild(edge);
       }
     }
   }

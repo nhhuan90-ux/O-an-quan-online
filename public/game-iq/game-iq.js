@@ -243,6 +243,7 @@ class GameManager {
     
     // Render Board
     const container = document.getElementById('board-container');
+    container.className = 'board-container';
     container.innerHTML = '';
     
     // Initialize board state
