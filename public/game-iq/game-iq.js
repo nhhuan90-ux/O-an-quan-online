@@ -211,6 +211,22 @@ class GameManager {
     });
   }
 
+  loadScript(url, callback) {
+    const existingScript = document.querySelector(`script[src="${url}"]`);
+    if (existingScript) {
+      if (callback) callback();
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = url;
+    script.onload = callback;
+    script.onerror = () => {
+      console.error(`Error loading script: ${url}`);
+      if (callback) callback();
+    };
+    document.body.appendChild(script);
+  }
+
   loadGame(gameId) {
     this.activeGameId = gameId;
     
@@ -226,10 +242,20 @@ class GameManager {
     this.redoStack = [];
     this.updateUndoRedoButtons();
     
-    // Load the game class
+    // Load the game class (Lazy loading dynamically)
     const GameClass = window.IQGames[gameId];
     if (!GameClass) {
-      console.error(`Game class for ${gameId} not found.`);
+      const container = document.getElementById('board-container');
+      container.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100%;font-size:1.2rem;color:rgba(255,255,255,0.7);">Đang tải trò chơi... ⏳</div>';
+      
+      this.loadScript(`${gameId}.js`, () => {
+        const LoadedGameClass = window.IQGames[gameId];
+        if (LoadedGameClass) {
+          this.loadGame(gameId);
+        } else {
+          container.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100%;color:#ff3b30;font-weight:bold;">Lỗi tải trò chơi! Vui lòng thử lại.</div>';
+        }
+      });
       return;
     }
     
